@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+/*
+ * LearnHub LMS Design System
+ * 
+ * Color Psychology for Education:
+ * - Primary (Teal/Blue): Trust, focus, calm — ideal for navigation & reading areas
+ * - Accent (Amber/Orange): Energy, engagement — CTAs & progress indicators
+ * - Success (Green): Growth, completion — progress tracking & completed states
+ * - Neutral (Warm grays): Reduced eye strain for long study sessions
+ * 
+ * Following the 60-30-10 rule:
+ * - 60% Neutral backgrounds (warm off-whites, soft grays)
+ * - 30% Primary brand color (teal-blue tones)
+ * - 10% Accent colors (amber for CTAs, green for success)
+ */
+
+@theme {
+  /* ── Brand Colors ── */
+  --color-brand-50: oklch(0.97 0.01 200);
+  --color-brand-100: oklch(0.93 0.03 200);
+  --color-brand-200: oklch(0.86 0.06 200);
+  --color-brand-300: oklch(0.76 0.09 200);
+  --color-brand-400: oklch(0.65 0.12 195);
+  --color-brand-500: oklch(0.55 0.14 195);
+  --color-brand-600: oklch(0.48 0.13 195);
+  --color-brand-700: oklch(0.42 0.11 195);
+  --color-brand-800: oklch(0.36 0.09 195);
+  --color-brand-900: oklch(0.30 0.07 195);
+  --color-brand-950: oklch(0.20 0.05 195);
+
+  /* ── Accent (Warm Amber) ── */
+  --color-accent-400: oklch(0.82 0.15 75);
+  --color-accent-500: oklch(0.75 0.16 60);
+  --color-accent-600: oklch(0.68 0.17 55);
+
+  /* ── Success (Growth Green) ── */
+  --color-success-400: oklch(0.78 0.15 155);
+  --color-success-500: oklch(0.68 0.16 155);
+
+  /* ── Surface (Warm neutrals — reduces eye strain) ── */
+  --color-surface-50: oklch(0.985 0.002 80);
+  --color-surface-100: oklch(0.97 0.004 80);
+  --color-surface-200: oklch(0.94 0.006 80);
+  --color-surface-300: oklch(0.90 0.008 80);
+  --color-surface-400: oklch(0.82 0.01 80);
+  --color-surface-800: oklch(0.25 0.01 260);
+  --color-surface-900: oklch(0.18 0.015 260);
+  --color-surface-950: oklch(0.13 0.02 260);
+}
+
+/* ── Base styles ── */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Focus ring for accessibility ── */
+:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Custom scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(0.6 0.02 260 / 0.3);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.5 0.02 260 / 0.5);
+}
+
+/* ── Skeleton loading animation ── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg,
+    oklch(0.92 0 0 / 0.5) 25%,
+    oklch(0.88 0 0 / 0.5) 50%,
+    oklch(0.92 0 0 / 0.5) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
