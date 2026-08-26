@@ -11,7 +11,6 @@ export async function enrollInCourse(courseId: number): Promise<StrapiResponse<E
   });
 }
 
-export async function getMyEnrollments(userId?: number): Promise<StrapiResponse<Enrollment[]>> {
-  const filter = userId ? `&filters[student][id][$eq]=${userId}` : '';
-  return fetchAPI(`/api/enrollments?populate[course][populate]=*${filter}`);
+export async function getMyEnrollments(): Promise<StrapiResponse<Enrollment[]>> {
+  return fetchAPI('/api/enrollments/my');
 }

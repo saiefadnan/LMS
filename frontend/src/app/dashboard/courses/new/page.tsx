@@ -47,7 +47,6 @@ export default function NewCoursePage() {
         level: data.level,
         category: data.category,
         published: Boolean(data.published),
-        instructor: user.id,
       };
 
       // Only include thumbnail if provided and not empty

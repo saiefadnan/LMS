@@ -17,7 +17,7 @@ export default function MyCoursesPage() {
     async function fetchEnrollments() {
       if (!user) return;
       try {
-        const res = await getMyEnrollments(user.id);
+        const res = await getMyEnrollments();
         setEnrollments(res.data || []);
       } catch (error) {
         console.error('Failed to load enrollments', error);

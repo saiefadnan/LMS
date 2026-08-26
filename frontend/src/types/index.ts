@@ -36,13 +36,23 @@ export interface Course {
   description: string;
   level: 'beginner' | 'intermediate' | 'advanced';
   category: string;
-  thumbnail?: StrapiMedia;
+  thumbnail?: string | StrapiMedia;
   instructor?: User;
   lessons?: Lesson[];
   enrollments?: Enrollment[];
   published: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CourseInput {
+  title?: string;
+  description?: string;
+  level?: 'beginner' | 'intermediate' | 'advanced';
+  category?: string;
+  thumbnail?: string | StrapiMedia;
+  instructor?: number | string | User;
+  published?: boolean;
 }
 
 // ─── Lesson ─────────────────────────────────────────────────────
@@ -57,6 +67,14 @@ export interface Lesson {
   course?: Course;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface LessonInput {
+  title?: string;
+  content?: string;
+  videoUrl?: string;
+  order?: number;
+  course?: number | string | Course;
 }
 
 // ─── Enrollment ─────────────────────────────────────────────────
