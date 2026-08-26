@@ -5,7 +5,64 @@ export default {
    * Register phase — runs before the app is initialized.
    * Used to extend Strapi's core functionality.
    */
-  register(/* { strapi }: { strapi: Core.Strapi } */) {},
+  register({ strapi }: { strapi: Core.Strapi }) {
+    const plugin = strapi.plugin('users-permissions');
+    if (plugin && plugin.controllers && plugin.controllers.auth) {
+      const originalRegister = plugin.controllers.auth.register;
+      plugin.controllers.auth.register = async (ctx: any, next?: any) => {
+        // 1. Extract requested role from body
+        const requestedRoleType = ctx.request.body?.role || 'student';
+
+        // 2. Prevent privilege escalation
+        if (requestedRoleType === 'admin' || requestedRoleType === 'content_manager') {
+          return ctx.badRequest('You cannot register with this role.');
+        }
+
+        // 3. Find the target role in database
+        const role = await strapi
+          .query('plugin::users-permissions.role')
+          .findOne({ where: { type: requestedRoleType } });
+
+        if (!role) {
+          return ctx.badRequest(`Role '${requestedRoleType}' not found.`);
+        }
+
+        // 4. Remove 'role' from body so Strapi v5 strict parameter validator doesn't reject it
+        if (ctx.request.body) {
+          delete ctx.request.body.role;
+        }
+
+        // 5. Call original register controller
+        await originalRegister(ctx, next);
+
+        // 6. If user was created, update their role to the requested role
+        if (ctx.body && ctx.body.user) {
+          const userId = ctx.body.user.id;
+
+          await strapi.query('plugin::users-permissions.user').update({
+            where: { id: userId },
+            data: { role: role.id },
+          });
+
+          // Fetch full user with populated role
+          const updatedUser = await strapi.query('plugin::users-permissions.user').findOne({
+            where: { id: userId },
+            populate: ['role'],
+          });
+
+          const userSchema = strapi.getModel('plugin::users-permissions.user');
+          const sanitizedUser = await strapi.contentAPI.sanitize.output(
+            updatedUser,
+            userSchema,
+            { auth: ctx.state.auth }
+          );
+
+          ctx.body.user = sanitizedUser;
+          strapi.log.info(`Assigned role '${requestedRoleType}' to registered user: ${ctx.body.user.username}`);
+        }
+      };
+    }
+  },
 
   /**
    * Bootstrap phase — runs before the app starts serving requests.
