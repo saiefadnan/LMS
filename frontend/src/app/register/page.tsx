@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { registerUser } from '@/lib/api';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthStore } from '@/stores/auth';
 
 export default function RegisterPage() {
   const [username, setUsername] = useState('');
@@ -14,7 +14,7 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { refreshUser } = useAuth();
+  const refreshUser = useAuthStore((s) => s.refreshUser);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
