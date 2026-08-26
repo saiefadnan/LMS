@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuth } from '@/context/AuthContext';
+import { useAuthStore } from '@/stores/auth';
 import Link from 'next/link';
 
 /**
@@ -9,7 +9,7 @@ import Link from 'next/link';
  * Uses green for success/completion states, amber for CTAs.
  */
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const user = useAuthStore((s) => s.user);
 
   if (!user) return null;
 
