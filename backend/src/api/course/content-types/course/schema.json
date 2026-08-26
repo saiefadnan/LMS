@@ -25,6 +25,22 @@
       "type": "string",
       "maxLength": 500
     },
+    "level": {
+      "type": "enumeration",
+      "enum": [
+        "beginner",
+        "intermediate",
+        "advanced"
+      ],
+      "default": "beginner"
+    },
+    "category": {
+      "type": "string"
+    },
+    "published": {
+      "type": "boolean",
+      "default": false
+    },
     "instructor": {
       "type": "relation",
       "relation": "manyToOne",

@@ -3,19 +3,16 @@
  */
 export default async (policyContext: any, config: any, { strapi }: any) => {
   const user = policyContext.state.user;
-  
-  if (!user) {
-    return false;
-  }
+  if (!user) return false;
 
-  const fullUser = await strapi.entityService.findOne('plugin::users-permissions.user', user.id, {
-    populate: ['role'],
-  });
+  const roleType =
+    user.role?.type ||
+    (
+      await strapi.db.query('plugin::users-permissions.user').findOne({
+        where: { id: user.id },
+        populate: ['role'],
+      })
+    )?.role?.type;
 
-  const roleType = fullUser?.role?.type;
-  if (roleType === 'admin' || roleType === 'content_manager') {
-    return true;
-  }
-
-  return false;
+  return roleType === 'admin' || roleType === 'content_manager';
 };
