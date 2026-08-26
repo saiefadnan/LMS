@@ -23,7 +23,7 @@ export default function InstructorCoursesPage() {
           : `filters[instructor][id][$eq]=${user.id}`;
         
         const res = await getCourses(query);
-        setCourses(res.data);
+        setCourses(res.data || []);
       } catch (error) {
         console.error('Failed to load courses', error);
       } finally {

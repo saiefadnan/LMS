@@ -26,7 +26,7 @@ export default function CourseDetailsPage() {
       try {
         const [courseRes, enrollmentsRes] = await Promise.all([
           getCourse(documentId),
-          user ? getMyEnrollments() : Promise.resolve({ data: [] }),
+          user ? getMyEnrollments(user.id) : Promise.resolve({ data: [] }),
         ]);
 
         const loadedCourse = courseRes.data;
