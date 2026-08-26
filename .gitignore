@@ -114,3 +114,6 @@ frontend/.env.production.local
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Video script
+video_script.md
