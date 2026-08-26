@@ -346,73 +346,44 @@ We'll create a clean, modern design with:
 
 ---
 
-## Phase 4 — Course Management + Enrollment + Lesson Viewer
+## Phase 4 — Course Management + Enrollment + Lesson Viewer (Detailed Execution Plan)
 
-### What you'll learn
-- CRUD operations through the Strapi REST API
-- How to build forms that create/edit data
-- How to conditionally render UI based on user roles
-- How enrollment creates a relationship between student and course
+### Objective
+Build a robust, role-aware system for discovering, creating, and consuming course content.
 
-### Steps
+### Proposed Changes (File Structure)
 
-#### 4.1 Course CRUD (Admin / Content Manager / Instructor)
+#### 1. Shared UI Components (`frontend/src/components/ui/`)
+To keep the foundation strong and DRY, we will first create reusable UI components:
+- `Card.tsx` — Used for course grids, lessons, and stats.
+- `Button.tsx` — Standardized button with variants (primary, secondary, danger, ghost) and loading states.
+- `Input.tsx` / `Textarea.tsx` — Form controls with consistent styling and error states.
+- `Badge.tsx` — For displaying levels, categories, and roles.
 
-**Create Course Page** — A form with title, description, thumbnail URL. On submit:
-```typescript
-const createCourse = async (formData) => {
-  // The API helper sends the JWT automatically
-  await fetchAPI('/api/courses', {
-    method: 'POST',
-    body: JSON.stringify({
-      data: {
-        title: formData.title,
-        description: formData.description,
-        thumbnail: formData.thumbnail,
-        instructor: user.id,  // Auto-set to current user
-      },
-    }),
-  });
-};
-```
+#### 2. Public Catalog & Course Details
+- **[NEW]** `frontend/src/app/courses/page.tsx` — Public course catalog showing all `published` courses.
+- **[NEW]** `frontend/src/components/features/CourseGrid.tsx` — Reusable grid for displaying courses.
+- **[NEW]** `frontend/src/app/courses/[documentId]/page.tsx` — Public course details page. Shows description, curriculum (lessons), and an "Enroll" button (if logged in as student).
 
-**Course List** — Different views per role:
-- Admin/CM: See all courses + edit/delete buttons
-- Instructor: See only their courses + edit/delete
-- Student: See course catalog + "Enroll" button
+#### 3. Instructor Dashboard (Course CRUD)
+- **[NEW]** `frontend/src/app/dashboard/courses/page.tsx` — Lists courses (Admin sees all, Instructor sees own).
+- **[NEW]** `frontend/src/app/dashboard/courses/new/page.tsx` — Form to create a new course.
+- **[NEW]** `frontend/src/app/dashboard/courses/[documentId]/edit/page.tsx` — Form to edit a course and manage its lessons.
+- **[NEW]** `frontend/src/components/features/LessonManager.tsx` — A component embedded in the course edit page to add, reorder, and edit lessons.
 
-#### 4.2 Lesson Management (Under Each Course)
+#### 4. Student Dashboard (Learning Flow)
+- **[NEW]** `frontend/src/app/dashboard/my-courses/page.tsx` — Lists courses the student is enrolled in.
+- **[NEW]** `frontend/src/app/dashboard/learn/[courseId]/page.tsx` — The **Lesson Viewer**. A specialized layout with a sidebar for lesson navigation and a main content area for reading/watching the active lesson.
 
-Each course page has an "Add Lesson" section (for admin/CM/instructor of that course).
-Lessons are ordered by an `order` field. Students see them in sequence.
+#### 5. Forms (React Hook Form + Zod)
+- We will migrate login/register to React Hook Form (RHF) + Zod for robust validation.
+- Course creation and quiz forms will also use RHF + Zod.
 
-#### 4.3 Enrollment Flow
+### Data Flow & Logic
 
-```typescript
-// When student clicks "Enroll"
-const enrollInCourse = async (courseId: number) => {
-  await fetchAPI('/api/enrollments', {
-    method: 'POST',
-    body: JSON.stringify({
-      data: {
-        student: user.id,
-        course: courseId,
-        enrolledAt: new Date().toISOString(),
-      },
-    }),
-  });
-};
-```
-
-**"My Courses"** page: fetch enrollments where `student.id === currentUser.id`, then display those courses.
-
-#### 4.4 Lesson Viewer
-
-A sequential lesson viewer that shows:
-- Lesson title + content (rendered rich text)
-- Video embed (if videoUrl exists)
-- "Previous" / "Next" navigation
-- "Mark as Complete" button (→ Phase 5)
+1. **Course Creation:** When an instructor creates a course, we automatically assign `instructor: user.id` in the API call.
+2. **Enrollment Flow:** When a student clicks "Enroll", we POST to `/api/enrollments`. The backend custom controller (which we wrote in Phase 2) intercepts this, forces the `student_id` to be the authenticated user, prevents double enrollment, and returns success. We then redirect the student to the Lesson Viewer.
+3. **Lesson Viewer (Full Screen):** Opens in a dedicated full-screen layout (no dashboard sidebar) to maximize focus. Fetches the course and all its lessons ordered by `order:asc`. Uses URL state (`?lessonId=123`) to determine which lesson content to display.
 
 #### 🔀 COMMIT: `feat: add course management, enrollment, and lesson viewer`
 
