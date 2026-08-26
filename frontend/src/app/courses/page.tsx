@@ -16,9 +16,8 @@ export default function CoursesCatalogPage() {
   useEffect(() => {
     async function loadCourses() {
       try {
-        // Fetch published courses
-        const response = await getCourses('filters[published][$eq]=true');
-        setCourses(response.data);
+        const response = await getCourses();
+        setCourses(response.data || []);
       } catch (error) {
         console.error('Failed to load courses:', error);
       } finally {

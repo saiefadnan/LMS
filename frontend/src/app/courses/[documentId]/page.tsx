@@ -8,6 +8,7 @@ import { type Course } from '@/types';
 import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { getThumbnailSrc } from '@/lib/utils/thumbnail';
 
 export default function CourseDetailsPage() {
   const params = useParams();
@@ -146,9 +147,9 @@ export default function CourseDetailsPage() {
             
             <div className="relative rounded-2xl overflow-hidden shadow-2xl aspect-video bg-surface-800">
               {course.thumbnail ? (
-                <img 
-                  src={course.thumbnail.url.startsWith('http') ? course.thumbnail.url : `${process.env.NEXT_PUBLIC_API_URL}${course.thumbnail.url}`} 
-                  alt={course.title} 
+                <img
+                  src={getThumbnailSrc(course.thumbnail)}
+                  alt={course.title}
                   className="w-full h-full object-cover"
                 />
               ) : (

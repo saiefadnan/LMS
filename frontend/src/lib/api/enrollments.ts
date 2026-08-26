@@ -12,5 +12,5 @@ export async function enrollInCourse(courseId: number): Promise<StrapiResponse<E
 }
 
 export async function getMyEnrollments(): Promise<StrapiResponse<Enrollment[]>> {
-  return fetchAPI('/api/enrollments?populate=course&filters[student][id][$eq]=me');
+  return fetchAPI('/api/enrollments/my');
 }

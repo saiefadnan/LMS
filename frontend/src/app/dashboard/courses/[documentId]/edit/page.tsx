@@ -42,7 +42,9 @@ export default function EditCoursePage() {
         level: res.data.level,
         category: res.data.category,
         published: res.data.published,
-        thumbnail: res.data.thumbnail?.url || '',
+        thumbnail: typeof res.data.thumbnail === 'string' 
+          ? res.data.thumbnail 
+          : res.data.thumbnail?.url || '',
       });
     } catch (error) {
       console.error('Failed to load course', error);
@@ -61,7 +63,19 @@ export default function EditCoursePage() {
   const onSubmit = async (data: CourseFormValues) => {
     try {
       setSaveError('');
-      await updateCourse(documentId, data);
+      const payload: Record<string, any> = {
+        title: data.title,
+        description: data.description,
+        level: data.level,
+        category: data.category,
+        published: Boolean(data.published),
+      };
+
+      if (data.thumbnail && data.thumbnail.trim()) {
+        payload.thumbnail = data.thumbnail.trim();
+      }
+
+      await updateCourse(documentId, payload);
       alert('Course updated successfully');
       // Refetch to get updated data
       fetchCourse();
