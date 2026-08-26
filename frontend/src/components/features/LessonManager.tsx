@@ -67,13 +67,21 @@ export function LessonManager({ course, onLessonChanged }: LessonManagerProps) {
       setError('');
       if (isAdding) {
         await createLesson({
-          ...data,
+          title: data.title,
+          content: data.content,
+          videoUrl: data.videoUrl?.trim() || undefined,
+          order: data.order,
           course: course.id,
         });
       } else if (editingId) {
         const lessonToEdit = lessons.find((l) => l.id === editingId);
         if (lessonToEdit) {
-          await updateLesson(lessonToEdit.documentId, data);
+          await updateLesson(lessonToEdit.documentId, {
+            title: data.title,
+            content: data.content,
+            videoUrl: data.videoUrl?.trim() || undefined,
+            order: data.order,
+          });
         }
       }
       setIsAdding(false);

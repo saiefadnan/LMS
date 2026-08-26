@@ -34,19 +34,32 @@ export default function NewCoursePage() {
   });
 
   const onSubmit = async (data: CourseFormValues) => {
-    if (!user) return;
+    if (!user) {
+      setError('You must be logged in as an instructor to create a course.');
+      return;
+    }
     
     try {
       setError('');
-      // In Strapi, relations need the ID, not the documentId
-      const payload = {
-        ...data,
-        instructor: user.id,
+      const payload: Record<string, any> = {
+        title: data.title,
+        description: data.description,
+        level: data.level,
+        category: data.category,
+        published: Boolean(data.published),
       };
+
+      // Only include thumbnail if provided and not empty
+      if (data.thumbnail && data.thumbnail.trim()) {
+        payload.thumbnail = data.thumbnail.trim();
+      }
       
       const res = await createCourse(payload);
-      // Redirect to edit page where they can add lessons
-      router.push(`/dashboard/courses/${res.data.documentId}/edit`);
+      if (res?.data?.documentId) {
+        router.push(`/dashboard/courses/${res.data.documentId}/edit`);
+      } else {
+        router.push('/dashboard/courses');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to create course');
     }

@@ -2,7 +2,7 @@
  * Lessons API
  */
 import { fetchAPI } from './client';
-import type { Lesson, StrapiResponse } from '@/types';
+import type { Lesson, LessonInput, StrapiResponse } from '@/types';
 
 export async function getLessons(
   courseDocumentId: string
@@ -16,7 +16,7 @@ export async function getLesson(documentId: string): Promise<StrapiResponse<Less
   return fetchAPI(`/api/lessons/${documentId}?populate=*`);
 }
 
-export async function createLesson(data: Partial<Lesson>): Promise<StrapiResponse<Lesson>> {
+export async function createLesson(data: LessonInput | Partial<Lesson>): Promise<StrapiResponse<Lesson>> {
   return fetchAPI('/api/lessons', {
     method: 'POST',
     body: JSON.stringify({ data }),
@@ -25,7 +25,7 @@ export async function createLesson(data: Partial<Lesson>): Promise<StrapiRespons
 
 export async function updateLesson(
   documentId: string,
-  data: Partial<Lesson>
+  data: LessonInput | Partial<Lesson>
 ): Promise<StrapiResponse<Lesson>> {
   return fetchAPI(`/api/lessons/${documentId}`, {
     method: 'PUT',

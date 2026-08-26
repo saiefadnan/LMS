@@ -19,7 +19,7 @@ export const courseSchema = z.object({
   description: z.string().min(20, 'Please provide a detailed description'),
   level: z.enum(['beginner', 'intermediate', 'advanced']),
   category: z.string().min(2, 'Category is required'),
-  published: z.boolean().default(false),
+  published: z.boolean(),
   thumbnail: z.string().url('Must be a valid URL').optional().or(z.literal('')),
 });
 export type CourseFormValues = z.infer<typeof courseSchema>;

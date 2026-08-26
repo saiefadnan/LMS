@@ -3,6 +3,7 @@ import { Course } from '@/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { getThumbnailSrc } from '@/lib/utils/thumbnail';
 
 interface CourseGridProps {
   courses: Course[];
@@ -28,17 +29,12 @@ export function CourseGrid({
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {courses.map((course) => (
         <Card key={course.documentId} className="flex flex-col overflow-hidden hover:shadow-md transition-shadow duration-300">
-          {/* Thumbnail placeholder or actual image */}
+          {/* Thumbnail or fallback icon */}
           <div className="h-48 bg-surface-100 flex items-center justify-center relative overflow-hidden">
-            {course.thumbnail ? (
-              <img 
-                src={course.thumbnail.url.startsWith('http') ? course.thumbnail.url : `${process.env.NEXT_PUBLIC_API_URL}${course.thumbnail.url}`} 
-                alt={course.title} 
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <span className="text-4xl text-surface-300">📚</span>
-            )}
+            {getThumbnailSrc(course.thumbnail)
+              ? <img src={getThumbnailSrc(course.thumbnail)} alt={course.title} className="w-full h-full object-cover" />
+              : <span className="text-4xl text-surface-300">📚</span>
+            }
             <div className="absolute top-3 left-3 flex gap-2">
               <Badge variant="default" className="bg-white/90 backdrop-blur-sm text-surface-900 border-surface-200">
                 {course.level}

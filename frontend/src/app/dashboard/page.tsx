@@ -13,8 +13,8 @@ export default function DashboardPage() {
 
   if (!user) return null;
 
-  const roleType = user.role?.type;
-
+  const roleType = (typeof user.role === 'object' ? user.role?.type : user.role) || 'student';
+console.log(user)
   return (
     <div>
       {/* Welcome Header */}

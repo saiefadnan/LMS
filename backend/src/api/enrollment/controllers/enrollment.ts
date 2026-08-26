@@ -16,10 +16,10 @@ export default factories.createCoreController('api::enrollment.enrollment', ({ s
     }
 
     // Check if enrollment already exists
-    const existingEnrollments = await strapi.documents('api::enrollment.enrollment').findMany({
-      filters: {
-        student: user.id,
-        course: courseId,
+    const existingEnrollments = await strapi.db.query('api::enrollment.enrollment').findMany({
+      where: {
+        student: { id: user.id },
+        course: { id: courseId },
       },
     });
 
@@ -27,16 +27,51 @@ export default factories.createCoreController('api::enrollment.enrollment', ({ s
       return ctx.badRequest('You are already enrolled in this course.');
     }
 
-    // Force the student field to be the authenticated user
-    // Ignore any student ID they might have maliciously sent
+    // Remove relation fields from body (Strapi v5 rejects them in Content API)
+    delete ctx.request.body.data.student;
+    delete ctx.request.body.data.course;
+
+    // Add non-relation fields
     ctx.request.body.data = {
-      ...data,
-      student: user.id,
+      ...ctx.request.body.data,
       enrolledAt: new Date().toISOString(),
     };
 
     // Call the default core create action
     const response = await super.create(ctx);
+
+    // Set relation fields via Document Service (server-side)
+    if (response?.data?.documentId) {
+      await strapi.documents('api::enrollment.enrollment').update({
+        documentId: response.data.documentId,
+        data: {
+          student: user.id,
+          course: courseId,
+        },
+      });
+    }
+
     return response;
   },
+
+  /**
+   * Custom action: returns enrollments for the authenticated student.
+   */
+  async findMyEnrollments(ctx) {
+    const user = ctx.state.user;
+    if (!user) {
+      return ctx.unauthorized();
+    }
+
+    const enrollments = await strapi.db.query('api::enrollment.enrollment').findMany({
+      where: {
+        student: { id: user.id },
+      },
+      populate: ['course', 'course.instructor', 'course.lessons', 'student'],
+      orderBy: { createdAt: 'desc' },
+    });
+
+    ctx.body = { data: enrollments };
+  },
 }));
+

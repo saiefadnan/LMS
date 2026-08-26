@@ -62,6 +62,42 @@ export default {
         }
       };
     }
+
+    if (plugin && plugin.controllers && plugin.controllers.user) {
+      plugin.controllers.user.me = async (ctx: any) => {
+        const authUser = ctx.state.user;
+        if (!authUser) {
+          return ctx.unauthorized();
+        }
+
+        const user = await strapi.query('plugin::users-permissions.user').findOne({
+          where: { id: authUser.id },
+          populate: ['role'],
+        });
+
+        if (!user) {
+          return ctx.notFound();
+        }
+
+        const userSchema = strapi.getModel('plugin::users-permissions.user');
+        const sanitizedUser: any = await strapi.contentAPI.sanitize.output(
+          user,
+          userSchema,
+          { auth: ctx.state.auth }
+        );
+
+        if (user.role) {
+          sanitizedUser.role = {
+            id: user.role.id,
+            name: user.role.name,
+            type: user.role.type,
+            description: user.role.description,
+          };
+        }
+
+        ctx.body = sanitizedUser;
+      };
+    }
   },
 
   /**
@@ -118,6 +154,40 @@ export default {
         strapi.log.info(`Created role: ${role.name}`);
       }
     }
+
+    // Grant permissions for our custom endpoints to the roles
+    const grantPermissions = async (roleType: string, actions: string[]) => {
+      const role = await strapi.query('plugin::users-permissions.role').findOne({ where: { type: roleType }, populate: ['permissions'] });
+      if (!role) return;
+
+      for (const action of actions) {
+        const hasPerm = role.permissions?.find((p: any) => p.action === action);
+        if (!hasPerm) {
+          await strapi.query('plugin::users-permissions.permission').create({
+            data: {
+              action,
+              role: role.id,
+            },
+          });
+          strapi.log.info(`Granted ${action} to ${roleType}`);
+        }
+      }
+    };
+
+    await grantPermissions('instructor', [
+      'api::course.course.findMyCourses',
+      'api::enrollment.enrollment.findMyEnrollments',
+      'api::progress.progress.findMyProgress'
+    ]);
+    await grantPermissions('admin', [
+      'api::course.course.findMyCourses',
+      'api::enrollment.enrollment.findMyEnrollments',
+      'api::progress.progress.findMyProgress'
+    ]);
+    await grantPermissions('student', [
+      'api::enrollment.enrollment.findMyEnrollments',
+      'api::progress.progress.findMyProgress'
+    ]);
 
     strapi.log.info('Bootstrap: LMS roles verified');
   },
