@@ -154,7 +154,7 @@ export default function LessonPage() {
         
         <Button 
           size="lg" 
-          variant={isCompleted ? 'outline' : 'primary'}
+          variant={isCompleted ? 'secondary' : 'primary'}
           onClick={handleMarkComplete}
           disabled={isCompleted || marking}
           className="w-full sm:w-auto min-w-48"
