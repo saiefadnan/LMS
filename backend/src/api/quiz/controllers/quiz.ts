@@ -14,7 +14,7 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
     if (user.role?.type !== 'admin' && user.role?.type !== 'content_manager') {
       // Instructor must own the course
       const course = await strapi.db.query('api::course.course').findOne({
-        where: { id: courseId },
+        where: { documentId: courseId },
         populate: ['instructor'],
       });
       if (!course) return ctx.notFound('Course not found');

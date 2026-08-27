@@ -33,6 +33,10 @@
     "answers": {
       "type": "json",
       "required": true
+    },
+    "passed": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

@@ -5,7 +5,7 @@ import { fetchAPI } from './client';
 import type { Progress, StrapiResponse } from '@/types';
 
 export async function markLessonComplete(
-  lessonId: number
+  lessonId: string | number
 ): Promise<StrapiResponse<Progress>> {
   return fetchAPI('/api/progresses', {
     method: 'POST',

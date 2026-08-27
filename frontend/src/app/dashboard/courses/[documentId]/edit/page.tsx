@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { LessonManager } from '@/components/features/LessonManager';
+import { QuizManager } from '@/components/features/QuizManager';
 
 export default function EditCoursePage() {
   const params = useParams();
@@ -186,6 +187,8 @@ export default function EditCoursePage() {
           {/* Lesson Manager Component */}
           <LessonManager course={course} onLessonChanged={fetchCourse} />
           
+          {/* Quiz Manager Component */}
+          <QuizManager course={course} onQuizChanged={fetchCourse} />
         </div>
 
         {/* Right Column - Status/Meta */}
@@ -209,6 +212,12 @@ export default function EditCoursePage() {
                 <span className="text-surface-500">Lessons</span>
                 <span className="text-surface-900 font-medium">
                   {course.lessons?.length || 0}
+                </span>
+              </div>
+              <div className="flex justify-between pb-2 border-b border-surface-200">
+                <span className="text-surface-500">Quizzes</span>
+                <span className="text-surface-900 font-medium">
+                  {course.quizzes?.length || 0}
                 </span>
               </div>
               <div className="flex justify-between">

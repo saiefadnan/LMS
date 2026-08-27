@@ -19,7 +19,7 @@ export default factories.createCoreController('api::enrollment.enrollment', ({ s
     const existingEnrollments = await strapi.db.query('api::enrollment.enrollment').findMany({
       where: {
         student: { id: user.id },
-        course: { id: courseId },
+        course: { documentId: courseId },
       },
     });
 
