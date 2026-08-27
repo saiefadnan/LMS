@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/stores/auth';
 import Link from 'next/link';
-import { getMyEnrollments, getMyQuizResults, getMyCourses } from '@/lib/api';
+import { getMyEnrollments, getMyQuizResults, getMyCourses, getPlatformStats } from '@/lib/api';
 
 /**
  * Dashboard home page.
@@ -21,7 +21,21 @@ export default function DashboardPage() {
     async function loadStats() {
       if (!user) return;
       try {
-        if (roleType === 'student') {
+        if (roleType === 'admin') {
+          const platform = await getPlatformStats();
+          setStats({
+            totalUsers: platform.totalUsers,
+            totalCourses: platform.totalCourses,
+            blogPosts: platform.totalBlogPosts,
+          });
+        } else if (roleType === 'content_manager') {
+          const platform = await getPlatformStats();
+          setStats({
+            totalCourses: platform.totalCourses,
+            blogPosts: platform.totalBlogPosts,
+            totalUsers: platform.totalUsers,
+          });
+        } else if (roleType === 'student') {
           const [enrollmentsRes, resultsRes] = await Promise.all([
             getMyEnrollments().catch(() => ({ data: [] })),
             getMyQuizResults().catch(() => ({ data: [] })),

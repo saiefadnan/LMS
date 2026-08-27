@@ -15,4 +15,4 @@ export { enrollInCourse, getMyEnrollments } from './enrollments';
 export { markLessonComplete, getMyProgress } from './progress';
 export { getQuizzes, getQuiz, createQuiz, updateQuiz, deleteQuiz, submitQuizResult, getMyQuizResults, getQuizResult } from './quizzes';
 export { getBlogPosts, getBlogPost, createBlogPost, updateBlogPost, deleteBlogPost } from './blog';
-export { getAllUsers, updateUserRole } from './admin';
+export { getAllUsers, getRoles, updateUserRole, deleteUser, getPlatformStats } from './admin';
