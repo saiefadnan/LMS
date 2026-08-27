@@ -144,18 +144,18 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-surface-200/80 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-surface-200/80 dark:border-surface-800 pb-5">
         <div>
-          <h1 className="text-2xl font-bold text-surface-900 tracking-tight">
+          <h1 className="text-2xl font-bold text-surface-900 dark:text-surface-50 tracking-tight">
             Welcome back, {user.username}
           </h1>
-          <p className="text-surface-500 text-sm mt-0.5">
+          <p className="text-surface-500 dark:text-surface-400 text-sm mt-0.5">
             {getRoleDescription(roleType)}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="outline" size="md">
-            Role: <span className="font-semibold text-surface-900 capitalize ml-1">{user.role?.name || roleType.replace('_', ' ')}</span>
+            Role: <span className="font-semibold text-surface-900 dark:text-surface-100 capitalize ml-1">{user.role?.name || roleType.replace('_', ' ')}</span>
           </Badge>
         </div>
       </div>
@@ -167,21 +167,21 @@ export default function DashboardPage() {
           return (
             <div
               key={i}
-              className="bg-white rounded-xl border border-surface-200 p-5 shadow-xs hover:border-surface-300 transition-colors flex flex-col justify-between"
+              className="bg-white dark:bg-surface-900 rounded-xl border border-surface-200 dark:border-surface-800 p-5 shadow-xs hover:border-surface-300 dark:hover:border-surface-700 transition-colors flex flex-col justify-between"
             >
               <div className="flex items-center gap-3.5">
-                <div className={`w-10 h-10 rounded-lg ${card.bgColor} ${card.iconColor} flex items-center justify-center shrink-0 border border-surface-200/60`}>
+                <div className={`w-10 h-10 rounded-lg ${card.bgColor} ${card.iconColor} flex items-center justify-center shrink-0 border border-surface-200/60 dark:border-surface-700/60`}>
                   <Icon className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-2xl font-bold text-surface-900 tracking-tight truncate leading-none mb-1">
+                  <p className="text-2xl font-bold text-surface-900 dark:text-surface-50 tracking-tight truncate leading-none mb-1">
                     {card.value}
                   </p>
-                  <p className="text-surface-500 text-xs font-medium">{card.label}</p>
+                  <p className="text-surface-500 dark:text-surface-400 text-xs font-medium">{card.label}</p>
                 </div>
               </div>
               {card.subtext && (
-                <p className="text-[11px] text-surface-400 mt-3 pt-2.5 border-t border-surface-100 font-medium">
+                <p className="text-[11px] text-surface-400 dark:text-surface-500 mt-3 pt-2.5 border-t border-surface-100 dark:border-surface-800 font-medium">
                   {card.subtext}
                 </p>
               )}
@@ -192,7 +192,7 @@ export default function DashboardPage() {
 
       {/* Quick Actions */}
       <div className="space-y-3">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-surface-400">Quick Actions</h2>
+        <h2 className="text-sm font-bold uppercase tracking-wider text-surface-400 dark:text-surface-500">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {getQuickActions(roleType).map((action, i) => {
             const Icon = action.icon;
@@ -200,20 +200,20 @@ export default function DashboardPage() {
               <Link
                 key={i}
                 href={action.href}
-                className="group bg-white border border-surface-200 rounded-xl p-4.5 hover:border-brand-300 hover:shadow-xs transition-all duration-200 flex items-center justify-between"
+                className="group bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-xl p-4.5 hover:border-brand-300 dark:hover:border-brand-500/50 hover:shadow-xs transition-all duration-200 flex items-center justify-between"
               >
                 <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-10 h-10 rounded-lg bg-surface-50 border border-surface-200 text-surface-600 group-hover:text-brand-600 group-hover:bg-brand-50 group-hover:border-brand-200 flex items-center justify-center shrink-0 transition-colors">
+                  <div className="w-10 h-10 rounded-lg bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 text-surface-600 dark:text-surface-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 group-hover:bg-brand-50 dark:group-hover:bg-brand-950/50 group-hover:border-brand-200 dark:group-hover:border-brand-800 flex items-center justify-center shrink-0 transition-colors">
                     <Icon className="w-5 h-5" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-surface-900 font-semibold text-sm group-hover:text-brand-700 transition-colors">
+                    <p className="text-surface-900 dark:text-surface-100 font-semibold text-sm group-hover:text-brand-700 dark:group-hover:text-brand-300 transition-colors">
                       {action.label}
                     </p>
-                    <p className="text-surface-500 text-xs truncate mt-0.5">{action.description}</p>
+                    <p className="text-surface-500 dark:text-surface-400 text-xs truncate mt-0.5">{action.description}</p>
                   </div>
                 </div>
-                <ArrowRight className="w-4 h-4 text-surface-400 group-hover:text-brand-600 group-hover:translate-x-1 transition-all shrink-0 ml-3" />
+                <ArrowRight className="w-4 h-4 text-surface-400 dark:text-surface-500 group-hover:text-brand-600 dark:group-hover:text-brand-400 group-hover:translate-x-1 transition-all shrink-0 ml-3" />
               </Link>
             );
           })}
@@ -225,22 +225,22 @@ export default function DashboardPage() {
         <div className="space-y-4 pt-2">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-base font-bold text-surface-900 flex items-center gap-2">
-                <Trophy className="w-4 h-4 text-brand-600" />
+              <h2 className="text-base font-bold text-surface-900 dark:text-surface-50 flex items-center gap-2">
+                <Trophy className="w-4 h-4 text-brand-600 dark:text-brand-400" />
                 <span>Assessment History & Scores</span>
               </h2>
-              <p className="text-xs text-surface-500">Your score history and auto-graded quiz attempts</p>
+              <p className="text-xs text-surface-500 dark:text-surface-400">Your score history and auto-graded quiz attempts</p>
             </div>
 
             {/* Filter Tabs */}
             {studentQuizResults.length > 0 && (
-              <div className="flex items-center gap-1 bg-surface-100 p-1 rounded-lg text-xs font-medium self-start sm:self-auto border border-surface-200/60">
+              <div className="flex items-center gap-1 bg-surface-100 dark:bg-surface-800 p-1 rounded-lg text-xs font-medium self-start sm:self-auto border border-surface-200/60 dark:border-surface-700">
                 <button
                   onClick={() => { setQuizFilter('all'); setQuizPage(1); }}
                   className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
                     quizFilter === 'all'
-                      ? 'bg-white text-surface-900 shadow-xs font-semibold'
-                      : 'text-surface-600 hover:text-surface-900'
+                      ? 'bg-white dark:bg-surface-900 text-surface-900 dark:text-surface-100 shadow-xs font-semibold'
+                      : 'text-surface-600 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-200'
                   }`}
                 >
                   All ({studentQuizResults.length})
@@ -249,8 +249,8 @@ export default function DashboardPage() {
                   onClick={() => { setQuizFilter('passed'); setQuizPage(1); }}
                   className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
                     quizFilter === 'passed'
-                      ? 'bg-white text-emerald-700 shadow-xs font-semibold'
-                      : 'text-surface-600 hover:text-surface-900'
+                      ? 'bg-white dark:bg-surface-900 text-emerald-700 dark:text-emerald-400 shadow-xs font-semibold'
+                      : 'text-surface-600 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-200'
                   }`}
                 >
                   Passed
@@ -259,8 +259,8 @@ export default function DashboardPage() {
                   onClick={() => { setQuizFilter('review'); setQuizPage(1); }}
                   className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
                     quizFilter === 'review'
-                      ? 'bg-white text-amber-700 shadow-xs font-semibold'
-                      : 'text-surface-600 hover:text-surface-900'
+                      ? 'bg-white dark:bg-surface-900 text-amber-700 dark:text-amber-400 shadow-xs font-semibold'
+                      : 'text-surface-600 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-200'
                   }`}
                 >
                   Needs Review
@@ -271,9 +271,9 @@ export default function DashboardPage() {
 
           {/* Search & Stats Bar */}
           {studentQuizResults.length > 0 && (
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-3 rounded-xl border border-surface-200 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-surface-900 p-3 rounded-xl border border-surface-200 dark:border-surface-800 shadow-xs">
               <div className="relative flex-1 max-w-sm">
-                <Search className="w-4 h-4 text-surface-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-surface-400 dark:text-surface-500 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="Filter by quiz or course title..."
@@ -282,12 +282,12 @@ export default function DashboardPage() {
                     setQuizSearch(e.target.value);
                     setQuizPage(1);
                   }}
-                  className="w-full pl-9 pr-4 py-1.5 bg-surface-50 border border-surface-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-surface-900"
+                  className="w-full pl-9 pr-4 py-1.5 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white dark:focus:bg-surface-900 text-surface-900 dark:text-surface-100 placeholder:text-surface-400 dark:placeholder:text-surface-500"
                 />
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1.5 text-xs text-surface-500">
+                <div className="flex items-center gap-1.5 text-xs text-surface-500 dark:text-surface-400">
                   <span>Show:</span>
                   <select
                     value={quizPageSize}
@@ -295,7 +295,7 @@ export default function DashboardPage() {
                       setQuizPageSize(Number(e.target.value));
                       setQuizPage(1);
                     }}
-                    className="px-2 py-1 bg-surface-50 border border-surface-200 rounded text-xs text-surface-800 focus:outline-none focus:ring-1 focus:ring-brand-500 font-medium cursor-pointer"
+                    className="px-2 py-1 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded text-xs text-surface-800 dark:text-surface-200 focus:outline-none focus:ring-1 focus:ring-brand-500 font-medium cursor-pointer"
                   >
                     <option value={5}>5</option>
                     <option value={10}>10</option>
@@ -303,7 +303,7 @@ export default function DashboardPage() {
                   </select>
                 </div>
 
-                <span className="text-xs text-surface-500 font-medium">
+                <span className="text-xs text-surface-500 dark:text-surface-400 font-medium">
                   Showing {startQuizIndex}–{endQuizIndex} of {totalQuizCount} attempt{totalQuizCount !== 1 ? 's' : ''}
                 </span>
               </div>
@@ -312,30 +312,30 @@ export default function DashboardPage() {
 
           {/* Loading Skeleton */}
           {loadingStats ? (
-            <div className="bg-white border border-surface-200 rounded-xl overflow-hidden shadow-xs divide-y divide-surface-100">
+            <div className="bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-xl overflow-hidden shadow-xs divide-y divide-surface-100 dark:divide-surface-800">
               {[1, 2, 3].map((n) => (
                 <div key={n} className="p-4 flex items-center justify-between gap-4 animate-pulse">
                   <div className="flex items-center gap-3.5 flex-1">
-                    <div className="w-9 h-9 bg-surface-200 rounded-lg shrink-0"></div>
+                    <div className="w-9 h-9 bg-surface-200 dark:bg-surface-800 rounded-lg shrink-0"></div>
                     <div className="space-y-1.5 flex-1 max-w-md">
-                      <div className="h-4 bg-surface-200 rounded w-48"></div>
-                      <div className="h-3 bg-surface-100 rounded w-32"></div>
+                      <div className="h-4 bg-surface-200 dark:bg-surface-800 rounded w-48"></div>
+                      <div className="h-3 bg-surface-100 dark:bg-surface-800/60 rounded w-32"></div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="h-6 bg-surface-200 rounded w-20"></div>
-                    <div className="h-8 bg-surface-200 rounded-lg w-16"></div>
+                    <div className="h-6 bg-surface-200 dark:bg-surface-800 rounded w-20"></div>
+                    <div className="h-8 bg-surface-200 dark:bg-surface-800 rounded-lg w-16"></div>
                   </div>
                 </div>
               ))}
             </div>
           ) : studentQuizResults.length === 0 ? (
-            <div className="bg-white border border-surface-200 rounded-xl p-10 text-center space-y-3 shadow-xs">
-              <div className="w-12 h-12 rounded-full bg-surface-100 text-surface-400 flex items-center justify-center mx-auto">
+            <div className="bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-xl p-10 text-center space-y-3 shadow-xs">
+              <div className="w-12 h-12 rounded-full bg-surface-100 dark:bg-surface-800 text-surface-400 flex items-center justify-center mx-auto">
                 <FileQuestion className="w-6 h-6" />
               </div>
-              <p className="text-surface-900 font-semibold text-sm">No quiz attempts recorded yet</p>
-              <p className="text-surface-500 text-xs max-w-sm mx-auto">
+              <p className="text-surface-900 dark:text-surface-100 font-semibold text-sm">No quiz attempts recorded yet</p>
+              <p className="text-surface-500 dark:text-surface-400 text-xs max-w-sm mx-auto">
                 Enroll in courses and take practice quizzes to test your understanding!
               </p>
               <Link href="/courses" className="inline-block pt-1">
@@ -345,21 +345,21 @@ export default function DashboardPage() {
               </Link>
             </div>
           ) : totalQuizCount === 0 ? (
-            <div className="bg-white border border-surface-200 rounded-xl p-8 text-center space-y-2 shadow-xs">
-              <p className="text-surface-700 font-medium text-sm">No quiz attempts matched your search or filter.</p>
+            <div className="bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-xl p-8 text-center space-y-2 shadow-xs">
+              <p className="text-surface-700 dark:text-surface-300 font-medium text-sm">No quiz attempts matched your search or filter.</p>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => { setQuizSearch(''); setQuizFilter('all'); }}
-                className="text-xs text-brand-600 hover:text-brand-700 cursor-pointer"
+                className="text-xs text-brand-600 dark:text-brand-400 hover:text-brand-700 cursor-pointer"
               >
                 Reset Filters
               </Button>
             </div>
           ) : (
             <>
-              <div className="bg-white border border-surface-200 rounded-xl overflow-hidden shadow-xs">
-                <div className="divide-y divide-surface-100">
+              <div className="bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-xl overflow-hidden shadow-xs">
+                <div className="divide-y divide-surface-100 dark:divide-surface-800">
                   {paginatedQuizResults.map((res) => {
                     const quizDoc = res.quiz?.documentId || (res.quiz as any)?.id;
                     const courseDoc = res.quiz?.course?.documentId || (res.quiz?.course as any)?.id;
@@ -371,27 +371,27 @@ export default function DashboardPage() {
                     return (
                       <div
                         key={res.documentId || res.id}
-                        className="p-4 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-surface-50/70 transition-colors"
+                        className="p-4 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-surface-50/70 dark:hover:bg-surface-800/60 transition-colors"
                       >
                         <div className="flex items-start gap-3.5 min-w-0">
                           <div
                             className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
                               isPassed
-                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                : 'bg-amber-50 text-amber-700 border border-amber-200'
+                                ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
+                                : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
                             }`}
                           >
                             {isPassed ? <Award className="w-4.5 h-4.5" /> : <RotateCcw className="w-4.5 h-4.5" />}
                           </div>
                           <div className="min-w-0">
-                            <h3 className="font-semibold text-surface-900 text-sm truncate">
+                            <h3 className="font-semibold text-surface-900 dark:text-surface-100 text-sm truncate">
                               {res.quiz?.title || 'Course Assessment'}
                             </h3>
-                            <p className="text-xs text-surface-500 mt-0.5 flex items-center gap-2">
+                            <p className="text-xs text-surface-500 dark:text-surface-400 mt-0.5 flex items-center gap-2">
                               <span>{res.quiz?.course?.title || 'Enrolled Course'}</span>
                               {res.createdAt && (
                                 <>
-                                  <span className="text-surface-300">•</span>
+                                  <span className="text-surface-300 dark:text-surface-600">•</span>
                                   <span>{new Date(res.createdAt).toLocaleDateString()}</span>
                                 </>
                               )}
@@ -402,7 +402,7 @@ export default function DashboardPage() {
                         <div className="flex items-center gap-4 self-end sm:self-center shrink-0">
                           <div className="text-right">
                             <div className="flex items-center justify-end gap-2">
-                              <span className="text-sm font-bold text-surface-900">
+                              <span className="text-sm font-bold text-surface-900 dark:text-surface-100">
                                 {score}/{total}
                               </span>
                               <Badge variant={isPassed ? 'success' : 'warning'} size="sm">
@@ -440,7 +440,7 @@ export default function DashboardPage() {
                     Previous
                   </Button>
 
-                  <span className="text-xs font-semibold text-surface-700 bg-white px-3 py-1.5 rounded-lg border border-surface-200 shadow-xs">
+                  <span className="text-xs font-semibold text-surface-700 dark:text-surface-300 bg-white dark:bg-surface-900 px-3 py-1.5 rounded-lg border border-surface-200 dark:border-surface-800 shadow-xs">
                     Page {quizPage} of {quizPageCount}
                   </span>
 
@@ -461,24 +461,21 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Empty Learning State (Students only) */}
-      {roleType === 'student' && studentEnrollments.length === 0 && (
-        <div className="space-y-3 pt-2">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-surface-400">Continue Learning</h2>
-          <div className="bg-white border border-surface-200 rounded-xl p-8 text-center space-y-3 shadow-xs">
-            <div className="w-12 h-12 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center mx-auto">
-              <Compass className="w-6 h-6" />
-            </div>
-            <p className="text-surface-900 font-semibold text-sm">No courses currently in progress</p>
-            <p className="text-surface-500 text-xs max-w-sm mx-auto">
-              Explore our catalog of industry-ready engineering and technology courses.
-            </p>
-            <Link href="/courses" className="inline-block pt-1">
-              <Button variant="primary" size="sm">
-                Explore Course Catalog
-              </Button>
-            </Link>
+      {/* Enrolled Courses Preview (Student only) */}
+      {roleType === 'student' && studentEnrollments.length === 0 && !loadingStats && (
+        <div className="bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-xl p-8 text-center space-y-3 shadow-xs">
+          <div className="w-12 h-12 rounded-full bg-surface-100 dark:bg-surface-800 text-surface-400 flex items-center justify-center mx-auto">
+            <Compass className="w-6 h-6" />
           </div>
+          <p className="text-surface-900 dark:text-surface-100 font-semibold text-sm">No courses currently in progress</p>
+          <p className="text-surface-500 dark:text-surface-400 text-xs max-w-sm mx-auto">
+            Explore our catalog of industry-ready engineering and technology courses.
+          </p>
+          <Link href="/courses" className="inline-block pt-1">
+            <Button variant="primary" size="sm">
+              Explore Course Catalog
+            </Button>
+          </Link>
         </div>
       )}
     </div>

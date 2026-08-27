@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Logo } from '@/components/ui/Logo';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { 
   LayoutDashboard, 
   BookOpen, 
@@ -20,7 +21,7 @@ import {
 /**
  * Dashboard Layout
  * 
- * Uses a clean SaaS sidebar with balanced typography and Lucide icons.
+ * Uses a clean SaaS sidebar with balanced typography, Lucide icons, and dark theme support.
  */
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user);
@@ -38,10 +39,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-surface-50">
+      <div className="min-h-screen flex items-center justify-center bg-surface-50 dark:bg-surface-950">
         <div className="flex flex-col items-center gap-4">
           <span className="h-9 w-9 animate-spin rounded-full border-2 border-brand-600 border-t-transparent" />
-          <p className="text-surface-500 text-sm font-medium">Loading workspace...</p>
+          <p className="text-surface-500 dark:text-surface-400 text-sm font-medium">Loading workspace...</p>
         </div>
       </div>
     );
@@ -54,11 +55,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const roleConfig = getRoleBadgeConfig(roleType);
 
   return (
-    <div className="min-h-screen bg-surface-50 flex">
+    <div className="min-h-screen bg-surface-50 dark:bg-surface-950 flex">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-surface-950/40 backdrop-blur-xs z-40 lg:hidden transition-opacity"
+          className="fixed inset-0 bg-surface-950/60 backdrop-blur-xs z-40 lg:hidden transition-opacity"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -66,25 +67,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Sidebar */}
       <aside
         className={`
-          w-64 bg-white border-r border-surface-200 flex flex-col fixed h-screen z-50 shrink-0
+          w-64 bg-white dark:bg-surface-900 border-r border-surface-200 dark:border-surface-800 flex flex-col fixed h-screen z-50 shrink-0
           transform transition-transform duration-200 ease-in-out
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           lg:translate-x-0 lg:sticky lg:top-0
         `}
       >
-        {/* Brand */}
-        <div className="p-5 border-b border-surface-200/80 shrink-0">
+        {/* Brand & Theme Switcher */}
+        <div className="p-4 px-5 border-b border-surface-200/80 dark:border-surface-800 flex items-center justify-between shrink-0">
           <Logo size="sm" href="/" />
+          <ThemeToggle size="sm" />
         </div>
 
         {/* User Profile Snippet */}
-        <div className="px-5 py-4 border-b border-surface-200/70 bg-surface-50/70 shrink-0">
+        <div className="px-5 py-4 border-b border-surface-200/70 dark:border-surface-800 bg-surface-50/70 dark:bg-surface-950/40 shrink-0">
           <div className="flex items-center gap-3">
             <div className={`w-9 h-9 rounded-lg border font-bold flex items-center justify-center text-sm shadow-2xs shrink-0 ${roleConfig.avatarClasses}`}>
               {user.username.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
-              <p className="text-surface-900 font-semibold text-sm truncate leading-tight">{user.username}</p>
+              <p className="text-surface-900 dark:text-surface-100 font-semibold text-sm truncate leading-tight">{user.username}</p>
               <span className={`inline-flex items-center gap-1.5 mt-1 px-2 py-0.5 border text-[11px] font-semibold rounded-md capitalize leading-none ${roleConfig.badgeClasses}`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${roleConfig.dotClasses}`} />
                 {user.role?.name || roleConfig.label}
@@ -105,15 +107,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 onClick={() => setSidebarOpen(false)}
                 className={`group flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 cursor-pointer ${
                   isActive
-                    ? 'bg-brand-50/90 text-brand-800 border border-brand-200/80 shadow-2xs'
-                    : 'text-surface-700 hover:bg-surface-100 hover:text-surface-950'
+                    ? 'bg-brand-50/90 dark:bg-brand-950/60 text-brand-800 dark:text-brand-300 border border-brand-200/80 dark:border-brand-800/80 shadow-2xs'
+                    : 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 hover:text-surface-950 dark:hover:text-surface-50'
                 }`}
               >
                 <Icon 
                   className={`w-4.5 h-4.5 shrink-0 transition-colors ${
                     isActive 
-                      ? 'text-brand-600 fill-brand-600' 
-                      : 'text-surface-500 group-hover:text-surface-800 fill-none'
+                      ? 'text-brand-600 dark:text-brand-400 fill-brand-600 dark:fill-brand-400' 
+                      : 'text-surface-500 dark:text-surface-400 group-hover:text-surface-800 dark:group-hover:text-surface-200 fill-none'
                   }`}
                   strokeWidth={isActive ? 2.25 : 1.75}
                 />
@@ -124,15 +126,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
 
         {/* Logout - Pinned to bottom with separator */}
-        <div className="p-3 border-t border-surface-200 mt-auto shrink-0 bg-white">
+        <div className="p-3 border-t border-surface-200 dark:border-surface-800 mt-auto shrink-0 bg-white dark:bg-surface-900">
           <button
             onClick={() => {
               logout();
               router.push('/login');
             }}
-            className="group w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-surface-700 hover:bg-red-50 hover:text-red-700 transition-colors cursor-pointer"
+            className="group w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-surface-700 dark:text-surface-300 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-700 dark:hover:text-red-400 transition-colors cursor-pointer"
           >
-            <LogOut className="w-4.5 h-4.5 text-surface-500 group-hover:text-red-600 transition-colors" strokeWidth={1.75} />
+            <LogOut className="w-4.5 h-4.5 text-surface-500 dark:text-surface-400 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors" strokeWidth={1.75} />
             <span>Sign Out</span>
           </button>
         </div>
@@ -141,15 +143,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main Content */}
       <div className="flex-1 min-w-0 flex flex-col min-h-screen">
         {/* Top bar (mobile) */}
-        <header className="lg:hidden bg-white border-b border-surface-200 px-4 py-3 flex items-center gap-3 sticky top-0 z-30">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="p-1.5 rounded-lg border border-surface-200 text-surface-600 hover:bg-surface-100 transition-colors cursor-pointer"
-            aria-label="Open sidebar"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-          <Logo size="xs" href="/" />
+        <header className="lg:hidden bg-white dark:bg-surface-900 border-b border-surface-200 dark:border-surface-800 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-1.5 rounded-lg border border-surface-200 dark:border-surface-700 text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer"
+              aria-label="Open sidebar"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <Logo size="xs" href="/" />
+          </div>
+          <ThemeToggle size="sm" />
         </header>
 
         <main className="flex-1 p-6 lg:p-8 max-w-7xl w-full mx-auto">

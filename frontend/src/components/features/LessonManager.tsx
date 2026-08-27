@@ -105,7 +105,7 @@ export function LessonManager({ course, onLessonChanged }: LessonManagerProps) {
   return (
     <div className="mt-8">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-surface-900">Curriculum ({lessons.length} Lessons)</h2>
+        <h2 className="text-xl font-bold text-surface-900 dark:text-surface-50">Curriculum ({lessons.length} Lessons)</h2>
         {!isAdding && !editingId && (
           <Button onClick={handleStartAdd} variant="secondary" size="sm">
             + Add Lesson
@@ -117,23 +117,23 @@ export function LessonManager({ course, onLessonChanged }: LessonManagerProps) {
       {!isAdding && !editingId && (
         <div className="space-y-3">
           {lessons.length === 0 ? (
-            <p className="text-surface-500 text-center py-8 border border-dashed border-surface-300 rounded-lg">
+            <p className="text-surface-500 dark:text-surface-400 text-center py-8 border border-dashed border-surface-300 dark:border-surface-700 rounded-lg">
               No lessons yet. Click "Add Lesson" to start building your curriculum.
             </p>
           ) : (
             lessons.map((lesson) => (
               <div 
                 key={lesson.id}
-                className="flex items-center justify-between p-4 bg-white border border-surface-200 rounded-lg hover:border-surface-300 transition-colors"
+                className="flex items-center justify-between p-4 bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-lg hover:border-surface-300 dark:hover:border-surface-700 transition-colors shadow-2xs"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-8 h-8 rounded-full bg-surface-100 flex items-center justify-center text-surface-500 font-medium text-sm">
+                  <div className="w-8 h-8 rounded-full bg-surface-100 dark:bg-surface-800 flex items-center justify-center text-surface-500 dark:text-surface-300 font-medium text-sm">
                     {lesson.order}
                   </div>
                   <div>
-                    <h4 className="font-medium text-surface-900">{lesson.title}</h4>
+                    <h4 className="font-medium text-surface-900 dark:text-surface-100">{lesson.title}</h4>
                     {lesson.videoUrl && (
-                      <span className="text-xs text-brand-600 font-medium">Includes Video</span>
+                      <span className="text-xs text-brand-600 dark:text-brand-400 font-medium">Includes Video</span>
                     )}
                   </div>
                 </div>
@@ -141,7 +141,7 @@ export function LessonManager({ course, onLessonChanged }: LessonManagerProps) {
                   <Button variant="ghost" size="sm" onClick={() => handleStartEdit(lesson)}>
                     Edit
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleDelete(lesson.documentId)} className="text-red-500 hover:text-red-600 hover:bg-red-50">
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(lesson.documentId)} className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40">
                     Delete
                   </Button>
                 </div>
@@ -153,14 +153,14 @@ export function LessonManager({ course, onLessonChanged }: LessonManagerProps) {
 
       {/* Add / Edit Form */}
       {(isAdding || editingId) && (
-        <div className="bg-surface-50 p-6 rounded-xl border border-surface-200">
-          <h3 className="text-lg font-bold text-surface-900 mb-4">
+        <div className="bg-surface-50 dark:bg-surface-900 p-6 rounded-xl border border-surface-200 dark:border-surface-800 shadow-2xs">
+          <h3 className="text-lg font-bold text-surface-900 dark:text-surface-50 mb-4">
             {isAdding ? 'Add New Lesson' : 'Edit Lesson'}
           </h3>
           
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {error && (
-              <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg border border-red-100">
+              <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 rounded-lg border border-red-100 dark:border-red-900">
                 {error}
               </div>
             )}

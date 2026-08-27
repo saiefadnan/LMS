@@ -64,10 +64,10 @@ export default function InstructorCoursesPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-surface-900">
+          <h1 className="text-2xl font-bold text-surface-900 dark:text-surface-50 tracking-tight">
             {isGlobalManager ? 'All Courses' : 'My Courses'}
           </h1>
-          <p className="text-surface-500 text-sm mt-0.5">Manage your curriculum and student enrollments</p>
+          <p className="text-surface-500 dark:text-surface-400 text-sm mt-0.5">Manage your curriculum and student enrollments</p>
         </div>
         <Link href="/dashboard/courses/new">
           <Button variant="primary" className="gap-2 cursor-pointer">
@@ -78,9 +78,9 @@ export default function InstructorCoursesPage() {
       </div>
 
       {/* Search & Filter Controls */}
-      <div className="bg-white p-3 rounded-xl border border-surface-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="bg-white dark:bg-surface-900 p-3 rounded-xl border border-surface-200 dark:border-surface-800 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-surface-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-surface-400 dark:text-surface-500" />
           <input
             type="text"
             placeholder="Search courses by title or topic..."
@@ -89,17 +89,17 @@ export default function InstructorCoursesPage() {
               setSearchQuery(e.target.value);
               setPage(1);
             }}
-            className="w-full pl-10 pr-4 py-1.5 bg-surface-50 border border-surface-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-surface-900"
+            className="w-full pl-10 pr-4 py-1.5 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white dark:focus:bg-surface-900 text-surface-900 dark:text-surface-100 placeholder:text-surface-400 dark:placeholder:text-surface-500"
           />
         </div>
 
-        <span className="text-xs text-surface-500 font-medium">
+        <span className="text-xs text-surface-500 dark:text-surface-400 font-medium">
           Showing {startCount}–{endCount} of {totalCourses} course{totalCourses !== 1 ? 's' : ''}
         </span>
       </div>
 
       {loading ? (
-        <div className="animate-pulse bg-white rounded-xl h-64 border border-surface-200"></div>
+        <div className="animate-pulse bg-white dark:bg-surface-900 rounded-xl h-64 border border-surface-200 dark:border-surface-800"></div>
       ) : (
         <>
           <CourseGrid 
@@ -132,7 +132,7 @@ export default function InstructorCoursesPage() {
                 Previous
               </Button>
 
-              <span className="text-xs font-semibold text-surface-700 bg-white px-3 py-1.5 rounded-lg border border-surface-200 shadow-sm">
+              <span className="text-xs font-semibold text-surface-700 dark:text-surface-300 bg-white dark:bg-surface-900 px-3 py-1.5 rounded-lg border border-surface-200 dark:border-surface-800 shadow-xs">
                 Page {page} of {pageCount}
               </span>
 

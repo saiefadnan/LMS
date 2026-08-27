@@ -20,12 +20,12 @@ export function CourseGrid({
   
   if (courses.length === 0) {
     return (
-      <div className="text-center py-16 bg-white rounded-2xl border border-surface-200 shadow-xs px-4">
-        <div className="w-12 h-12 rounded-xl bg-surface-100 text-surface-400 flex items-center justify-center mx-auto mb-3">
+      <div className="text-center py-16 bg-white dark:bg-surface-900 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-xs px-4">
+        <div className="w-12 h-12 rounded-xl bg-surface-100 dark:bg-surface-800 text-surface-400 flex items-center justify-center mx-auto mb-3">
           <BookOpen className="w-6 h-6" />
         </div>
-        <p className="text-surface-900 font-semibold text-base">{emptyMessage}</p>
-        <p className="text-surface-500 text-xs mt-1">Try adjusting your filters or search keywords.</p>
+        <p className="text-surface-900 dark:text-surface-100 font-semibold text-base">{emptyMessage}</p>
+        <p className="text-surface-500 dark:text-surface-400 text-xs mt-1">Try adjusting your filters or search keywords.</p>
       </div>
     );
   }
@@ -35,10 +35,10 @@ export function CourseGrid({
       {courses.map((course) => (
         <Card 
           key={course.documentId} 
-          className="flex flex-col overflow-hidden border border-surface-200/90 hover:border-brand-200 hover:shadow-md transition-all duration-200 bg-white group rounded-xl"
+          className="flex flex-col overflow-hidden border border-surface-200/90 dark:border-surface-800 hover:border-brand-200 dark:hover:border-brand-700 hover:shadow-md transition-all duration-200 bg-white dark:bg-surface-900 group rounded-xl"
         >
           {/* Thumbnail Header */}
-          <div className="h-44 bg-gradient-to-br from-surface-100 via-surface-50 to-surface-100 flex items-center justify-center relative overflow-hidden border-b border-surface-100">
+          <div className="h-44 bg-gradient-to-br from-surface-100 via-surface-50 to-surface-100 dark:from-surface-800 dark:via-surface-900 dark:to-surface-800 flex items-center justify-center relative overflow-hidden border-b border-surface-100 dark:border-surface-800">
             {getThumbnailSrc(course.thumbnail) ? (
               <img 
                 src={getThumbnailSrc(course.thumbnail)} 
@@ -46,18 +46,18 @@ export function CourseGrid({
                 className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300" 
               />
             ) : (
-              <div className="flex flex-col items-center justify-center text-surface-300">
+              <div className="flex flex-col items-center justify-center text-surface-300 dark:text-surface-600">
                 <BookOpen className="w-10 h-10 stroke-[1.5]" />
               </div>
             )}
             <div className="absolute top-3 left-3 flex gap-1.5 flex-wrap">
               {course.level && (
-                <Badge variant="outline" size="sm" className="bg-white/95 backdrop-blur-xs font-semibold shadow-xs">
+                <Badge variant="outline" size="sm" className="bg-white/95 dark:bg-surface-900/95 backdrop-blur-xs font-semibold shadow-xs">
                   {course.level}
                 </Badge>
               )}
               {course.category && (
-                <Badge variant="default" size="sm" className="bg-brand-50/95 backdrop-blur-xs shadow-xs">
+                <Badge variant="default" size="sm" className="bg-brand-50/95 dark:bg-brand-950/90 backdrop-blur-xs shadow-xs">
                   {course.category}
                 </Badge>
               )}
@@ -65,24 +65,24 @@ export function CourseGrid({
           </div>
           
           <CardHeader className="p-5 pb-3 flex-grow">
-            <CardTitle className="text-base font-bold text-surface-900 leading-snug line-clamp-2 group-hover:text-brand-700 transition-colors">
+            <CardTitle className="text-base font-bold text-surface-900 dark:text-surface-50 leading-snug line-clamp-2 group-hover:text-brand-700 dark:group-hover:text-brand-400 transition-colors">
               {course.title}
             </CardTitle>
-            <CardDescription className="text-surface-500 text-xs line-clamp-2 mt-1.5 leading-relaxed">
+            <CardDescription className="text-surface-500 dark:text-surface-400 text-xs line-clamp-2 mt-1.5 leading-relaxed">
               {course.description || 'Comprehensive curriculum designed to master core concepts.'}
             </CardDescription>
           </CardHeader>
           
           <CardContent className="px-5 pb-4 pt-0">
-            <div className="flex items-center gap-2 text-xs text-surface-600">
-              <div className="w-5 h-5 rounded-full bg-surface-100 border border-surface-200 text-surface-700 flex items-center justify-center text-[10px] font-bold shrink-0">
+            <div className="flex items-center gap-2 text-xs text-surface-600 dark:text-surface-400">
+              <div className="w-5 h-5 rounded-full bg-surface-100 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300 flex items-center justify-center text-[10px] font-bold shrink-0">
                 {course.instructor?.username?.charAt(0).toUpperCase() || 'I'}
               </div>
               <span className="truncate font-medium">{course.instructor?.username || 'Verified Instructor'}</span>
             </div>
           </CardContent>
           
-          <CardFooter className="px-5 py-3.5 mt-auto border-t border-surface-100 bg-surface-50/40">
+          <CardFooter className="px-5 py-3.5 mt-auto border-t border-surface-100 dark:border-surface-800 bg-surface-50/40 dark:bg-surface-950/40">
             {renderAction ? (
               renderAction(course)
             ) : (
