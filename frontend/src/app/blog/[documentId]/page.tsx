@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Calendar, Clock, ArrowLeft, User, Share2, BookOpen, Newspaper } from 'lucide-react';
 import { getThumbnailSrc } from '@/lib/utils/thumbnail';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { Footer } from '@/components/ui/Footer';
 
 export default function BlogPostDetailPage() {
   const params = useParams();
@@ -193,6 +194,9 @@ export default function BlogPostDetailPage() {
           </Link>
         </div>
       </div>
+
+      {/* Footer */}
+      <Footer />
     </article>
   );
 }

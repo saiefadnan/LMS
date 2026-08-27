@@ -9,6 +9,7 @@ import { BookOpen, Calendar, Clock, User, ArrowRight, Search, ChevronLeft, Chevr
 import { getThumbnailSrc } from '@/lib/utils/thumbnail';
 import { Logo } from '@/components/ui/Logo';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { Footer } from '@/components/ui/Footer';
 
 export default function BlogIndexPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -78,7 +79,7 @@ export default function BlogIndexPage() {
       </nav>
 
       {/* Header Banner */}
-      <div className="bg-gradient-to-b from-brand-900 via-brand-800 to-brand-900 dark:from-surface-950 dark:via-surface-900 dark:to-surface-950 text-white py-16 px-6 border-b border-surface-800">
+      <div className="bg-gradient-to-b from-brand-900 via-brand-800 to-brand-900 dark:from-brand-950 dark:via-brand-900 dark:to-brand-950 text-white py-16 px-6 border-b border-brand-800/60 dark:border-brand-800">
         <div className="max-w-6xl mx-auto text-center space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-xs font-semibold text-brand-200 uppercase tracking-wider">
             <BookOpen className="w-4 h-4" />
@@ -92,35 +93,81 @@ export default function BlogIndexPage() {
           </p>
 
           {/* Search bar */}
-          <div className="max-w-md mx-auto pt-4 relative">
-            <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-surface-400" />
-            <input
-              type="text"
-              placeholder="Search articles by title or keyword..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 rounded-xl bg-white dark:bg-surface-900 text-surface-900 dark:text-surface-100 shadow-lg placeholder:text-surface-400 dark:placeholder:text-surface-500 focus:outline-none focus:ring-2 focus:ring-accent-500 text-sm font-medium border border-transparent dark:border-surface-700"
-            />
+          <div className="max-w-md mx-auto pt-4">
+            <div className="relative flex items-center">
+              <Search className="w-5 h-5 absolute left-4 text-surface-400 dark:text-surface-500 pointer-events-none z-10" />
+              <input
+                type="text"
+                placeholder="Search articles by title or keyword..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 rounded-xl bg-white dark:bg-surface-900 text-surface-900 dark:text-surface-100 shadow-lg placeholder:text-surface-400 dark:placeholder:text-surface-500 focus:outline-none focus:ring-2 focus:ring-accent-500 text-sm font-medium border border-transparent dark:border-surface-700"
+              />
+            </div>
           </div>
         </div>
       </div>
 
       {/* Content Container */}
-      <div className="max-w-6xl mx-auto py-12 px-6">
+      <div className="max-w-6xl w-full mx-auto py-12 px-4 sm:px-6 lg:px-8">
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-pulse">
-            <div className="md:col-span-3 h-80 bg-surface-200 rounded-2xl" />
-            <div className="h-64 bg-surface-200 rounded-xl" />
-            <div className="h-64 bg-surface-200 rounded-xl" />
-            <div className="h-64 bg-surface-200 rounded-xl" />
+          <div className="space-y-12 animate-pulse w-full">
+            {/* Featured Article Skeleton Card */}
+            <div className="bg-white dark:bg-surface-900 rounded-2xl border border-surface-200 dark:border-surface-800 overflow-hidden shadow-xs w-full">
+              <div className="grid grid-cols-1 lg:grid-cols-2">
+                <div className="h-64 lg:h-80 bg-surface-200 dark:bg-surface-800/80 w-full" />
+                <div className="p-8 space-y-6 flex flex-col justify-between w-full">
+                  <div className="space-y-4 w-full">
+                    <div className="h-4 bg-surface-200 dark:bg-surface-800/80 rounded-md w-1/3" />
+                    <div className="h-8 bg-surface-200 dark:bg-surface-800/80 rounded-lg w-4/5" />
+                    <div className="space-y-2 w-full">
+                      <div className="h-4 bg-surface-200 dark:bg-surface-800/80 rounded-md w-full" />
+                      <div className="h-4 bg-surface-200 dark:bg-surface-800/80 rounded-md w-11/12" />
+                      <div className="h-4 bg-surface-200 dark:bg-surface-800/80 rounded-md w-3/4" />
+                    </div>
+                  </div>
+                  <div className="pt-6 border-t border-surface-100 dark:border-surface-800 flex items-center justify-between w-full">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-surface-200 dark:bg-surface-800/80" />
+                      <div className="h-4 bg-surface-200 dark:bg-surface-800/80 rounded-md w-24" />
+                    </div>
+                    <div className="h-9 bg-surface-200 dark:bg-surface-800/80 rounded-lg w-28" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 3 Grid Card Skeletons */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+              {[1, 2, 3].map((n) => (
+                <div
+                  key={n}
+                  className="bg-white dark:bg-surface-900 rounded-xl border border-surface-200 dark:border-surface-800 overflow-hidden shadow-xs flex flex-col w-full h-[380px]"
+                >
+                  <div className="h-44 bg-surface-200 dark:bg-surface-800/80 w-full" />
+                  <div className="p-5 flex-1 flex flex-col justify-between space-y-4 w-full">
+                    <div className="space-y-3 w-full">
+                      <div className="h-3 bg-surface-200 dark:bg-surface-800/80 rounded-md w-1/3" />
+                      <div className="h-6 bg-surface-200 dark:bg-surface-800/80 rounded-lg w-full" />
+                      <div className="h-3.5 bg-surface-200 dark:bg-surface-800/80 rounded-md w-11/12" />
+                      <div className="h-3.5 bg-surface-200 dark:bg-surface-800/80 rounded-md w-4/5" />
+                    </div>
+                    <div className="pt-4 border-t border-surface-100 dark:border-surface-800 flex items-center justify-between w-full">
+                      <div className="h-3.5 bg-surface-200 dark:bg-surface-800/80 rounded-md w-20" />
+                      <div className="h-3.5 bg-surface-200 dark:bg-surface-800/80 rounded-md w-12" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         ) : filteredPosts.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-2xl border border-surface-200 p-8 shadow-sm">
-            <div className="w-12 h-12 rounded-full bg-surface-100 text-surface-400 flex items-center justify-center mx-auto mb-3">
+          <div className="text-center py-20 bg-white dark:bg-surface-900 rounded-2xl border border-surface-200 dark:border-surface-800 p-8 shadow-xs">
+            <div className="w-12 h-12 rounded-full bg-surface-100 dark:bg-surface-800 text-surface-400 dark:text-surface-500 flex items-center justify-center mx-auto mb-3">
               <Newspaper className="w-6 h-6" />
             </div>
-            <h3 className="text-xl font-bold text-surface-900 mb-2">No Articles Found</h3>
-            <p className="text-surface-500 text-sm max-w-md mx-auto mb-6">
+            <h3 className="text-xl font-bold text-surface-900 dark:text-surface-100 mb-2">No Articles Found</h3>
+            <p className="text-surface-500 dark:text-surface-400 text-sm max-w-md mx-auto mb-6">
               {searchQuery
                 ? `No posts matched your search for "${searchQuery}". Try a different keyword.`
                 : 'Our instructors and content managers are crafting great guides. Check back soon!'}
@@ -291,7 +338,7 @@ export default function BlogIndexPage() {
                       Previous
                     </Button>
 
-                    <span className="text-xs font-semibold text-surface-700 bg-white px-3 py-1.5 rounded-lg border border-surface-200 shadow-sm">
+                    <span className="text-xs font-semibold text-surface-700 dark:text-surface-300 bg-white dark:bg-surface-800 px-3 py-1.5 rounded-lg border border-surface-200 dark:border-surface-700 shadow-xs">
                       Page {page} of {pageCount}
                     </span>
 
@@ -312,6 +359,9 @@ export default function BlogIndexPage() {
           </div>
         )}
       </div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

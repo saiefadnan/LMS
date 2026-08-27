@@ -7,9 +7,10 @@ import { type Course } from '@/types';
 import { CourseGrid } from '@/components/features/CourseGrid';
 import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui/Button';
-import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, GraduationCap } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { Footer } from '@/components/ui/Footer';
 
 export default function CoursesCatalogPage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -87,28 +88,34 @@ export default function CoursesCatalogPage() {
       </nav>
 
       {/* Hero Section */}
-      <div className="bg-surface-900 dark:bg-surface-950 border-b border-surface-800 text-white py-16">
+      <div className="bg-gradient-to-b from-brand-900 via-brand-800 to-brand-900 dark:from-brand-950 dark:via-brand-900 dark:to-brand-950 text-white py-16 px-6 border-b border-brand-800/60 dark:border-brand-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
-          <h1 className="text-4xl md:text-5xl font-bold">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-xs font-semibold text-brand-200 uppercase tracking-wider mb-1">
+            <GraduationCap className="w-4 h-4" />
+            <span>Course Directory</span>
+          </div>
+          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight">
             Expand Your Knowledge
           </h1>
-          <p className="text-xl text-surface-300 max-w-2xl mx-auto">
+          <p className="text-lg text-brand-200 dark:text-surface-300 max-w-2xl mx-auto">
             Discover premium courses created by expert instructors. Start learning today.
           </p>
 
           {/* Search bar inside hero */}
-          <div className="max-w-md mx-auto pt-4 relative">
-            <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-surface-400" />
-            <input
-              type="text"
-              placeholder="Search courses by topic, title, or category..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setPage(1);
-              }}
-              className="w-full pl-12 pr-4 py-3 rounded-xl bg-white dark:bg-surface-900 text-surface-900 dark:text-surface-100 shadow-lg placeholder:text-surface-400 dark:placeholder:text-surface-500 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm font-medium border border-transparent dark:border-surface-700"
-            />
+          <div className="max-w-md mx-auto pt-4">
+            <div className="relative flex items-center">
+              <Search className="w-5 h-5 absolute left-4 text-surface-400 dark:text-surface-500 pointer-events-none z-10" />
+              <input
+                type="text"
+                placeholder="Search courses by topic, title, or category..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full pl-12 pr-4 py-3 rounded-xl bg-white dark:bg-surface-900 text-surface-900 dark:text-surface-100 shadow-lg placeholder:text-surface-400 dark:placeholder:text-surface-500 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm font-medium border border-transparent dark:border-surface-700"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -183,12 +190,12 @@ export default function CoursesCatalogPage() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="animate-pulse bg-white rounded-xl border border-surface-200 overflow-hidden h-[400px]">
-                <div className="h-48 bg-surface-200"></div>
+              <div key={i} className="animate-pulse bg-white dark:bg-surface-900 rounded-xl border border-surface-200 dark:border-surface-800 overflow-hidden h-[400px]">
+                <div className="h-48 bg-surface-200 dark:bg-surface-800/80"></div>
                 <div className="p-6 space-y-4">
-                  <div className="h-6 bg-surface-200 rounded w-3/4"></div>
-                  <div className="h-4 bg-surface-200 rounded w-full"></div>
-                  <div className="h-4 bg-surface-200 rounded w-5/6"></div>
+                  <div className="h-6 bg-surface-200 dark:bg-surface-800/80 rounded w-3/4"></div>
+                  <div className="h-4 bg-surface-200 dark:bg-surface-800/80 rounded w-full"></div>
+                  <div className="h-4 bg-surface-200 dark:bg-surface-800/80 rounded w-5/6"></div>
                 </div>
               </div>
             ))}
@@ -239,11 +246,7 @@ export default function CoursesCatalogPage() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-surface-200 py-12 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-surface-500">
-          <p>© 2026 LearnHub. All rights reserved.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
