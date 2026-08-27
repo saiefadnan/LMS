@@ -11,6 +11,7 @@ import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
+import { ArrowLeft, AlertCircle } from 'lucide-react';
 
 export default function NewCoursePage() {
   const router = useRouter();
@@ -75,18 +76,19 @@ export default function NewCoursePage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="flex items-center gap-4 mb-8">
-        <Link href="/dashboard/courses" className="text-surface-500 hover:text-surface-900">
-          ← Back
+      <div className="flex items-center gap-3 mb-6">
+        <Link href="/dashboard/courses" className="text-surface-500 hover:text-surface-900 flex items-center gap-1.5 text-xs font-medium transition-colors">
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Courses</span>
         </Link>
-        <h1 className="text-2xl font-bold text-surface-900">Create New Course</h1>
       </div>
+      <h1 className="text-2xl font-bold text-surface-900 mb-6">Create New Course</h1>
 
-      <div className="bg-white rounded-xl border border-surface-200 p-6 md:p-8">
+      <div className="bg-white rounded-xl border border-surface-200 p-6 md:p-8 shadow-xs">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {error && (
-            <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg border border-red-100 flex items-start gap-2">
-              <span className="text-red-500 mt-0.5">⚠️</span>
+            <div className="p-3 text-sm text-red-700 bg-red-50 rounded-lg border border-red-200 flex items-center gap-2.5">
+              <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
               <span>{error}</span>
             </div>
           )}

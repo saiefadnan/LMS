@@ -9,7 +9,7 @@ import { type BlogPost } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
-import { ArrowLeft, Globe } from 'lucide-react';
+import { ArrowLeft, Globe, AlertCircle, ExternalLink } from 'lucide-react';
 
 export default function EditBlogPostPage() {
   const params = useParams();
@@ -95,7 +95,7 @@ export default function EditBlogPostPage() {
   if (initialLoading) {
     return (
       <div className="h-64 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-brand-600 border-t-transparent"></div>
       </div>
     );
   }
@@ -103,31 +103,31 @@ export default function EditBlogPostPage() {
   return (
     <div className="max-w-4xl mx-auto pb-16">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4 mb-8">
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard/blog" className="text-surface-500 hover:text-surface-900 transition-colors">
-            <ArrowLeft className="w-5 h-5" />
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard/blog" className="text-surface-500 hover:text-surface-900 flex items-center gap-1.5 text-xs font-medium transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Articles</span>
           </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-surface-900">Edit Article</h1>
-            <p className="text-surface-500 text-sm">Update your publication content and settings.</p>
-          </div>
         </div>
 
         {status === 'published' && (
           <Link href={`/blog/${documentId}`} target="_blank">
-            <Button variant="ghost" size="sm" className="gap-1.5">
-              <Globe className="w-4 h-4" />
-              View Public Page ↗
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+              <Globe className="w-3.5 h-3.5" />
+              <span>View Public Page</span>
+              <ExternalLink className="w-3 h-3 text-surface-400" />
             </Button>
           </Link>
         )}
       </div>
+      <h1 className="text-2xl font-bold text-surface-900 mb-1">Edit Article</h1>
+      <p className="text-surface-500 text-sm mb-6">Update your publication content and settings.</p>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm flex items-center gap-2">
-            <span>⚠️</span>
+          <div className="p-3 text-sm text-red-700 bg-red-50 rounded-lg border border-red-200 flex items-center gap-2.5">
+            <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
             <span>{error}</span>
           </div>
         )}
@@ -202,7 +202,7 @@ export default function EditBlogPostPage() {
             isLoading={loading}
             className={status === 'published' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : ''}
           >
-            Save Changes 💾
+            Save Changes
           </Button>
         </div>
       </form>

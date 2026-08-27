@@ -6,11 +6,31 @@ import Link from 'next/link';
 import { getMyEnrollments, getMyQuizResults, getMyCourses, getPlatformStats } from '@/lib/api';
 import { type QuizResult, type Enrollment } from '@/types';
 import { Button } from '@/components/ui/Button';
-import { Trophy, Award, CheckCircle2, RotateCcw, ArrowRight, BookOpen, Clock, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Badge } from '@/components/ui/Badge';
+import { 
+  Trophy, 
+  Award, 
+  CheckCircle2, 
+  RotateCcw, 
+  ArrowRight, 
+  BookOpen, 
+  Clock, 
+  Search, 
+  ChevronLeft, 
+  ChevronRight,
+  Users,
+  GraduationCap,
+  FileText,
+  PlusCircle,
+  Compass,
+  BarChart3,
+  Flame,
+  FileQuestion
+} from 'lucide-react';
 
 /**
  * Dashboard home page.
- * Shows a warm welcome, role-specific stats, quick actions, and student quiz marks.
+ * Polished SaaS dashboard with clean metrics, active quick actions, and assessment history.
  */
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
@@ -123,85 +143,104 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      {/* Welcome Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-surface-900">
-          Welcome back, {user.username} 👋
-        </h1>
-        <p className="text-surface-400 mt-1">
-          {getRoleDescription(roleType)}
-        </p>
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-surface-200/80 pb-5">
+        <div>
+          <h1 className="text-2xl font-bold text-surface-900 tracking-tight">
+            Welcome back, {user.username}
+          </h1>
+          <p className="text-surface-500 text-sm mt-0.5">
+            {getRoleDescription(roleType)}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" size="md">
+            Role: <span className="font-semibold text-surface-900 capitalize ml-1">{user.role?.name || roleType.replace('_', ' ')}</span>
+          </Badge>
+        </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className={`grid grid-cols-1 md:grid-cols-2 ${roleType === 'admin' || roleType === 'content_manager' ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-5`}>
-        {getStatsCards(roleType, stats, loadingStats).map((card: any, i) => (
-          <div
-            key={i}
-            className="bg-white rounded-xl border border-surface-200 p-5 hover:shadow-md transition-shadow duration-300 flex flex-col justify-between"
-          >
-            <div className="flex items-center gap-4">
-              <div className={`w-11 h-11 rounded-lg ${card.bgColor} flex items-center justify-center text-xl shrink-0`}>
-                {card.icon}
+      {/* Metrics Cards */}
+      <div className={`grid grid-cols-1 sm:grid-cols-2 ${roleType === 'admin' || roleType === 'content_manager' ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-4`}>
+        {getStatsCards(roleType, stats, loadingStats).map((card: any, i) => {
+          const Icon = card.icon;
+          return (
+            <div
+              key={i}
+              className="bg-white rounded-xl border border-surface-200 p-5 shadow-xs hover:border-surface-300 transition-colors flex flex-col justify-between"
+            >
+              <div className="flex items-center gap-3.5">
+                <div className={`w-10 h-10 rounded-lg ${card.bgColor} ${card.iconColor} flex items-center justify-center shrink-0 border border-surface-200/60`}>
+                  <Icon className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-2xl font-bold text-surface-900 tracking-tight truncate leading-none mb-1">
+                    {card.value}
+                  </p>
+                  <p className="text-surface-500 text-xs font-medium">{card.label}</p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <p className="text-2xl font-bold text-surface-900 truncate">{card.value}</p>
-                <p className="text-surface-400 text-sm">{card.label}</p>
-              </div>
+              {card.subtext && (
+                <p className="text-[11px] text-surface-400 mt-3 pt-2.5 border-t border-surface-100 font-medium">
+                  {card.subtext}
+                </p>
+              )}
             </div>
-            {card.subtext && (
-              <p className="text-xs text-surface-400 mt-3 pt-2 border-t border-surface-100 font-medium">
-                {card.subtext}
-              </p>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Quick Actions */}
-      <div>
-        <h2 className="text-lg font-semibold text-surface-900 mb-4">Quick Actions</h2>
+      <div className="space-y-3">
+        <h2 className="text-sm font-bold uppercase tracking-wider text-surface-400">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {getQuickActions(roleType).map((action, i) => (
-            <Link
-              key={i}
-              href={action.href}
-              className="group bg-white border border-surface-200 rounded-xl p-5 hover:border-brand-300 hover:shadow-md transition-all duration-300"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-xl">{action.icon}</span>
-                <div>
-                  <p className="text-surface-900 font-medium group-hover:text-brand-700 transition-colors">
-                    {action.label}
-                  </p>
-                  <p className="text-surface-400 text-sm">{action.description}</p>
+          {getQuickActions(roleType).map((action, i) => {
+            const Icon = action.icon;
+            return (
+              <Link
+                key={i}
+                href={action.href}
+                className="group bg-white border border-surface-200 rounded-xl p-4.5 hover:border-brand-300 hover:shadow-xs transition-all duration-200 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-10 h-10 rounded-lg bg-surface-50 border border-surface-200 text-surface-600 group-hover:text-brand-600 group-hover:bg-brand-50 group-hover:border-brand-200 flex items-center justify-center shrink-0 transition-colors">
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-surface-900 font-semibold text-sm group-hover:text-brand-700 transition-colors">
+                      {action.label}
+                    </p>
+                    <p className="text-surface-500 text-xs truncate mt-0.5">{action.description}</p>
+                  </div>
                 </div>
-              </div>
-            </Link>
-          ))}
+                <ArrowRight className="w-4 h-4 text-surface-400 group-hover:text-brand-600 group-hover:translate-x-1 transition-all shrink-0 ml-3" />
+              </Link>
+            );
+          })}
         </div>
       </div>
 
       {/* Past Quiz Results Section (Students only) */}
       {roleType === 'student' && (
-        <div className="space-y-4">
+        <div className="space-y-4 pt-2">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold text-surface-900 flex items-center gap-2">
-                <span>🏆 Past Quiz Marks & Assessments</span>
+              <h2 className="text-base font-bold text-surface-900 flex items-center gap-2">
+                <Trophy className="w-4 h-4 text-brand-600" />
+                <span>Assessment History & Scores</span>
               </h2>
-              <p className="text-xs text-surface-500">Your score history and auto-graded assessments</p>
+              <p className="text-xs text-surface-500">Your score history and auto-graded quiz attempts</p>
             </div>
 
             {/* Filter Tabs */}
             {studentQuizResults.length > 0 && (
-              <div className="flex items-center gap-1.5 bg-surface-100 p-1 rounded-lg text-xs font-medium self-start sm:self-auto">
+              <div className="flex items-center gap-1 bg-surface-100 p-1 rounded-lg text-xs font-medium self-start sm:self-auto border border-surface-200/60">
                 <button
                   onClick={() => { setQuizFilter('all'); setQuizPage(1); }}
                   className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
                     quizFilter === 'all'
-                      ? 'bg-white text-surface-900 shadow-sm font-semibold'
-                      : 'text-surface-500 hover:text-surface-900'
+                      ? 'bg-white text-surface-900 shadow-xs font-semibold'
+                      : 'text-surface-600 hover:text-surface-900'
                   }`}
                 >
                   All ({studentQuizResults.length})
@@ -210,8 +249,8 @@ export default function DashboardPage() {
                   onClick={() => { setQuizFilter('passed'); setQuizPage(1); }}
                   className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
                     quizFilter === 'passed'
-                      ? 'bg-white text-emerald-700 shadow-sm font-semibold'
-                      : 'text-surface-500 hover:text-surface-900'
+                      ? 'bg-white text-emerald-700 shadow-xs font-semibold'
+                      : 'text-surface-600 hover:text-surface-900'
                   }`}
                 >
                   Passed
@@ -220,8 +259,8 @@ export default function DashboardPage() {
                   onClick={() => { setQuizFilter('review'); setQuizPage(1); }}
                   className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
                     quizFilter === 'review'
-                      ? 'bg-white text-amber-700 shadow-sm font-semibold'
-                      : 'text-surface-500 hover:text-surface-900'
+                      ? 'bg-white text-amber-700 shadow-xs font-semibold'
+                      : 'text-surface-600 hover:text-surface-900'
                   }`}
                 >
                   Needs Review
@@ -232,7 +271,7 @@ export default function DashboardPage() {
 
           {/* Search & Stats Bar */}
           {studentQuizResults.length > 0 && (
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-3.5 rounded-xl border border-surface-200 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-3 rounded-xl border border-surface-200 shadow-xs">
               <div className="relative flex-1 max-w-sm">
                 <Search className="w-4 h-4 text-surface-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
@@ -243,7 +282,7 @@ export default function DashboardPage() {
                     setQuizSearch(e.target.value);
                     setQuizPage(1);
                   }}
-                  className="w-full pl-10 pr-4 py-1.5 bg-surface-50 border border-surface-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-surface-900"
+                  className="w-full pl-9 pr-4 py-1.5 bg-surface-50 border border-surface-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-surface-900"
                 />
               </div>
 
@@ -273,38 +312,40 @@ export default function DashboardPage() {
 
           {/* Loading Skeleton */}
           {loadingStats ? (
-            <div className="bg-white border border-surface-200 rounded-xl overflow-hidden shadow-sm divide-y divide-surface-100">
+            <div className="bg-white border border-surface-200 rounded-xl overflow-hidden shadow-xs divide-y divide-surface-100">
               {[1, 2, 3].map((n) => (
-                <div key={n} className="p-5 flex items-center justify-between gap-4 animate-pulse">
+                <div key={n} className="p-4 flex items-center justify-between gap-4 animate-pulse">
                   <div className="flex items-center gap-3.5 flex-1">
-                    <div className="w-10 h-10 bg-surface-200 rounded-xl shrink-0"></div>
-                    <div className="space-y-2 flex-1 max-w-md">
+                    <div className="w-9 h-9 bg-surface-200 rounded-lg shrink-0"></div>
+                    <div className="space-y-1.5 flex-1 max-w-md">
                       <div className="h-4 bg-surface-200 rounded w-48"></div>
                       <div className="h-3 bg-surface-100 rounded w-32"></div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="h-6 bg-surface-200 rounded-full w-20"></div>
+                    <div className="h-6 bg-surface-200 rounded w-20"></div>
                     <div className="h-8 bg-surface-200 rounded-lg w-16"></div>
                   </div>
                 </div>
               ))}
             </div>
           ) : studentQuizResults.length === 0 ? (
-            <div className="bg-white border border-surface-200 rounded-xl p-8 text-center space-y-3">
-              <span className="text-4xl block">📝</span>
-              <p className="text-surface-900 font-medium">No quiz attempts yet</p>
-              <p className="text-surface-400 text-sm max-w-sm mx-auto">
+            <div className="bg-white border border-surface-200 rounded-xl p-10 text-center space-y-3 shadow-xs">
+              <div className="w-12 h-12 rounded-full bg-surface-100 text-surface-400 flex items-center justify-center mx-auto">
+                <FileQuestion className="w-6 h-6" />
+              </div>
+              <p className="text-surface-900 font-semibold text-sm">No quiz attempts recorded yet</p>
+              <p className="text-surface-500 text-xs max-w-sm mx-auto">
                 Enroll in courses and take practice quizzes to test your understanding!
               </p>
-              <Link href="/courses">
-                <Button variant="secondary" size="sm" className="mt-2 cursor-pointer">
+              <Link href="/courses" className="inline-block pt-1">
+                <Button variant="secondary" size="sm">
                   Browse Courses
                 </Button>
               </Link>
             </div>
           ) : totalQuizCount === 0 ? (
-            <div className="bg-white border border-surface-200 rounded-xl p-8 text-center space-y-2">
+            <div className="bg-white border border-surface-200 rounded-xl p-8 text-center space-y-2 shadow-xs">
               <p className="text-surface-700 font-medium text-sm">No quiz attempts matched your search or filter.</p>
               <Button
                 variant="ghost"
@@ -317,7 +358,7 @@ export default function DashboardPage() {
             </div>
           ) : (
             <>
-              <div className="bg-white border border-surface-200 rounded-xl overflow-hidden shadow-sm">
+              <div className="bg-white border border-surface-200 rounded-xl overflow-hidden shadow-xs">
                 <div className="divide-y divide-surface-100">
                   {paginatedQuizResults.map((res) => {
                     const quizDoc = res.quiz?.documentId || (res.quiz as any)?.id;
@@ -330,27 +371,27 @@ export default function DashboardPage() {
                     return (
                       <div
                         key={res.documentId || res.id}
-                        className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-surface-50 transition-colors"
+                        className="p-4 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-surface-50/70 transition-colors"
                       >
                         <div className="flex items-start gap-3.5 min-w-0">
                           <div
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 mt-0.5 ${
+                            className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
                               isPassed
-                                ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
-                                : 'bg-amber-50 text-amber-600 border border-amber-200'
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                : 'bg-amber-50 text-amber-700 border border-amber-200'
                             }`}
                           >
-                            {isPassed ? <Award className="w-5 h-5" /> : <RotateCcw className="w-5 h-5" />}
+                            {isPassed ? <Award className="w-4.5 h-4.5" /> : <RotateCcw className="w-4.5 h-4.5" />}
                           </div>
                           <div className="min-w-0">
                             <h3 className="font-semibold text-surface-900 text-sm truncate">
-                              {res.quiz?.title || 'Course Quiz'}
+                              {res.quiz?.title || 'Course Assessment'}
                             </h3>
                             <p className="text-xs text-surface-500 mt-0.5 flex items-center gap-2">
                               <span>{res.quiz?.course?.title || 'Enrolled Course'}</span>
                               {res.createdAt && (
                                 <>
-                                  <span>•</span>
+                                  <span className="text-surface-300">•</span>
                                   <span>{new Date(res.createdAt).toLocaleDateString()}</span>
                                 </>
                               )}
@@ -360,25 +401,19 @@ export default function DashboardPage() {
 
                         <div className="flex items-center gap-4 self-end sm:self-center shrink-0">
                           <div className="text-right">
-                            <div className="flex items-center justify-end gap-1.5">
-                              <span className="text-base font-bold text-surface-900">
+                            <div className="flex items-center justify-end gap-2">
+                              <span className="text-sm font-bold text-surface-900">
                                 {score}/{total}
                               </span>
-                              <span
-                                className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                                  isPassed
-                                    ? 'bg-emerald-100 text-emerald-800'
-                                    : 'bg-amber-100 text-amber-800'
-                                }`}
-                              >
+                              <Badge variant={isPassed ? 'success' : 'warning'} size="sm">
                                 {percentage}% {isPassed ? 'Passed' : 'Review'}
-                              </span>
+                              </Badge>
                             </div>
                           </div>
 
                           {courseDoc && quizDoc && (
                             <Link href={`/learn/${courseDoc}/quiz/${quizDoc}`}>
-                              <Button variant="secondary" size="sm" className="text-xs gap-1 cursor-pointer">
+                              <Button variant="outline" size="sm" className="text-xs gap-1">
                                 Review
                                 <ArrowRight className="w-3 h-3" />
                               </Button>
@@ -393,28 +428,28 @@ export default function DashboardPage() {
 
               {/* Pagination Controls */}
               {quizPageCount > 1 && (
-                <div className="flex items-center justify-center gap-3 pt-2">
+                <div className="flex items-center justify-center gap-2 pt-2">
                   <Button
-                    variant="secondary"
+                    variant="outline"
                     size="sm"
                     onClick={() => setQuizPage((p) => Math.max(1, p - 1))}
                     disabled={quizPage <= 1}
-                    className="gap-1 px-3 py-1.5 text-xs cursor-pointer"
+                    className="gap-1 px-3 text-xs"
                   >
                     <ChevronLeft className="w-3.5 h-3.5" />
                     Previous
                   </Button>
 
-                  <span className="text-xs font-semibold text-surface-700 bg-white px-3 py-1.5 rounded-lg border border-surface-200 shadow-sm">
+                  <span className="text-xs font-semibold text-surface-700 bg-white px-3 py-1.5 rounded-lg border border-surface-200 shadow-xs">
                     Page {quizPage} of {quizPageCount}
                   </span>
 
                   <Button
-                    variant="secondary"
+                    variant="outline"
                     size="sm"
                     onClick={() => setQuizPage((p) => Math.min(quizPageCount, p + 1))}
                     disabled={quizPage >= quizPageCount}
-                    className="gap-1 px-3 py-1.5 text-xs cursor-pointer"
+                    className="gap-1 px-3 text-xs"
                   >
                     Next
                     <ChevronRight className="w-3.5 h-3.5" />
@@ -426,19 +461,21 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Progress Section (Students only) */}
+      {/* Empty Learning State (Students only) */}
       {roleType === 'student' && studentEnrollments.length === 0 && (
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-surface-900">Continue Learning</h2>
-          <div className="bg-white border border-surface-200 rounded-xl p-8 text-center space-y-3">
-            <span className="text-4xl block">🎯</span>
-            <p className="text-surface-900 font-medium">No courses in progress</p>
-            <p className="text-surface-400 text-sm max-w-sm mx-auto">
-              Browse the catalog to find your first course!
+        <div className="space-y-3 pt-2">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-surface-400">Continue Learning</h2>
+          <div className="bg-white border border-surface-200 rounded-xl p-8 text-center space-y-3 shadow-xs">
+            <div className="w-12 h-12 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center mx-auto">
+              <Compass className="w-6 h-6" />
+            </div>
+            <p className="text-surface-900 font-semibold text-sm">No courses currently in progress</p>
+            <p className="text-surface-500 text-xs max-w-sm mx-auto">
+              Explore our catalog of industry-ready engineering and technology courses.
             </p>
-            <Link href="/courses">
-              <Button variant="primary" size="sm" className="mt-2 cursor-pointer">
-                Browse Catalog
+            <Link href="/courses" className="inline-block pt-1">
+              <Button variant="primary" size="sm">
+                Explore Course Catalog
               </Button>
             </Link>
           </div>
@@ -452,10 +489,10 @@ export default function DashboardPage() {
 
 function getRoleDescription(roleType: string) {
   switch (roleType) {
-    case 'admin': return 'You have full control of the platform.';
-    case 'content_manager': return 'Manage courses, lessons, and blog content.';
-    case 'instructor': return 'Create and manage your courses.';
-    default: return 'Continue your learning journey.';
+    case 'admin': return 'Platform Administrator — Full system configuration and oversight.';
+    case 'content_manager': return 'Editorial & Curriculum Manager — Publish and manage courses and blog articles.';
+    case 'instructor': return 'Instructor Portal — Create curriculum, lessons, and evaluate student progress.';
+    default: return 'Student Portal — Pick up learning where you left off.';
   }
 }
 
@@ -467,29 +504,29 @@ function getStatsCards(
   switch (roleType) {
     case 'admin':
       return [
-        { icon: '👥', label: 'Total Users', value: loading ? '...' : stats.totalUsers ?? '—', subtext: `${stats.totalStudents || 0} Students · ${stats.totalInstructors || 0} Instructors`, bgColor: 'bg-blue-50' },
-        { icon: '📚', label: 'Total Courses', value: loading ? '...' : stats.totalCourses ?? '—', bgColor: 'bg-green-50' },
-        { icon: '🎓', label: 'Total Enrollments', value: loading ? '...' : stats.totalEnrollments ?? '—', bgColor: 'bg-amber-50' },
-        { icon: '📝', label: 'Blog Posts', value: loading ? '...' : stats.blogPosts ?? '—', bgColor: 'bg-purple-50' },
+        { icon: Users, label: 'Total Users', value: loading ? '...' : stats.totalUsers ?? '—', subtext: `${stats.totalStudents || 0} Students · ${stats.totalInstructors || 0} Instructors`, bgColor: 'bg-blue-50', iconColor: 'text-blue-600' },
+        { icon: BookOpen, label: 'Total Courses', value: loading ? '...' : stats.totalCourses ?? '—', bgColor: 'bg-teal-50', iconColor: 'text-teal-600' },
+        { icon: GraduationCap, label: 'Total Enrollments', value: loading ? '...' : stats.totalEnrollments ?? '—', bgColor: 'bg-amber-50', iconColor: 'text-amber-600' },
+        { icon: FileText, label: 'Blog Posts', value: loading ? '...' : stats.blogPosts ?? '—', bgColor: 'bg-purple-50', iconColor: 'text-purple-600' },
       ];
     case 'content_manager':
       return [
-        { icon: '📚', label: 'Total Courses', value: loading ? '...' : stats.totalCourses ?? '—', bgColor: 'bg-green-50' },
-        { icon: '🎓', label: 'Total Enrollments', value: loading ? '...' : stats.totalEnrollments ?? '—', bgColor: 'bg-amber-50' },
-        { icon: '📝', label: 'Blog Articles', value: loading ? '...' : stats.blogPosts ?? '—', bgColor: 'bg-purple-50' },
-        { icon: '👥', label: 'Platform Users', value: loading ? '...' : stats.totalUsers ?? '—', bgColor: 'bg-blue-50' },
+        { icon: BookOpen, label: 'Total Courses', value: loading ? '...' : stats.totalCourses ?? '—', bgColor: 'bg-teal-50', iconColor: 'text-teal-600' },
+        { icon: GraduationCap, label: 'Total Enrollments', value: loading ? '...' : stats.totalEnrollments ?? '—', bgColor: 'bg-amber-50', iconColor: 'text-amber-600' },
+        { icon: FileText, label: 'Blog Articles', value: loading ? '...' : stats.blogPosts ?? '—', bgColor: 'bg-purple-50', iconColor: 'text-purple-600' },
+        { icon: Users, label: 'Platform Users', value: loading ? '...' : stats.totalUsers ?? '—', bgColor: 'bg-blue-50', iconColor: 'text-blue-600' },
       ];
     case 'instructor':
       return [
-        { icon: '📚', label: 'My Courses', value: loading ? '...' : stats.myCourses ?? '0', bgColor: 'bg-brand-50' },
-        { icon: '👨‍🎓', label: 'Total Students', value: loading ? '...' : stats.totalStudents ?? '0', bgColor: 'bg-green-50' },
-        { icon: '📊', label: 'Quizzes Created', value: loading ? '...' : stats.quizzesCount ?? '—', bgColor: 'bg-purple-50' },
+        { icon: BookOpen, label: 'My Courses', value: loading ? '...' : stats.myCourses ?? '0', bgColor: 'bg-brand-50', iconColor: 'text-brand-600' },
+        { icon: Users, label: 'Total Students', value: loading ? '...' : stats.totalStudents ?? '0', bgColor: 'bg-emerald-50', iconColor: 'text-emerald-600' },
+        { icon: BarChart3, label: 'Assessments Active', value: loading ? '...' : stats.quizzesCount ?? '—', bgColor: 'bg-purple-50', iconColor: 'text-purple-600' },
       ];
     default:
       return [
-        { icon: '📚', label: 'Enrolled Courses', value: loading ? '...' : stats.enrolled ?? '0', bgColor: 'bg-brand-50' },
-        { icon: '🏆', label: 'Quizzes Passed', value: loading ? '...' : stats.quizzesPassed ?? '0', bgColor: 'bg-amber-50' },
-        { icon: '✨', label: 'Learning Streak', value: '1 Day 🔥', bgColor: 'bg-emerald-50' },
+        { icon: BookOpen, label: 'Enrolled Courses', value: loading ? '...' : stats.enrolled ?? '0', bgColor: 'bg-brand-50', iconColor: 'text-brand-600' },
+        { icon: Award, label: 'Quizzes Passed', value: loading ? '...' : stats.quizzesPassed ?? '0', bgColor: 'bg-amber-50', iconColor: 'text-amber-600' },
+        { icon: Flame, label: 'Active Momentum', value: 'Consistent', bgColor: 'bg-emerald-50', iconColor: 'text-emerald-600' },
       ];
   }
 }
@@ -498,23 +535,23 @@ function getQuickActions(roleType: string) {
   switch (roleType) {
     case 'admin':
       return [
-        { icon: '👥', label: 'Manage Users', description: 'View and manage all platform users', href: '/dashboard/users' },
-        { icon: '📚', label: 'View All Courses', description: 'Browse and manage courses', href: '/dashboard/courses' },
+        { icon: Users, label: 'Manage Users', description: 'Assign roles, review accounts, and manage permissions', href: '/dashboard/users' },
+        { icon: BookOpen, label: 'Platform Curriculum', description: 'Inspect, edit, and organize all published courses', href: '/dashboard/courses' },
       ];
     case 'content_manager':
       return [
-        { icon: '📚', label: 'Manage All Courses', description: 'Edit curriculum, lessons, and quizzes', href: '/dashboard/courses' },
-        { icon: '📝', label: 'Editorial Manager', description: 'Write and publish blog guides', href: '/dashboard/blog' },
+        { icon: BookOpen, label: 'Course Catalog', description: 'Curate modules, lessons, and interactive quizzes', href: '/dashboard/courses' },
+        { icon: FileText, label: 'Editorial Publication', description: 'Author, draft, and publish learning guides & articles', href: '/dashboard/blog' },
       ];
     case 'instructor':
       return [
-        { icon: '➕', label: 'Create New Course', description: 'Start building a new course', href: '/dashboard/courses/new' },
-        { icon: '📚', label: 'My Courses', description: 'Manage your existing courses', href: '/dashboard/courses' },
+        { icon: PlusCircle, label: 'Create New Course', description: 'Author a new course curriculum with video & text lessons', href: '/dashboard/courses/new' },
+        { icon: BookOpen, label: 'Manage Courses', description: 'Update existing curriculum and track student progress', href: '/dashboard/courses' },
       ];
     default:
       return [
-        { icon: '🔍', label: 'Browse Courses', description: 'Discover new courses to learn', href: '/courses' },
-        { icon: '📚', label: 'My Courses', description: 'Pick up where you left off', href: '/dashboard/my-courses' },
+        { icon: Compass, label: 'Explore Catalog', description: 'Discover new skills, frameworks, and masterclasses', href: '/courses' },
+        { icon: GraduationCap, label: 'My Learning Workspace', description: 'Resume lessons, review progress, and complete quizzes', href: '/dashboard/my-courses' },
       ];
   }
 }

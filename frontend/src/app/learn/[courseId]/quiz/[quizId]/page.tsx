@@ -7,7 +7,7 @@ import { getQuiz, submitQuizResult, getMyQuizResults, getCourse } from '@/lib/ap
 import { useAuthStore } from '@/stores/auth';
 import { type Quiz, type QuizResult, type Course } from '@/types';
 import { Button } from '@/components/ui/Button';
-import { CheckCircle2, XCircle, Trophy, RotateCcw, ArrowRight, ArrowLeft, Award } from 'lucide-react';
+import { CheckCircle2, XCircle, Trophy, RotateCcw, ArrowRight, ArrowLeft, Award, AlertCircle } from 'lucide-react';
 
 export default function QuizPlayerPage() {
   const params = useParams();
@@ -209,7 +209,7 @@ export default function QuizPlayerPage() {
             </div>
 
             <h2 className="text-2xl font-bold text-surface-900 mb-1">
-              {submittedResult.passed ? '🎉 Congratulations! You Passed!' : 'Keep Practicing!'}
+              {submittedResult.passed ? 'Assessment Completed Successfully' : 'Review Recommended'}
             </h2>
             <p className="text-surface-600 text-sm max-w-md mx-auto mb-6">
               {submittedResult.passed
@@ -369,8 +369,8 @@ export default function QuizPlayerPage() {
           </div>
 
           {error && (
-            <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm flex items-center gap-2">
-              <span>⚠️</span>
+            <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm flex items-center gap-2.5">
+              <AlertCircle className="w-4.5 h-4.5 shrink-0 text-red-500" />
               <span>{error}</span>
             </div>
           )}
@@ -454,7 +454,8 @@ export default function QuizPlayerPage() {
                   isLoading={submitting}
                   className="bg-emerald-600 hover:bg-emerald-700 gap-2 shadow-md hover:shadow-lg"
                 >
-                  Submit & Grade Quiz 🎯
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Submit Assessment</span>
                 </Button>
               )}
             </div>

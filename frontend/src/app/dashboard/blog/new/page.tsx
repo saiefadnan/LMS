@@ -8,7 +8,7 @@ import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, AlertCircle } from 'lucide-react';
 
 export default function NewBlogPostPage() {
   const router = useRouter();
@@ -61,20 +61,19 @@ export default function NewBlogPostPage() {
   return (
     <div className="max-w-4xl mx-auto pb-16">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <Link href="/dashboard/blog" className="text-surface-500 hover:text-surface-900 transition-colors">
-          <ArrowLeft className="w-5 h-5" />
+      <div className="flex items-center gap-3 mb-6">
+        <Link href="/dashboard/blog" className="text-surface-500 hover:text-surface-900 flex items-center gap-1.5 text-xs font-medium transition-colors">
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Articles</span>
         </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-surface-900">Write New Article</h1>
-          <p className="text-surface-500 text-sm">Publish tutorials, guides, and platform updates.</p>
-        </div>
       </div>
+      <h1 className="text-2xl font-bold text-surface-900 mb-1">Write New Article</h1>
+      <p className="text-surface-500 text-sm mb-6">Publish tutorials, guides, and platform updates.</p>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm flex items-center gap-2">
-            <span>⚠️</span>
+          <div className="p-3 text-sm text-red-700 bg-red-50 rounded-lg border border-red-200 flex items-center gap-2.5">
+            <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
             <span>{error}</span>
           </div>
         )}
@@ -149,7 +148,7 @@ export default function NewBlogPostPage() {
             isLoading={loading}
             className={status === 'published' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : ''}
           >
-            {status === 'published' ? 'Publish Article 🚀' : 'Save as Draft 💾'}
+            {status === 'published' ? 'Publish Article' : 'Save as Draft'}
           </Button>
         </div>
       </form>

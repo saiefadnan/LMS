@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { getCourseStudentProgress } from '@/lib/api';
 import { type CourseStudentProgressItem } from '@/types';
-import { Users, Award, Search, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import { Users, Award, Search, ChevronLeft, ChevronRight, AlertCircle, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 interface StudentProgressManagerProps {
@@ -131,8 +131,10 @@ export function StudentProgressManager({ courseDocumentId }: StudentProgressMana
           <p className="text-surface-500 text-xs mt-3">Loading student roster and progress...</p>
         </div>
       ) : students.length === 0 ? (
-        <div className="text-center py-12 border border-dashed border-surface-300 rounded-xl p-6">
-          <span className="text-3xl block mb-2">🎓</span>
+        <div className="text-center py-12 border border-dashed border-surface-200 rounded-xl p-6 bg-surface-50/50">
+          <div className="w-10 h-10 rounded-full bg-surface-100 text-surface-400 flex items-center justify-center mx-auto mb-2.5">
+            <GraduationCap className="w-5 h-5" />
+          </div>
           <h3 className="font-bold text-surface-900 text-sm mb-1">
             {search ? 'No matching students found' : 'No students enrolled yet'}
           </h3>

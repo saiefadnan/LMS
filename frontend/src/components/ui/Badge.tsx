@@ -1,23 +1,31 @@
-import * as React from "react"
+import * as React from "react";
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'success' | 'warning' | 'destructive' | 'outline';
+  variant?: 'default' | 'success' | 'warning' | 'destructive' | 'outline' | 'neutral';
+  size?: 'sm' | 'md';
 }
 
-function Badge({ className, variant = "default", ...props }: BadgeProps) {
-  const baseStyles = "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
-  
+function Badge({ className = '', variant = "default", size = "md", ...props }: BadgeProps) {
+  const baseStyles =
+    "inline-flex items-center font-medium tracking-tight border transition-colors select-none";
+
+  const sizeStyles = {
+    sm: "px-2 py-0.5 text-[11px] rounded-md gap-1",
+    md: "px-2.5 py-0.5 text-xs rounded-md gap-1.5",
+  };
+
   const variants = {
-    default: "border-transparent bg-brand-100 text-brand-800 hover:bg-brand-200",
-    success: "border-transparent bg-green-100 text-green-800 hover:bg-green-200",
-    warning: "border-transparent bg-amber-100 text-amber-800 hover:bg-amber-200",
-    destructive: "border-transparent bg-red-100 text-red-800 hover:bg-red-200",
-    outline: "text-surface-900 border-surface-200",
-  }
+    default: "border-brand-200 bg-brand-50 text-brand-700",
+    success: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    warning: "border-amber-200 bg-amber-50 text-amber-800",
+    destructive: "border-red-200 bg-red-50 text-red-700",
+    neutral: "border-surface-200 bg-surface-100 text-surface-700",
+    outline: "border-surface-200 text-surface-700 bg-white",
+  };
 
   return (
-    <div className={`${baseStyles} ${variants[variant]} ${className || ''}`} {...props} />
-  )
+    <div className={`${baseStyles} ${sizeStyles[size]} ${variants[variant]} ${className}`} {...props} />
+  );
 }
 
-export { Badge }
+export { Badge };

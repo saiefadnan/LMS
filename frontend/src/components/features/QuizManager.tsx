@@ -5,6 +5,7 @@ import { createQuiz, updateQuiz, deleteQuiz } from '@/lib/api';
 import { type Quiz, type QuizQuestion, type Course } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { HelpCircle, AlertCircle, Plus, Trash2, Edit3, CheckCircle2, X } from 'lucide-react';
 
 interface QuizManagerProps {
   course: Course;
@@ -26,35 +27,37 @@ const defaultQuestion = (): QuestionFormState => ({
 export function QuizManager({ course, onQuizChanged }: QuizManagerProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  // Form State
   const [title, setTitle] = useState('');
   const [questions, setQuestions] = useState<QuestionFormState[]>([defaultQuestion()]);
-  const [error, setError] = useState('');
-  const [submitting, setSubmitting] = useState(false);
 
   const quizzes = course.quizzes || [];
 
   const handleStartAdd = () => {
     setTitle('');
     setQuestions([defaultQuestion()]);
+    setError('');
     setEditingQuiz(null);
     setIsAdding(true);
-    setError('');
   };
 
   const handleStartEdit = (quiz: Quiz) => {
     setTitle(quiz.title);
     setQuestions(
-      quiz.questions && quiz.questions.length > 0
+      quiz.questions?.length
         ? quiz.questions.map((q) => ({
             question: q.question,
-            options: q.options && q.options.length > 0 ? [...q.options] : ['', '', '', ''],
-            correctAnswer: typeof q.correctAnswer === 'number' ? q.correctAnswer : 0,
+            options: [...q.options],
+            correctAnswer: q.correctAnswer ?? 0,
           }))
         : [defaultQuestion()]
     );
-    setEditingQuiz(quiz);
-    setIsAdding(false);
     setError('');
+    setIsAdding(false);
+    setEditingQuiz(quiz);
   };
 
   const handleCancel = () => {
@@ -68,17 +71,13 @@ export function QuizManager({ course, onQuizChanged }: QuizManagerProps) {
   };
 
   const handleRemoveQuestion = (index: number) => {
-    if (questions.length <= 1) {
-      setError('A quiz must have at least one question.');
-      return;
-    }
+    if (questions.length <= 1) return;
     setQuestions(questions.filter((_, i) => i !== index));
-    setError('');
   };
 
-  const handleQuestionTextChange = (index: number, text: string) => {
+  const handleQuestionTextChange = (qIndex: number, text: string) => {
     const updated = [...questions];
-    updated[index].question = text;
+    updated[qIndex].question = text;
     setQuestions(updated);
   };
 
@@ -94,44 +93,34 @@ export function QuizManager({ course, onQuizChanged }: QuizManagerProps) {
     setQuestions(updated);
   };
 
-  const validateForm = (): boolean => {
-    if (!title.trim()) {
-      setError('Please enter a quiz title.');
-      return false;
-    }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
 
-    if (questions.length === 0) {
-      setError('Please add at least one question.');
-      return false;
+    // Validation
+    if (!title.trim()) {
+      setError('Quiz title is required.');
+      return;
     }
 
     for (let i = 0; i < questions.length; i++) {
       const q = questions[i];
       if (!q.question.trim()) {
-        setError(`Question ${i + 1} is empty. Please enter question text.`);
-        return false;
+        setError(`Question ${i + 1} prompt cannot be empty.`);
+        return;
       }
       for (let j = 0; j < q.options.length; j++) {
         if (!q.options[j].trim()) {
-          setError(`Option ${String.fromCharCode(65 + j)} for Question ${i + 1} is empty.`);
-          return false;
+          setError(`Question ${i + 1}, Option ${String.fromCharCode(65 + j)} cannot be empty.`);
+          return;
         }
       }
     }
 
-    setError('');
-    return true;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) return;
-
     try {
       setSubmitting(true);
-      setError('');
 
-      const cleanQuestions: QuizQuestion[] = questions.map((q) => ({
+      const formattedQuestions: QuizQuestion[] = questions.map((q) => ({
         question: q.question.trim(),
         options: q.options.map((opt) => opt.trim()),
         correctAnswer: q.correctAnswer,
@@ -140,13 +129,13 @@ export function QuizManager({ course, onQuizChanged }: QuizManagerProps) {
       if (isAdding) {
         await createQuiz({
           title: title.trim(),
-          questions: cleanQuestions,
-          course: course.documentId,
+          questions: formattedQuestions,
+          course: course.id,
         });
       } else if (editingQuiz) {
         await updateQuiz(editingQuiz.documentId, {
           title: title.trim(),
-          questions: cleanQuestions,
+          questions: formattedQuestions,
         });
       }
 
@@ -175,16 +164,17 @@ export function QuizManager({ course, onQuizChanged }: QuizManagerProps) {
     <div className="mt-8">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-xl font-bold text-surface-900">
+          <h2 className="text-lg font-bold text-surface-900">
             Quizzes & Assessments ({quizzes.length})
           </h2>
-          <p className="text-sm text-surface-500 mt-0.5">
-            Test students' knowledge with auto-graded multiple choice quizzes.
+          <p className="text-xs text-surface-500 mt-0.5">
+            Evaluate learners at the end of the course with auto-graded multiple choice assessments.
           </p>
         </div>
         {!isAdding && !editingQuiz && (
-          <Button onClick={handleStartAdd} variant="secondary" size="sm">
-            + Add Quiz
+          <Button onClick={handleStartAdd} variant="outline" size="sm" className="gap-1.5 text-xs">
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Quiz</span>
           </Button>
         )}
       </div>
@@ -193,14 +183,17 @@ export function QuizManager({ course, onQuizChanged }: QuizManagerProps) {
       {!isAdding && !editingQuiz && (
         <div className="space-y-3">
           {quizzes.length === 0 ? (
-            <div className="text-surface-500 text-center py-8 border border-dashed border-surface-300 rounded-lg bg-surface-50">
-              <span className="text-3xl block mb-2">📝</span>
-              <p className="font-medium text-surface-700">No quizzes created yet</p>
-              <p className="text-xs text-surface-400 mt-1">
+            <div className="text-surface-500 text-center py-10 border border-dashed border-surface-200 rounded-xl bg-surface-50/50">
+              <div className="w-10 h-10 rounded-full bg-surface-100 text-surface-400 flex items-center justify-center mx-auto mb-2.5">
+                <HelpCircle className="w-5 h-5" />
+              </div>
+              <p className="font-semibold text-surface-800 text-sm">No quizzes created yet</p>
+              <p className="text-xs text-surface-400 mt-0.5">
                 Add an MCQ quiz to evaluate learners at the end of this course.
               </p>
-              <Button onClick={handleStartAdd} variant="ghost" size="sm" className="mt-3 text-brand-600">
-                + Create First Quiz
+              <Button onClick={handleStartAdd} variant="outline" size="sm" className="mt-3 gap-1 text-xs">
+                <Plus className="w-3.5 h-3.5" />
+                <span>Create Assessment</span>
               </Button>
             </div>
           ) : (
@@ -209,15 +202,15 @@ export function QuizManager({ course, onQuizChanged }: QuizManagerProps) {
               return (
                 <div
                   key={quiz.documentId || quiz.id}
-                  className="flex items-center justify-between p-4 bg-white border border-surface-200 rounded-lg hover:border-surface-300 transition-colors"
+                  className="flex items-center justify-between p-4 bg-white border border-surface-200 rounded-xl hover:border-surface-300 transition-colors shadow-2xs"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="w-9 h-9 rounded-lg bg-brand-50 text-brand-700 flex items-center justify-center font-bold text-sm border border-brand-100">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-700 flex items-center justify-center font-bold text-xs border border-brand-100">
                       Q{index + 1}
                     </div>
                     <div>
-                      <h4 className="font-medium text-surface-900">{quiz.title}</h4>
-                      <div className="flex items-center gap-3 text-xs text-surface-500 mt-0.5">
+                      <h4 className="font-semibold text-surface-900 text-sm">{quiz.title}</h4>
+                      <div className="flex items-center gap-2 text-xs text-surface-500 mt-0.5">
                         <span>{qCount} Question{qCount === 1 ? '' : 's'}</span>
                         <span>•</span>
                         <span className="text-emerald-600 font-medium">Auto-Graded</span>
@@ -225,14 +218,14 @@ export function QuizManager({ course, onQuizChanged }: QuizManagerProps) {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="sm" onClick={() => handleStartEdit(quiz)}>
+                    <Button variant="ghost" size="sm" onClick={() => handleStartEdit(quiz)} className="text-xs">
                       Edit
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDelete(quiz.documentId)}
-                      className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs"
                     >
                       Delete
                     </Button>
@@ -246,20 +239,20 @@ export function QuizManager({ course, onQuizChanged }: QuizManagerProps) {
 
       {/* Add / Edit Form */}
       {(isAdding || editingQuiz) && (
-        <div className="bg-surface-50 p-6 rounded-xl border border-surface-200">
+        <div className="bg-surface-50 p-6 rounded-xl border border-surface-200 shadow-2xs">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-bold text-surface-900">
+            <h3 className="text-base font-bold text-surface-900">
               {isAdding ? 'Create New Quiz' : `Edit Quiz: ${editingQuiz?.title}`}
             </h3>
-            <span className="text-xs bg-brand-100 text-brand-800 font-medium px-2.5 py-1 rounded-full">
+            <span className="text-xs bg-brand-100 text-brand-800 font-medium px-2.5 py-0.5 rounded-full">
               {questions.length} Question{questions.length === 1 ? '' : 's'}
             </span>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="p-3.5 text-sm text-red-600 bg-red-50 rounded-lg border border-red-200 flex items-center gap-2">
-                <span>⚠️</span>
+              <div className="p-3 text-sm text-red-700 bg-red-50 rounded-lg border border-red-200 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
                 <span>{error}</span>
               </div>
             )}
@@ -267,7 +260,7 @@ export function QuizManager({ course, onQuizChanged }: QuizManagerProps) {
             <div>
               <Input
                 label="Quiz Title"
-                placeholder="e.g., C Basics Mastery Quiz"
+                placeholder="e.g., Module Assessment Quiz"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
@@ -275,32 +268,32 @@ export function QuizManager({ course, onQuizChanged }: QuizManagerProps) {
             </div>
 
             {/* Questions Builder */}
-            <div className="space-y-6 pt-2">
+            <div className="space-y-4 pt-2">
               <div className="flex justify-between items-center border-b border-surface-200 pb-2">
-                <h4 className="font-semibold text-surface-800 text-sm uppercase tracking-wide">
-                  Questions & Answers
+                <h4 className="font-bold text-surface-800 text-xs uppercase tracking-wider">
+                  Questions & Answer Key
                 </h4>
                 <span className="text-xs text-surface-500">
-                  Select the radio button next to the correct answer for each question.
+                  Select the radio button next to the correct answer.
                 </span>
               </div>
 
               {questions.map((q, qIndex) => (
                 <div
                   key={qIndex}
-                  className="bg-white p-5 rounded-lg border border-surface-200 shadow-sm space-y-4 relative"
+                  className="bg-white p-4.5 rounded-xl border border-surface-200 shadow-2xs space-y-3 relative"
                 >
                   <div className="flex justify-between items-start gap-4">
-                    <div className="flex items-center gap-2 flex-grow">
-                      <span className="w-6 h-6 rounded-full bg-surface-100 text-surface-700 text-xs font-bold flex items-center justify-center">
+                    <div className="flex items-center gap-2.5 flex-grow">
+                      <span className="w-6 h-6 rounded-md bg-surface-100 text-surface-700 text-xs font-bold flex items-center justify-center shrink-0">
                         {qIndex + 1}
                       </span>
                       <input
                         type="text"
-                        placeholder={`Question ${qIndex + 1} text...`}
+                        placeholder={`Question ${qIndex + 1} prompt...`}
                         value={q.question}
                         onChange={(e) => handleQuestionTextChange(qIndex, e.target.value)}
-                        className="w-full text-sm font-medium border-b border-surface-300 focus:border-brand-500 focus:outline-none py-1 px-1"
+                        className="w-full text-sm font-medium border-b border-surface-200 focus:border-brand-500 focus:outline-none py-1 px-1 bg-transparent"
                         required
                       />
                     </div>
@@ -308,16 +301,16 @@ export function QuizManager({ course, onQuizChanged }: QuizManagerProps) {
                       <button
                         type="button"
                         onClick={() => handleRemoveQuestion(qIndex)}
-                        className="text-surface-400 hover:text-red-500 text-sm font-semibold p-1"
+                        className="text-surface-400 hover:text-red-500 p-1 transition-colors cursor-pointer"
                         title="Remove question"
                       >
-                        ✕
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     )}
                   </div>
 
                   {/* 4 Options */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                     {q.options.map((opt, optIndex) => {
                       const isCorrect = q.correctAnswer === optIndex;
                       const letter = String.fromCharCode(65 + optIndex);
@@ -364,12 +357,13 @@ export function QuizManager({ course, onQuizChanged }: QuizManagerProps) {
 
               <Button
                 type="button"
-                variant="secondary"
+                variant="outline"
                 size="sm"
                 onClick={handleAddQuestion}
-                className="w-full border-dashed border-2 py-3 text-brand-600 hover:bg-brand-50"
+                className="w-full border-dashed border-surface-300 py-2.5 text-brand-700 hover:bg-brand-50 gap-1.5 text-xs font-medium"
               >
-                + Add Another Question
+                <Plus className="w-4 h-4" />
+                <span>Add Another Question</span>
               </Button>
             </div>
 

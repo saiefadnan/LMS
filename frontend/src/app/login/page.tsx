@@ -10,6 +10,8 @@ import { useAuthStore } from '@/stores/auth';
 import { loginSchema, type LoginFormValues } from '@/lib/validations';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Logo } from '@/components/ui/Logo';
+import { Target, BookOpen, Award, AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const [error, setError] = useState('');
@@ -24,12 +26,9 @@ export default function LoginPage() {
     formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
-      identifier: '',
-      password: '',
-    },
   });
 
+  // Guest-only guard: redirect to /dashboard if already logged in
   useEffect(() => {
     if (!loading && user) {
       router.replace('/dashboard');
@@ -43,14 +42,14 @@ export default function LoginPage() {
       await refreshUser();
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.message || 'Invalid credentials');
+      setError(err.message || 'Invalid credentials. Please try again.');
     }
   };
 
   if (loading || user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface-50">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-brand-600 border-t-transparent"></div>
       </div>
     );
   }
@@ -58,30 +57,33 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex bg-surface-50">
       {/* Left Panel - Brand / Features (Hidden on mobile) */}
-      <div className="hidden lg:flex lg:w-1/2 bg-surface-900 p-12 flex-col justify-between">
+      <div className="hidden lg:flex lg:w-1/2 bg-surface-900 p-12 flex-col justify-between border-r border-surface-800">
         <div className="text-white">
-          <Link href="/" className="text-3xl font-bold tracking-tight text-white flex items-center gap-2">
-            <span className="text-brand-500">Learn</span>Hub
-          </Link>
+          <Logo size="lg" theme="dark" href="/" />
           <div className="mt-24 max-w-md">
-            <h1 className="text-4xl font-bold mb-6 text-white leading-tight">
-              Welcome back to your learning journey.
+            <h1 className="text-3xl sm:text-4xl font-bold mb-4 text-white leading-tight tracking-tight">
+              Welcome back to your learning workspace.
             </h1>
-            <p className="text-surface-300 text-lg mb-8">
+            <p className="text-surface-300 text-base mb-8 leading-relaxed">
               Continue where you left off. Access your courses, track your progress, and master new skills.
             </p>
             
             <div className="space-y-4">
               {[
-                { icon: '🎯', text: 'Track your learning goals' },
-                { icon: '📚', text: 'Access premium course content' },
-                { icon: '🏆', text: 'Earn certificates of completion' }
-              ].map((feature, i) => (
-                <div key={i} className="flex items-center gap-3 text-surface-200">
-                  <span className="text-xl">{feature.icon}</span>
-                  <span>{feature.text}</span>
-                </div>
-              ))}
+                { icon: Target, text: 'Track lesson progress and assessments' },
+                { icon: BookOpen, text: 'Access curated engineering curriculum' },
+                { icon: Award, text: 'Validate skills with auto-graded quizzes' }
+              ].map((feature, i) => {
+                const Icon = feature.icon;
+                return (
+                  <div key={i} className="flex items-center gap-3 text-surface-200 text-sm font-medium">
+                    <div className="w-8 h-8 rounded-lg bg-surface-800 border border-surface-700 flex items-center justify-center shrink-0">
+                      <Icon className="w-4 h-4 text-brand-300" />
+                    </div>
+                    <span>{feature.text}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -90,20 +92,20 @@ export default function LoginPage() {
       {/* Right Panel - Form */}
       <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-20 xl:px-24">
         <div className="mx-auto w-full max-w-sm">
-          <div className="mb-10 text-center lg:text-left">
-            <Link href="/" className="lg:hidden text-2xl font-bold tracking-tight text-surface-900 flex items-center justify-center gap-1 mb-8">
-              <span className="text-brand-600">Learn</span>Hub
-            </Link>
-            <h2 className="text-3xl font-bold text-surface-900">Sign In</h2>
-            <p className="mt-2 text-surface-500">
+          <div className="mb-8 text-center lg:text-left">
+            <div className="lg:hidden flex justify-center mb-6">
+              <Logo size="md" href="/" />
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-surface-900 tracking-tight">Sign In</h2>
+            <p className="mt-1 text-surface-500 text-xs sm:text-sm">
               Enter your credentials to access your account
             </p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {error && (
-              <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg border border-red-100 flex items-start gap-2">
-                <span className="text-red-500 mt-0.5">⚠️</span>
+              <div className="p-3 text-sm text-red-700 bg-red-50 rounded-lg border border-red-200 flex items-center gap-2.5">
+                <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
