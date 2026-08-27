@@ -5,19 +5,21 @@ import Link from 'next/link';
 import { getBlogPosts, updateBlogPost, deleteBlogPost } from '@/lib/api';
 import { type BlogPost } from '@/types';
 import { Button } from '@/components/ui/Button';
-import { Plus, Edit, Trash2, Eye, Globe, FileText, CheckCircle2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Globe, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth';
 
 export default function DashboardBlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'published' | 'draft'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const user = useAuthStore((s) => s.user);
 
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      // For editors/admins, backend returns all posts including drafts
       const res = await getBlogPosts();
       setPosts(res.data || []);
     } catch (err) {
@@ -55,10 +57,23 @@ export default function DashboardBlogPage() {
   const draftCount = posts.filter((p) => p.status === 'draft').length;
 
   const filteredPosts = posts.filter((p) => {
+    const term = searchQuery.toLowerCase();
+    const matchesSearch =
+      p.title.toLowerCase().includes(term) ||
+      (p.author?.username || '').toLowerCase().includes(term);
+
+    if (!matchesSearch) return false;
     if (filter === 'published') return p.status === 'published';
     if (filter === 'draft') return p.status === 'draft';
     return true;
   });
+
+  const totalPostsCount = filteredPosts.length;
+  const pageCount = Math.ceil(totalPostsCount / pageSize) || 1;
+  const paginatedPosts = filteredPosts.slice((page - 1) * pageSize, page * pageSize);
+
+  const startCount = totalPostsCount === 0 ? 0 : (page - 1) * pageSize + 1;
+  const endCount = Math.min(page * pageSize, totalPostsCount);
 
   return (
     <div className="max-w-6xl mx-auto pb-12">
@@ -72,13 +87,13 @@ export default function DashboardBlogPage() {
         </div>
         <div className="flex items-center gap-3">
           <Link href="/blog" target="_blank">
-            <Button variant="ghost" size="sm" className="gap-1.5">
+            <Button variant="ghost" size="sm" className="gap-1.5 cursor-pointer">
               <Globe className="w-4 h-4" />
               View Public Blog ↗
             </Button>
           </Link>
           <Link href="/dashboard/blog/new">
-            <Button variant="primary" className="gap-2">
+            <Button variant="primary" className="gap-2 cursor-pointer">
               <Plus className="w-4 h-4" />
               Write New Post
             </Button>
@@ -119,38 +134,80 @@ export default function DashboardBlogPage() {
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex items-center gap-2 border-b border-surface-200 mb-6 pb-2">
-        <button
-          onClick={() => setFilter('all')}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${
-            filter === 'all'
-              ? 'bg-brand-50 text-brand-700'
-              : 'text-surface-600 hover:text-surface-900 hover:bg-surface-100'
-          }`}
-        >
-          All Posts ({posts.length})
-        </button>
-        <button
-          onClick={() => setFilter('published')}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${
-            filter === 'published'
-              ? 'bg-emerald-50 text-emerald-700'
-              : 'text-surface-600 hover:text-surface-900 hover:bg-surface-100'
-          }`}
-        >
-          Published ({publishedCount})
-        </button>
-        <button
-          onClick={() => setFilter('draft')}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${
-            filter === 'draft'
-              ? 'bg-amber-50 text-amber-700'
-              : 'text-surface-600 hover:text-surface-900 hover:bg-surface-100'
-          }`}
-        >
-          Drafts ({draftCount})
-        </button>
+      {/* Search & Filter Bar */}
+      <div className="bg-white p-4 rounded-xl border border-surface-200 shadow-sm mb-6 flex flex-col lg:flex-row items-center justify-between gap-4">
+        <div className="relative w-full lg:w-72">
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-surface-400" />
+          <input
+            type="text"
+            placeholder="Search article by title..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(1);
+            }}
+            className="w-full pl-10 pr-4 py-2 bg-surface-50 border border-surface-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-surface-900"
+          />
+        </div>
+
+        {/* Filter Tabs */}
+        <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+          <button
+            onClick={() => {
+              setFilter('all');
+              setPage(1);
+            }}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+              filter === 'all'
+                ? 'bg-brand-600 text-white'
+                : 'bg-surface-100 text-surface-600 hover:bg-surface-200'
+            }`}
+          >
+            All Posts ({posts.length})
+          </button>
+          <button
+            onClick={() => {
+              setFilter('published');
+              setPage(1);
+            }}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+              filter === 'published'
+                ? 'bg-emerald-600 text-white'
+                : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+            }`}
+          >
+            Published ({publishedCount})
+          </button>
+          <button
+            onClick={() => {
+              setFilter('draft');
+              setPage(1);
+            }}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+              filter === 'draft'
+                ? 'bg-amber-600 text-white'
+                : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+            }`}
+          >
+            Drafts ({draftCount})
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2 self-end lg:self-auto text-xs text-surface-500 font-medium">
+          <span>Per page:</span>
+          <select
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              setPage(1);
+            }}
+            className="bg-surface-50 border border-surface-200 rounded-lg px-2.5 py-1 text-xs font-semibold text-surface-800 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer"
+          >
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+          </select>
+        </div>
       </div>
 
       {/* Posts Table */}
@@ -161,12 +218,14 @@ export default function DashboardBlogPage() {
       ) : filteredPosts.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-xl border border-dashed border-surface-300 p-6">
           <span className="text-4xl block mb-2">✍️</span>
-          <h3 className="font-bold text-surface-900 mb-1">No blog posts in this view</h3>
+          <h3 className="font-bold text-surface-900 mb-1">No blog posts found</h3>
           <p className="text-sm text-surface-500 mb-4">
-            Click below to write your next article.
+            {searchQuery
+              ? 'Try adjusting your search query or status filter.'
+              : 'Click below to write your next article.'}
           </p>
           <Link href="/dashboard/blog/new">
-            <Button variant="secondary" size="sm">
+            <Button variant="secondary" size="sm" className="cursor-pointer">
               + Write New Post
             </Button>
           </Link>
@@ -185,7 +244,7 @@ export default function DashboardBlogPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-100">
-                {filteredPosts.map((post) => {
+                {paginatedPosts.map((post) => {
                   const isPublished = post.status === 'published';
                   return (
                     <tr key={post.documentId || post.id} className="hover:bg-surface-50/70 transition-colors">
@@ -226,14 +285,24 @@ export default function DashboardBlogPage() {
 
                           {isPublished && (
                             <Link href={`/blog/${post.documentId}`} target="_blank">
-                              <Button variant="ghost" size="sm" className="p-2 text-surface-500 hover:text-surface-900" title="View Public Page">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="p-2 text-surface-500 hover:text-surface-900 cursor-pointer"
+                                title="View Public Page"
+                              >
                                 <Eye className="w-4 h-4" />
                               </Button>
                             </Link>
                           )}
 
                           <Link href={`/dashboard/blog/${post.documentId}/edit`}>
-                            <Button variant="ghost" size="sm" className="p-2 text-surface-500 hover:text-brand-600" title="Edit Post">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="p-2 text-surface-500 hover:text-brand-600 cursor-pointer"
+                              title="Edit Post"
+                            >
                               <Edit className="w-4 h-4" />
                             </Button>
                           </Link>
@@ -242,7 +311,7 @@ export default function DashboardBlogPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleDelete(post.documentId)}
-                            className="p-2 text-surface-400 hover:text-red-600 hover:bg-red-50"
+                            className="p-2 text-surface-400 hover:text-red-600 hover:bg-red-50 cursor-pointer"
                             title="Delete Post"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -254,6 +323,43 @@ export default function DashboardBlogPage() {
                 })}
               </tbody>
             </table>
+          </div>
+
+          {/* Pagination Footer */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-surface-200 bg-surface-50 text-xs text-surface-500">
+            <div>
+              Showing <span className="font-bold text-surface-900">{startCount}</span> to{' '}
+              <span className="font-bold text-surface-900">{endCount}</span> of{' '}
+              <span className="font-bold text-surface-900">{totalPostsCount}</span> articles
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                className="gap-1 px-2.5 py-1 text-xs cursor-pointer"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+                Previous
+              </Button>
+
+              <span className="px-3 py-1 font-semibold text-surface-700 bg-white rounded border border-surface-200">
+                Page {page} of {pageCount}
+              </span>
+
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                disabled={page >= pageCount}
+                className="gap-1 px-2.5 py-1 text-xs cursor-pointer"
+              >
+                Next
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Button>
+            </div>
           </div>
         </div>
       )}

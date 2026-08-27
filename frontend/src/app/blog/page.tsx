@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { getBlogPosts } from '@/lib/api';
 import { type BlogPost } from '@/types';
 import { Button } from '@/components/ui/Button';
-import { BookOpen, Calendar, Clock, User, ArrowRight, Search } from 'lucide-react';
+import { BookOpen, Calendar, Clock, User, ArrowRight, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getThumbnailSrc } from '@/lib/utils/thumbnail';
 
 export default function BlogIndexPage() {
@@ -29,6 +29,9 @@ export default function BlogIndexPage() {
     loadPosts();
   }, []);
 
+  const [page, setPage] = useState(1);
+  const pageSize = 6;
+
   const filteredPosts = posts.filter((post) => {
     const term = searchQuery.toLowerCase();
     return (
@@ -38,7 +41,9 @@ export default function BlogIndexPage() {
   });
 
   const featuredPost = filteredPosts.length > 0 ? filteredPosts[0] : null;
-  const remainingPosts = filteredPosts.length > 1 ? filteredPosts.slice(1) : [];
+  const allRemainingPosts = filteredPosts.length > 1 ? filteredPosts.slice(1) : [];
+  const pageCount = Math.ceil(allRemainingPosts.length / pageSize) || 1;
+  const paginatedRemainingPosts = allRemainingPosts.slice((page - 1) * pageSize, page * pageSize);
 
   const getReadingTime = (text?: string) => {
     if (!text) return '2 min read';
@@ -178,11 +183,17 @@ export default function BlogIndexPage() {
             )}
 
             {/* Remaining Posts Grid */}
-            {remainingPosts.length > 0 && (
+            {allRemainingPosts.length > 0 && (
               <div>
-                <h3 className="text-xl font-bold text-surface-900 mb-6">Recent Articles</h3>
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-bold text-surface-900">Recent Articles</h3>
+                  <span className="text-xs text-surface-500 font-medium">
+                    Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, allRemainingPosts.length)} of {allRemainingPosts.length}
+                  </span>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {remainingPosts.map((post) => (
+                  {paginatedRemainingPosts.map((post) => (
                     <article
                       key={post.documentId || post.id}
                       className="bg-white rounded-xl border border-surface-200 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col group"
@@ -240,6 +251,37 @@ export default function BlogIndexPage() {
                     </article>
                   ))}
                 </div>
+
+                {/* Pagination Controls */}
+                {pageCount > 1 && (
+                  <div className="flex items-center justify-center gap-3 mt-10">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page <= 1}
+                      className="gap-1 px-3 py-1.5 text-xs cursor-pointer"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                      Previous
+                    </Button>
+
+                    <span className="text-xs font-semibold text-surface-700 bg-white px-3 py-1.5 rounded-lg border border-surface-200 shadow-sm">
+                      Page {page} of {pageCount}
+                    </span>
+
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                      disabled={page >= pageCount}
+                      className="gap-1 px-3 py-1.5 text-xs cursor-pointer"
+                    >
+                      Next
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>
