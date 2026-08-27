@@ -19,8 +19,11 @@ export default function Home() {
               </Link>
             </div>
             <div className="flex items-center gap-4">
-              <Link href="/courses" className="text-surface-600 hover:text-surface-900 font-medium hidden sm:block mr-4">
+              <Link href="/courses" className="text-surface-600 hover:text-surface-900 font-medium hidden sm:block">
                 Browse Courses
+              </Link>
+              <Link href="/blog" className="text-surface-600 hover:text-surface-900 font-medium hidden sm:block mr-2">
+                Blog
               </Link>
               {user ? (
                 <Link href="/dashboard">

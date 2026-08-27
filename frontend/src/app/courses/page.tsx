@@ -39,6 +39,9 @@ export default function CoursesCatalogPage() {
               </Link>
             </div>
             <div className="flex items-center gap-4">
+              <Link href="/blog" className="text-surface-600 hover:text-surface-900 font-medium hidden sm:block mr-2">
+                Blog
+              </Link>
               {user ? (
                 <Link href="/dashboard">
                   <Button variant="secondary">Go to Dashboard</Button>
