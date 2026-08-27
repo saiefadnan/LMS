@@ -22,6 +22,15 @@ export default function CourseDetailsPage() {
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [error, setError] = useState('');
 
+  const roleType = user
+    ? (typeof user.role === 'object' ? user.role?.type : user.role) || 'student'
+    : null;
+
+  const isInstructorOfCourse = Boolean(
+    user && course?.instructor && (course.instructor.id === user.id || (course.instructor as any) === user.id)
+  );
+  const isGlobalManager = roleType === 'admin' || roleType === 'content_manager';
+
   useEffect(() => {
     async function loadData() {
       try {
@@ -166,13 +175,31 @@ export default function CourseDetailsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-10">
         <div className="bg-white rounded-xl shadow-lg border border-surface-200 p-6 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div>
-            <h2 className="text-xl font-bold text-surface-900">Ready to start learning?</h2>
-            <p className="text-surface-500">Join this course to access all lessons and track your progress.</p>
+            <h2 className="text-xl font-bold text-surface-900">
+              {isGlobalManager || (roleType === 'instructor' && isInstructorOfCourse)
+                ? 'Course Management'
+                : 'Ready to start learning?'}
+            </h2>
+            <p className="text-surface-500 text-sm">
+              {isGlobalManager || (roleType === 'instructor' && isInstructorOfCourse)
+                ? 'You have permission to edit curriculum, quizzes, and monitor enrolled student progress.'
+                : 'Join this course to access all lessons and track your progress.'}
+            </p>
           </div>
           <div className="w-full sm:w-auto min-w-[200px]">
-            {isEnrolled ? (
+            {isGlobalManager || (roleType === 'instructor' && isInstructorOfCourse) ? (
+              <Link href={`/dashboard/courses/${course.documentId}/edit`} className="block w-full">
+                <Button variant="primary" className="w-full cursor-pointer" size="lg">
+                  ⚙️ Edit Course & Curriculum
+                </Button>
+              </Link>
+            ) : roleType === 'instructor' ? (
+              <div className="text-center p-3 bg-surface-50 rounded-lg border border-surface-200 text-xs text-surface-600 font-semibold">
+                Instructor Account (Course Enrollment is for Students)
+              </div>
+            ) : isEnrolled ? (
               <Link href={`/learn/${course.documentId}`} className="block w-full">
-                <Button variant="secondary" className="w-full" size="lg">
+                <Button variant="secondary" className="w-full cursor-pointer" size="lg">
                   Continue Learning →
                 </Button>
               </Link>
@@ -180,7 +207,7 @@ export default function CourseDetailsPage() {
               <Button 
                 variant="primary" 
                 size="lg" 
-                className="w-full bg-amber-500 hover:bg-amber-600 focus-visible:ring-amber-500"
+                className="w-full bg-amber-500 hover:bg-amber-600 focus-visible:ring-amber-500 cursor-pointer"
                 onClick={handleEnroll}
                 isLoading={enrolling}
               >
@@ -188,7 +215,7 @@ export default function CourseDetailsPage() {
               </Button>
             )}
             {!user && !isEnrolled && (
-              <p className="text-xs text-center text-surface-400 mt-2">You will be asked to sign in</p>
+              <p className="text-xs text-center text-surface-400 mt-2">You will be asked to sign in as student</p>
             )}
           </div>
         </div>

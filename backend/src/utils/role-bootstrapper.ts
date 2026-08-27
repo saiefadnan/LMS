@@ -2,7 +2,7 @@ import type { Core } from '@strapi/strapi';
 
 /**
  * Bootstraps the database on startup by creating necessary roles
- * and assigning the correct CRUD permissions.
+ * and assigning the correct CRUD permissions aligned with the Permission Matrix.
  */
 export const bootstrapRoles = async (strapi: Core.Strapi) => {
   const roleService = strapi.plugin('users-permissions').service('role');
@@ -26,17 +26,21 @@ export const bootstrapRoles = async (strapi: Core.Strapi) => {
   await createRoleIfNotExists('Instructor', 'Course creators and teachers.', 'instructor');
   await createRoleIfNotExists('Student', 'Learners who take courses.', 'student');
 
-  // Permission granting helper
-  const grantPermissions = async (roleType: string, actions: string[]) => {
+  // Permission syncing helper (grants desired actions and removes disallowed ones)
+  const syncPermissions = async (roleType: string, allowedActions: string[]) => {
     const role = await strapi.db.query('plugin::users-permissions.role').findOne({
       where: { type: roleType },
       populate: ['permissions']
     });
 
     if (role) {
-      for (const action of actions) {
-        const hasPermission = role.permissions?.some((p: any) => p.action === action);
-        if (!hasPermission) {
+      const currentPermissions = role.permissions || [];
+      const currentActionMap = new Map<string, number>();
+      currentPermissions.forEach((p: any) => currentActionMap.set(p.action, p.id));
+
+      // Grant missing permissions
+      for (const action of allowedActions) {
+        if (!currentActionMap.has(action)) {
           await strapi.db.query('plugin::users-permissions.permission').create({
             data: {
               action,
@@ -46,73 +50,107 @@ export const bootstrapRoles = async (strapi: Core.Strapi) => {
           strapi.log.info(`Granted ${action} to ${roleType}`);
         }
       }
+
+      // Revoke disallowed permissions (especially enrollment / quiz / progress create for non-students)
+      for (const [action, permId] of currentActionMap.entries()) {
+        if (!allowedActions.includes(action)) {
+          await strapi.db.query('plugin::users-permissions.permission').delete({
+            where: { id: permId },
+          });
+          strapi.log.info(`Revoked ${action} from ${roleType}`);
+        }
+      }
     }
   };
 
-  // Define permission arrays for different roles
+  // 1. Student Permissions (Can only view public courses/blogs, enroll in courses, mark progress, take quizzes)
   const studentPermissions = [
-    // Auth (allow fetching own profile)
     'plugin::users-permissions.user.me',
-    // Course
     'api::course.course.find',
     'api::course.course.findOne',
-    // Lesson
     'api::lesson.lesson.find',
     'api::lesson.lesson.findOne',
-    // Quiz (Read-only for taking the quiz)
     'api::quiz.quiz.find',
     'api::quiz.quiz.findOne',
-    // Quiz Results (Students create their own results)
     'api::quiz-result.quiz-result.create',
     'api::quiz-result.quiz-result.find',
     'api::quiz-result.quiz-result.findOne',
-    // Blog (Students can read published blogs)
     'api::blog-post.blog-post.find',
     'api::blog-post.blog-post.findOne',
-    // Enrollment
     'api::enrollment.enrollment.create',
     'api::enrollment.enrollment.findMyEnrollments',
-    // Progress
     'api::progress.progress.create',
     'api::progress.progress.findMyProgress',
   ];
 
+  // 2. Instructor Permissions (Can create, edit, delete own courses, lessons, quizzes, view student progress; NO blog management, NO enrollment, NO quiz taking)
   const instructorPermissions = [
-    ...studentPermissions,
-    // Course management
+    'plugin::users-permissions.user.me',
+    'api::course.course.find',
+    'api::course.course.findOne',
     'api::course.course.create',
     'api::course.course.update',
     'api::course.course.delete',
     'api::course.course.findMyCourses',
     'api::course.course.getCourseStudentProgress',
-    // Lesson management
+    'api::lesson.lesson.find',
+    'api::lesson.lesson.findOne',
     'api::lesson.lesson.create',
     'api::lesson.lesson.update',
     'api::lesson.lesson.delete',
-    // Quiz management
+    'api::quiz.quiz.find',
+    'api::quiz.quiz.findOne',
     'api::quiz.quiz.create',
     'api::quiz.quiz.update',
     'api::quiz.quiz.delete',
-    // Enrollment viewing (Instructors can see enrollments for their courses)
+    'api::blog-post.blog-post.find',
+    'api::blog-post.blog-post.findOne',
     'api::enrollment.enrollment.find',
     'api::enrollment.enrollment.findOne',
-    // Quiz Result management (Instructors can view their students' results)
     'api::quiz-result.quiz-result.find',
+    'api::quiz-result.quiz-result.findOne',
   ];
 
+  // 3. Content Manager Permissions (Can manage ANY course, lessons, quizzes, blog posts, view progress; NO user management, NO enrollment, NO quiz taking)
   const contentManagerPermissions = [
-    ...instructorPermissions,
-    // Blog management
+    'plugin::users-permissions.user.me',
+    'api::course.course.find',
+    'api::course.course.findOne',
+    'api::course.course.create',
+    'api::course.course.update',
+    'api::course.course.delete',
+    'api::course.course.findMyCourses',
+    'api::course.course.getCourseStudentProgress',
+    'api::lesson.lesson.find',
+    'api::lesson.lesson.findOne',
+    'api::lesson.lesson.create',
+    'api::lesson.lesson.update',
+    'api::lesson.lesson.delete',
+    'api::quiz.quiz.find',
+    'api::quiz.quiz.findOne',
+    'api::quiz.quiz.create',
+    'api::quiz.quiz.update',
+    'api::quiz.quiz.delete',
+    'api::blog-post.blog-post.find',
+    'api::blog-post.blog-post.findOne',
     'api::blog-post.blog-post.create',
     'api::blog-post.blog-post.update',
     'api::blog-post.blog-post.delete',
-  ];
-
-  const adminPermissions = [
-    ...contentManagerPermissions,
-    // Full access to enrollments, progress, and quiz results
     'api::enrollment.enrollment.find',
     'api::enrollment.enrollment.findOne',
+    'api::quiz-result.quiz-result.find',
+    'api::quiz-result.quiz-result.findOne',
+  ];
+
+  // 4. Admin Permissions (Full management of users, courses, lessons, quizzes, blogs, progress, enrollments; NO student enrollment/quiz taking)
+  const adminPermissions = [
+    ...contentManagerPermissions,
+    'plugin::users-permissions.user.find',
+    'plugin::users-permissions.user.findOne',
+    'plugin::users-permissions.user.create',
+    'plugin::users-permissions.user.update',
+    'plugin::users-permissions.user.destroy',
+    'plugin::users-permissions.role.find',
     'api::enrollment.enrollment.update',
     'api::enrollment.enrollment.delete',
     'api::progress.progress.find',
@@ -121,27 +159,28 @@ export const bootstrapRoles = async (strapi: Core.Strapi) => {
     'api::progress.progress.delete',
     'api::quiz-result.quiz-result.update',
     'api::quiz-result.quiz-result.delete',
-    // User management (Plugin Users & Permissions)
-    'plugin::users-permissions.user.find',
-    'plugin::users-permissions.user.findOne',
-    'plugin::users-permissions.user.create',
-    'plugin::users-permissions.user.update',
-    'plugin::users-permissions.user.destroy',
-    'plugin::users-permissions.role.find',
   ];
 
+  // 5. Public Permissions
   const publicPermissions = [
+    'plugin::users-permissions.auth.callback',
+    'plugin::users-permissions.auth.register',
+    'plugin::users-permissions.auth.connect',
+    'plugin::users-permissions.auth.emailConfirmation',
+    'plugin::users-permissions.auth.forgotPassword',
+    'plugin::users-permissions.auth.resetPassword',
+    'plugin::users-permissions.auth.sendEmailConfirmation',
     'api::course.course.find',
     'api::course.course.findOne',
     'api::blog-post.blog-post.find',
     'api::blog-post.blog-post.findOne',
   ];
 
-  await grantPermissions('public', publicPermissions);
-  await grantPermissions('student', studentPermissions);
-  await grantPermissions('instructor', instructorPermissions);
-  await grantPermissions('content_manager', contentManagerPermissions);
-  await grantPermissions('admin', adminPermissions);
+  await syncPermissions('public', publicPermissions);
+  await syncPermissions('student', studentPermissions);
+  await syncPermissions('instructor', instructorPermissions);
+  await syncPermissions('content_manager', contentManagerPermissions);
+  await syncPermissions('admin', adminPermissions);
 
-  strapi.log.info('Bootstrap: LMS roles and permissions verified');
+  strapi.log.info('Bootstrap: LMS roles and permissions verified & synchronized');
 };

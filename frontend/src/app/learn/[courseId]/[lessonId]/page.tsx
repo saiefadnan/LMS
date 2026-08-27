@@ -8,10 +8,13 @@ import { Button } from '@/components/ui/Button';
 import { CheckCircle2, ChevronLeft, ChevronRight, PlayCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useProgressStore } from '@/stores/progress';
+import { useAuthStore } from '@/stores/auth';
 
 export default function LessonPage() {
   const params = useParams();
   const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+  const roleType = (typeof user?.role === 'object' ? user?.role?.type : user?.role) || 'student';
   const courseId = params.courseId as string;
   const lessonId = params.lessonId as string;
   
@@ -82,10 +85,11 @@ export default function LessonPage() {
     if (isCompleted || marking) return;
     setMarking(true);
     try {
-      await markLessonComplete(currentLesson.id);
-      
-      // Update global store state
-      await fetchProgress(courseId);
+      if (roleType === 'student') {
+        await markLessonComplete(currentLesson.id);
+        // Update global store state
+        await fetchProgress(courseId);
+      }
       
       // Optionally auto-navigate to next lesson
       // if (nextLesson) {

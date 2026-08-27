@@ -25,8 +25,9 @@ export default function InstructorCoursesPage() {
     async function fetchMyCourses() {
       if (!user) return;
       try {
-        // Admins see all courses, Instructors see only their own
-        const res = roleType === 'admin'
+        // Admins and Content Managers see all courses, Instructors see only their own
+        const isGlobal = roleType === 'admin' || roleType === 'content_manager';
+        const res = isGlobal
           ? await getCourses()
           : await getMyCourses();
         setCourses(res.data || []);
@@ -40,6 +41,8 @@ export default function InstructorCoursesPage() {
   }, [user, roleType]);
 
   if (!user) return null;
+
+  const isGlobalManager = roleType === 'admin' || roleType === 'content_manager';
 
   const filteredCourses = courses.filter((c) => {
     const term = searchQuery.toLowerCase();
@@ -62,7 +65,7 @@ export default function InstructorCoursesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-surface-900">
-            {roleType === 'admin' ? 'All Courses' : 'My Courses'}
+            {isGlobalManager ? 'All Courses' : 'My Courses'}
           </h1>
           <p className="text-surface-500 text-sm mt-0.5">Manage your curriculum and student enrollments</p>
         </div>

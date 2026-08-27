@@ -172,6 +172,12 @@ function getStatsCards(
         { icon: '📚', label: 'Total Courses', value: loading ? '...' : stats.totalCourses ?? '—', bgColor: 'bg-green-50' },
         { icon: '📝', label: 'Blog Posts', value: loading ? '...' : stats.blogPosts ?? '—', bgColor: 'bg-purple-50' },
       ];
+    case 'content_manager':
+      return [
+        { icon: '📚', label: 'Total Courses', value: loading ? '...' : stats.totalCourses ?? '—', bgColor: 'bg-green-50' },
+        { icon: '📝', label: 'Blog Articles', value: loading ? '...' : stats.blogPosts ?? '—', bgColor: 'bg-purple-50' },
+        { icon: '👥', label: 'Platform Users', value: loading ? '...' : stats.totalUsers ?? '—', bgColor: 'bg-blue-50' },
+      ];
     case 'instructor':
       return [
         { icon: '📚', label: 'My Courses', value: loading ? '...' : stats.myCourses ?? '0', bgColor: 'bg-brand-50' },
@@ -193,6 +199,11 @@ function getQuickActions(roleType: string) {
       return [
         { icon: '👥', label: 'Manage Users', description: 'View and manage all platform users', href: '/dashboard/users' },
         { icon: '📚', label: 'View All Courses', description: 'Browse and manage courses', href: '/dashboard/courses' },
+      ];
+    case 'content_manager':
+      return [
+        { icon: '📚', label: 'Manage All Courses', description: 'Edit curriculum, lessons, and quizzes', href: '/dashboard/courses' },
+        { icon: '📝', label: 'Editorial Manager', description: 'Write and publish blog guides', href: '/dashboard/blog' },
       ];
     case 'instructor':
       return [

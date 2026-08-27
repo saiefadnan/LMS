@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { getCourse, updateCourse } from '@/lib/api';
+import { getCourse, updateCourse, deleteCourse } from '@/lib/api';
 import { courseSchema, type CourseFormValues } from '@/lib/validations';
 import { type Course } from '@/types';
 import { Button } from '@/components/ui/Button';
@@ -83,6 +83,19 @@ export default function EditCoursePage() {
       fetchCourse();
     } catch (err: any) {
       setSaveError(err.message || 'Failed to update course');
+    }
+  };
+
+  const handleDeleteCourse = async () => {
+    if (!course) return;
+    if (!window.confirm(`Are you sure you want to permanently delete course "${course.title}"? This cannot be undone.`)) {
+      return;
+    }
+    try {
+      await deleteCourse(documentId);
+      router.push('/dashboard/courses');
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete course');
     }
   };
 
@@ -231,6 +244,22 @@ export default function EditCoursePage() {
                 </span>
               </div>
             </div>
+          </div>
+
+          {/* Danger Zone */}
+          <div className="bg-red-50/50 rounded-xl border border-red-200 p-6 space-y-3">
+            <h3 className="font-bold text-red-900 text-sm">Danger Zone</h3>
+            <p className="text-xs text-red-600">
+              Permanently remove this course, its lessons, quizzes, and associated records.
+            </p>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={handleDeleteCourse}
+              className="w-full cursor-pointer text-xs"
+            >
+              🗑️ Delete Course
+            </Button>
           </div>
         </div>
       </div>

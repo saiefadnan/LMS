@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getQuiz, submitQuizResult, getMyQuizResults, getCourse } from '@/lib/api';
+import { useAuthStore } from '@/stores/auth';
 import { type Quiz, type QuizResult, type Course } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { CheckCircle2, XCircle, Trophy, RotateCcw, ArrowRight, ArrowLeft, Award } from 'lucide-react';
@@ -11,6 +12,8 @@ import { CheckCircle2, XCircle, Trophy, RotateCcw, ArrowRight, ArrowLeft, Award 
 export default function QuizPlayerPage() {
   const params = useParams();
   const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+  const roleType = (typeof user?.role === 'object' ? user?.role?.type : user?.role) || 'student';
   const courseId = params.courseId as string;
   const quizId = params.quizId as string;
 
@@ -121,8 +124,10 @@ export default function QuizPlayerPage() {
         passed,
       };
 
-      // Persist to backend database
-      await submitQuizResult(resultPayload);
+      // Persist to backend database for students only (Instructors/Admins preview locally)
+      if (roleType === 'student') {
+        await submitQuizResult(resultPayload);
+      }
 
       setSubmittedResult({
         score,

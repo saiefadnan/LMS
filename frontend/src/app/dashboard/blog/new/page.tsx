@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createBlogPost } from '@/lib/api';
+import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
@@ -11,12 +12,21 @@ import { ArrowLeft } from 'lucide-react';
 
 export default function NewBlogPostPage() {
   const router = useRouter();
+  const user = useAuthStore((s) => s.user);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [coverImage, setCoverImage] = useState('');
   const [status, setStatus] = useState<'draft' | 'published'>('draft');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const roleType = (typeof user?.role === 'object' ? user?.role?.type : user?.role) || '';
+
+  useEffect(() => {
+    if (user && roleType !== 'admin' && roleType !== 'content_manager') {
+      router.push('/dashboard');
+    }
+  }, [user, roleType, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

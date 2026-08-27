@@ -8,7 +8,10 @@ import { Button } from '@/components/ui/Button';
 import { Plus, Edit, Trash2, Eye, Globe, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth';
 
+import { useRouter } from 'next/navigation';
+
 export default function DashboardBlogPage() {
+  const router = useRouter();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'published' | 'draft'>('all');
@@ -16,6 +19,8 @@ export default function DashboardBlogPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const user = useAuthStore((s) => s.user);
+
+  const roleType = (typeof user?.role === 'object' ? user?.role?.type : user?.role) || '';
 
   const fetchPosts = async () => {
     try {
@@ -30,8 +35,14 @@ export default function DashboardBlogPage() {
   };
 
   useEffect(() => {
-    fetchPosts();
-  }, []);
+    if (user && roleType !== 'admin' && roleType !== 'content_manager') {
+      router.push('/dashboard');
+      return;
+    }
+    if (user) {
+      fetchPosts();
+    }
+  }, [user, roleType, router]);
 
   const handleToggleStatus = async (post: BlogPost) => {
     const nextStatus = post.status === 'published' ? 'draft' : 'published';
