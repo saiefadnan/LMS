@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getBlogPost, updateBlogPost } from '@/lib/api';
+import { useAuthStore } from '@/stores/auth';
 import { type BlogPost } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -13,6 +14,7 @@ import { ArrowLeft, Globe } from 'lucide-react';
 export default function EditBlogPostPage() {
   const params = useParams();
   const router = useRouter();
+  const user = useAuthStore((s) => s.user);
   const documentId = params.documentId as string;
 
   const [title, setTitle] = useState('');
@@ -22,6 +24,14 @@ export default function EditBlogPostPage() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const roleType = (typeof user?.role === 'object' ? user?.role?.type : user?.role) || '';
+
+  useEffect(() => {
+    if (user && roleType !== 'admin' && roleType !== 'content_manager') {
+      router.push('/dashboard');
+    }
+  }, [user, roleType, router]);
 
   useEffect(() => {
     async function loadPost() {

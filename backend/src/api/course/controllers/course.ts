@@ -35,7 +35,7 @@ export default factories.createCoreController('api::course.course', ({ strapi })
   },
 
   /**
-   * Custom action: returns courses belonging to the authenticated instructor.
+   * Custom action: returns courses. For admins and content managers, returns all courses. For instructors, returns own courses.
    */
   async findMyCourses(ctx) {
     const user = ctx.state.user;
@@ -43,10 +43,19 @@ export default factories.createCoreController('api::course.course', ({ strapi })
       return ctx.unauthorized();
     }
 
+    const roleType =
+      user.role?.type ||
+      (
+        await strapi.db.query('plugin::users-permissions.user').findOne({
+          where: { id: user.id },
+          populate: ['role'],
+        })
+      )?.role?.type;
+
+    const isGlobalManager = roleType === 'admin' || roleType === 'content_manager';
+
     const courses = await strapi.db.query('api::course.course').findMany({
-      where: {
-        instructor: { id: user.id },
-      },
+      where: isGlobalManager ? {} : { instructor: { id: user.id } },
       populate: ['instructor', 'lessons', 'enrollments'],
       orderBy: { createdAt: 'desc' },
     });
