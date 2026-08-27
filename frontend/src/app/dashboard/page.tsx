@@ -3,10 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/stores/auth';
 import Link from 'next/link';
-import { getMyEnrollments, getMyQuizResults, getMyCourses, getPlatformStats } from '@/lib/api';
-import { type QuizResult, type Enrollment } from '@/types';
+import { getMyEnrollments, getMyQuizResults, getMyCourses, getPlatformStats, getAllUsers, getCourses, getBlogPosts } from '@/lib/api';
+import { type QuizResult, type Enrollment, type Course } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { DashboardAnalytics } from '@/components/features/DashboardAnalytics';
 import { 
   Trophy, 
   Award, 
@@ -38,6 +39,9 @@ export default function DashboardPage() {
   const [loadingStats, setLoadingStats] = useState(true);
   const [studentQuizResults, setStudentQuizResults] = useState<QuizResult[]>([]);
   const [studentEnrollments, setStudentEnrollments] = useState<Enrollment[]>([]);
+  const [allCourses, setAllCourses] = useState<Course[]>([]);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [allPosts, setAllPosts] = useState<any[]>([]);
   
   // Quiz pagination & search
   const [quizPage, setQuizPage] = useState(1);
@@ -52,23 +56,43 @@ export default function DashboardPage() {
       if (!user) return;
       try {
         if (roleType === 'admin') {
-          const platform = await getPlatformStats();
+          const [platformRes, usersRes, coursesRes, blogRes] = await Promise.all([
+            getPlatformStats().catch(() => ({})),
+            getAllUsers().catch(() => []),
+            getCourses().catch(() => ({ data: [] })),
+            getBlogPosts().catch(() => ({ data: [] })),
+          ]);
+          const platform: any = platformRes;
+
+          setAllUsers(usersRes || []);
+          setAllCourses(coursesRes.data || []);
+          setAllPosts(blogRes.data || []);
+
           setStats({
-            totalUsers: platform.totalUsers,
-            totalCourses: platform.totalCourses,
-            totalEnrollments: platform.totalEnrollments,
-            blogPosts: platform.totalBlogPosts,
-            totalStudents: platform.totalStudents,
-            totalInstructors: platform.totalInstructors,
-            totalManagers: platform.totalManagers,
+            totalUsers: platform.totalUsers ?? (usersRes || []).length,
+            totalCourses: platform.totalCourses ?? (coursesRes.data || []).length,
+            totalEnrollments: platform.totalEnrollments ?? 0,
+            blogPosts: platform.totalBlogPosts ?? (blogRes.data || []).length,
+            totalStudents: platform.totalStudents ?? (usersRes || []).filter((u: any) => (typeof u.role === 'object' ? u.role?.type : u.role) === 'student').length,
+            totalInstructors: platform.totalInstructors ?? (usersRes || []).filter((u: any) => (typeof u.role === 'object' ? u.role?.type : u.role) === 'instructor').length,
+            totalManagers: platform.totalManagers ?? (usersRes || []).filter((u: any) => (typeof u.role === 'object' ? u.role?.type : u.role) === 'content_manager').length,
           });
         } else if (roleType === 'content_manager') {
-          const platform = await getPlatformStats();
+          const [platformRes, coursesRes, blogRes] = await Promise.all([
+            getPlatformStats().catch(() => ({})),
+            getCourses().catch(() => ({ data: [] })),
+            getBlogPosts().catch(() => ({ data: [] })),
+          ]);
+          const platform: any = platformRes;
+
+          setAllCourses(coursesRes.data || []);
+          setAllPosts(blogRes.data || []);
+
           setStats({
-            totalCourses: platform.totalCourses,
-            totalEnrollments: platform.totalEnrollments,
-            blogPosts: platform.totalBlogPosts,
-            totalUsers: platform.totalUsers,
+            totalCourses: platform.totalCourses ?? (coursesRes.data || []).length,
+            totalEnrollments: platform.totalEnrollments ?? 0,
+            blogPosts: platform.totalBlogPosts ?? (blogRes.data || []).length,
+            totalUsers: platform.totalUsers ?? 0,
           });
         } else if (roleType === 'student') {
           const [enrollmentsRes, resultsRes] = await Promise.all([
@@ -95,6 +119,7 @@ export default function DashboardPage() {
         } else if (roleType === 'instructor') {
           const coursesRes = await getMyCourses().catch(() => ({ data: [] }));
           const courses = coursesRes.data || [];
+          setAllCourses(courses);
           const totalStudents = courses.reduce((acc, c) => acc + (c.enrollments?.length || 0), 0);
 
           setStats({
@@ -219,6 +244,17 @@ export default function DashboardPage() {
           })}
         </div>
       </div>
+
+      {/* Role-tailored Analytics & Heatmaps */}
+      <DashboardAnalytics
+        roleType={roleType}
+        stats={stats}
+        quizResults={studentQuizResults}
+        enrollments={studentEnrollments}
+        courses={allCourses}
+        users={allUsers}
+        posts={allPosts}
+      />
 
       {/* Past Quiz Results Section (Students only) */}
       {roleType === 'student' && (
