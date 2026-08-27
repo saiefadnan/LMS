@@ -123,7 +123,7 @@ export default function DashboardBlogPage() {
       <div className="flex items-center gap-2 border-b border-surface-200 mb-6 pb-2">
         <button
           onClick={() => setFilter('all')}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${
             filter === 'all'
               ? 'bg-brand-50 text-brand-700'
               : 'text-surface-600 hover:text-surface-900 hover:bg-surface-100'
@@ -133,7 +133,7 @@ export default function DashboardBlogPage() {
         </button>
         <button
           onClick={() => setFilter('published')}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${
             filter === 'published'
               ? 'bg-emerald-50 text-emerald-700'
               : 'text-surface-600 hover:text-surface-900 hover:bg-surface-100'
@@ -143,7 +143,7 @@ export default function DashboardBlogPage() {
         </button>
         <button
           onClick={() => setFilter('draft')}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${
             filter === 'draft'
               ? 'bg-amber-50 text-amber-700'
               : 'text-surface-600 hover:text-surface-900 hover:bg-surface-100'
@@ -214,7 +214,7 @@ export default function DashboardBlogPage() {
                           <button
                             type="button"
                             onClick={() => handleToggleStatus(post)}
-                            className={`px-2.5 py-1 rounded-md text-xs font-semibold border transition-colors ${
+                            className={`px-2.5 py-1 rounded-md text-xs font-semibold border transition-colors cursor-pointer ${
                               isPublished
                                 ? 'bg-surface-50 text-surface-700 border-surface-200 hover:bg-surface-100'
                                 : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
