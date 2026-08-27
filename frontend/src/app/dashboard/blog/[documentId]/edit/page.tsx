@@ -105,7 +105,7 @@ export default function EditBlogPostPage() {
       {/* Header */}
       <div className="flex items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard/blog" className="text-surface-500 hover:text-surface-900 flex items-center gap-1.5 text-xs font-medium transition-colors">
+          <Link href="/dashboard/blog" className="text-surface-500 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-100 flex items-center gap-1.5 text-xs font-medium transition-colors">
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Articles</span>
           </Link>
@@ -113,7 +113,7 @@ export default function EditBlogPostPage() {
 
         {status === 'published' && (
           <Link href={`/blog/${documentId}`} target="_blank">
-            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs cursor-pointer">
               <Globe className="w-3.5 h-3.5" />
               <span>View Public Page</span>
               <ExternalLink className="w-3 h-3 text-surface-400" />
@@ -121,18 +121,18 @@ export default function EditBlogPostPage() {
           </Link>
         )}
       </div>
-      <h1 className="text-2xl font-bold text-surface-900 mb-1">Edit Article</h1>
-      <p className="text-surface-500 text-sm mb-6">Update your publication content and settings.</p>
+      <h1 className="text-2xl font-bold text-surface-900 dark:text-surface-50 mb-1">Edit Article</h1>
+      <p className="text-surface-500 dark:text-surface-400 text-sm mb-6">Update your publication content and settings.</p>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <div className="p-3 text-sm text-red-700 bg-red-50 rounded-lg border border-red-200 flex items-center gap-2.5">
+          <div className="p-3 text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/50 rounded-lg border border-red-200 dark:border-red-900 flex items-center gap-2.5">
             <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
-        <div className="bg-white rounded-2xl border border-surface-200 p-6 sm:p-8 space-y-6 shadow-sm">
+        <div className="bg-white dark:bg-surface-900 rounded-2xl border border-surface-200 dark:border-surface-800 p-6 sm:p-8 space-y-6 shadow-xs">
           <div>
             <Input
               label="Article Title"
@@ -151,7 +151,7 @@ export default function EditBlogPostPage() {
               onChange={(e) => setCoverImage(e.target.value)}
             />
             {coverImage.trim() && (
-              <div className="mt-3 aspect-video max-h-48 rounded-xl overflow-hidden bg-surface-100 border border-surface-200">
+              <div className="mt-3 aspect-video max-h-48 rounded-xl overflow-hidden bg-surface-100 dark:bg-surface-800 border border-surface-200 dark:border-surface-700">
                 <img
                   src={coverImage}
                   alt="Cover preview"
@@ -182,9 +182,9 @@ export default function EditBlogPostPage() {
               id="publishNow"
               checked={status === 'published'}
               onChange={(e) => setStatus(e.target.checked ? 'published' : 'draft')}
-              className="w-4 h-4 text-emerald-600 rounded border-surface-300 focus:ring-emerald-500 cursor-pointer"
+              className="w-4 h-4 text-emerald-600 rounded border-surface-300 dark:border-surface-700 focus:ring-emerald-500 cursor-pointer"
             />
-            <label htmlFor="publishNow" className="text-sm font-medium text-surface-700 cursor-pointer">
+            <label htmlFor="publishNow" className="text-sm font-medium text-surface-700 dark:text-surface-300 cursor-pointer">
               Publish immediately (visible on public blog)
             </label>
           </div>
