@@ -19,7 +19,7 @@ export const registerAuthExtensions = (strapi: Core.Strapi) => {
       }
 
       // 3. Find the target role in database
-      const role = await strapi
+      const role = await strapi.db
         .query('plugin::users-permissions.role')
         .findOne({ where: { type: requestedRoleType } });
 
@@ -46,13 +46,13 @@ export const registerAuthExtensions = (strapi: Core.Strapi) => {
       if (ctx.response.status === 200 && ctx.response.body?.user) {
         const userId = ctx.response.body.user.id;
         
-        await strapi.query('plugin::users-permissions.user').update({
+        await strapi.db.query('plugin::users-permissions.user').update({
           where: { id: userId },
           data: { role: role.id }
         });
 
         // Refetch user with populated role to return in response
-        const updatedUser = await strapi.query('plugin::users-permissions.user').findOne({
+        const updatedUser = await strapi.db.query('plugin::users-permissions.user').findOne({
           where: { id: userId },
           populate: ['role']
         });
@@ -68,8 +68,8 @@ export const registerAuthExtensions = (strapi: Core.Strapi) => {
         return ctx.unauthorized();
       }
 
-      const user = await strapi.query('plugin::users-permissions.user').findOne({
-        where: { id: ctx.state.user.documentId || ctx.state.user.id },
+      const user = await strapi.db.query('plugin::users-permissions.user').findOne({
+        where: { documentId: ctx.state.user.documentId },
         populate: ['role'],
       });
 

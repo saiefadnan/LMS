@@ -51,6 +51,8 @@ export const bootstrapRoles = async (strapi: Core.Strapi) => {
 
   // Define permission arrays for different roles
   const studentPermissions = [
+    // Auth (allow fetching own profile)
+    'plugin::users-permissions.user.me',
     // Course
     'api::course.course.find',
     'api::course.course.findOne',
@@ -90,6 +92,9 @@ export const bootstrapRoles = async (strapi: Core.Strapi) => {
     'api::quiz.quiz.create',
     'api::quiz.quiz.update',
     'api::quiz.quiz.delete',
+    // Enrollment viewing (Instructors can see enrollments for their courses)
+    'api::enrollment.enrollment.find',
+    'api::enrollment.enrollment.findOne',
     // Quiz Result management (Instructors can view their students' results)
     'api::quiz-result.quiz-result.find',
   ];

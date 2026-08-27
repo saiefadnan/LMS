@@ -1,7 +1,9 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/stores/auth';
 import Link from 'next/link';
+import { getMyEnrollments, getMyQuizResults, getMyCourses } from '@/lib/api';
 
 /**
  * Dashboard home page.
@@ -10,11 +12,50 @@ import Link from 'next/link';
  */
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
+  const [stats, setStats] = useState<{ [key: string]: number | string }>({});
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  const roleType = (typeof user?.role === 'object' ? user?.role?.type : user?.role) || 'student';
+
+  useEffect(() => {
+    async function loadStats() {
+      if (!user) return;
+      try {
+        if (roleType === 'student') {
+          const [enrollmentsRes, resultsRes] = await Promise.all([
+            getMyEnrollments().catch(() => ({ data: [] })),
+            getMyQuizResults().catch(() => ({ data: [] })),
+          ]);
+
+          const enrolledCount = enrollmentsRes.data?.length || 0;
+          const passedCount = (resultsRes.data || []).filter((r) => r.passed).length;
+
+          setStats({
+            enrolled: enrolledCount,
+            quizzesPassed: passedCount,
+          });
+        } else if (roleType === 'instructor') {
+          const coursesRes = await getMyCourses().catch(() => ({ data: [] }));
+          const courses = coursesRes.data || [];
+          const totalStudents = courses.reduce((acc, c) => acc + (c.enrollments?.length || 0), 0);
+
+          setStats({
+            myCourses: courses.length,
+            totalStudents: totalStudents,
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load dashboard stats', err);
+      } finally {
+        setLoadingStats(false);
+      }
+    }
+
+    loadStats();
+  }, [user, roleType]);
 
   if (!user) return null;
 
-  const roleType = (typeof user.role === 'object' ? user.role?.type : user.role) || 'student';
-console.log(user)
   return (
     <div>
       {/* Welcome Header */}
@@ -29,7 +70,7 @@ console.log(user)
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
-        {getStatsCards(roleType).map((card, i) => (
+        {getStatsCards(roleType, stats, loadingStats).map((card, i) => (
           <div
             key={i}
             className="bg-white rounded-xl border border-surface-200 p-5 hover:shadow-md transition-shadow duration-300"
@@ -105,25 +146,29 @@ function getRoleDescription(roleType: string) {
   }
 }
 
-function getStatsCards(roleType: string) {
+function getStatsCards(
+  roleType: string,
+  stats: { [key: string]: number | string } = {},
+  loading: boolean = false
+) {
   switch (roleType) {
     case 'admin':
       return [
-        { icon: '👥', label: 'Total Users', value: '—', bgColor: 'bg-blue-50' },
-        { icon: '📚', label: 'Total Courses', value: '—', bgColor: 'bg-green-50' },
-        { icon: '📝', label: 'Blog Posts', value: '—', bgColor: 'bg-purple-50' },
+        { icon: '👥', label: 'Total Users', value: loading ? '...' : stats.totalUsers ?? '—', bgColor: 'bg-blue-50' },
+        { icon: '📚', label: 'Total Courses', value: loading ? '...' : stats.totalCourses ?? '—', bgColor: 'bg-green-50' },
+        { icon: '📝', label: 'Blog Posts', value: loading ? '...' : stats.blogPosts ?? '—', bgColor: 'bg-purple-50' },
       ];
     case 'instructor':
       return [
-        { icon: '📚', label: 'My Courses', value: '—', bgColor: 'bg-brand-50' },
-        { icon: '👨‍🎓', label: 'Total Students', value: '—', bgColor: 'bg-green-50' },
-        { icon: '📊', label: 'Avg. Completion', value: '—', bgColor: 'bg-purple-50' },
+        { icon: '📚', label: 'My Courses', value: loading ? '...' : stats.myCourses ?? '0', bgColor: 'bg-brand-50' },
+        { icon: '👨‍🎓', label: 'Total Students', value: loading ? '...' : stats.totalStudents ?? '0', bgColor: 'bg-green-50' },
+        { icon: '📊', label: 'Quizzes Created', value: loading ? '...' : stats.quizzesCount ?? '—', bgColor: 'bg-purple-50' },
       ];
     default:
       return [
-        { icon: '📚', label: 'Enrolled Courses', value: '—', bgColor: 'bg-brand-50' },
-        { icon: '✅', label: 'Completed Lessons', value: '—', bgColor: 'bg-green-50' },
-        { icon: '🏆', label: 'Quizzes Passed', value: '—', bgColor: 'bg-amber-50' },
+        { icon: '📚', label: 'Enrolled Courses', value: loading ? '...' : stats.enrolled ?? '0', bgColor: 'bg-brand-50' },
+        { icon: '🏆', label: 'Quizzes Passed', value: loading ? '...' : stats.quizzesPassed ?? '0', bgColor: 'bg-amber-50' },
+        { icon: '✨', label: 'Learning Streak', value: '1 Day 🔥', bgColor: 'bg-emerald-50' },
       ];
   }
 }

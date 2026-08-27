@@ -64,11 +64,11 @@ export default function CourseDetailsPage() {
     try {
       setEnrolling(true);
       setError('');
-      await enrollInCourse(course.id);
+      await enrollInCourse(course.documentId);
       setIsEnrolled(true);
       // Give a slight delay before redirecting for UX
       setTimeout(() => {
-        router.push(`/dashboard/learn/${course.documentId}`);
+        router.push(`/learn/${course.documentId}`);
       }, 500);
     } catch (err: any) {
       setError(err.message || 'Failed to enroll in course');
@@ -171,7 +171,7 @@ export default function CourseDetailsPage() {
           </div>
           <div className="w-full sm:w-auto min-w-[200px]">
             {isEnrolled ? (
-              <Link href={`/dashboard/learn/${course.documentId}`} className="block w-full">
+              <Link href={`/learn/${course.documentId}`} className="block w-full">
                 <Button variant="secondary" className="w-full" size="lg">
                   Continue Learning →
                 </Button>

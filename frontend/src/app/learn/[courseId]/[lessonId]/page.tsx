@@ -190,6 +190,13 @@ export default function LessonPage() {
               <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
+        ) : course.quizzes && course.quizzes.length > 0 ? (
+          <Link href={`/learn/${courseId}/quiz/${course.quizzes[0].documentId}`}>
+            <Button variant="primary" className="gap-2 group bg-amber-600 hover:bg-amber-700 text-white">
+              Take Course Quiz 🏆
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </Link>
         ) : (
           <Button variant="ghost" disabled>
             End of Course

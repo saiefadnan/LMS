@@ -39,6 +39,7 @@ export interface Course {
   thumbnail?: string | StrapiMedia;
   instructor?: User;
   lessons?: Lesson[];
+  quizzes?: Quiz[];
   enrollments?: Enrollment[];
   published: boolean;
   createdAt: string;
@@ -52,6 +53,7 @@ export interface CourseInput {
   category?: string;
   thumbnail?: string | StrapiMedia;
   instructor?: number | string | User;
+  quizzes?: Quiz[];
   published?: boolean;
 }
 
@@ -113,8 +115,14 @@ export interface Quiz {
   documentId: string;
   title: string;
   questions: QuizQuestion[];
-  lesson?: Lesson;
+  course?: Course;
   createdAt: string;
+}
+
+export interface QuizInput {
+  title: string;
+  questions: QuizQuestion[];
+  course?: string | number | Course;
 }
 
 // ─── Quiz Result ────────────────────────────────────────────────

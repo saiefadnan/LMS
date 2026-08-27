@@ -677,6 +677,7 @@ export interface ApiQuizResultQuizResult extends Struct.CollectionTypeSchema {
       'api::quiz-result.quiz-result'
     > &
       Schema.Attribute.Private;
+    passed: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     publishedAt: Schema.Attribute.DateTime;
     quiz: Schema.Attribute.Relation<'manyToOne', 'api::quiz.quiz'>;
     score: Schema.Attribute.Integer & Schema.Attribute.Required;
