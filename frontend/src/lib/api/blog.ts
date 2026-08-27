@@ -2,13 +2,13 @@
  * Blog API
  */
 import { fetchAPI } from './client';
-import type { BlogPost, StrapiResponse } from '@/types';
+import type { BlogPost, BlogPostInput, StrapiResponse } from '@/types';
 
 export async function getBlogPosts(
   query: string = ''
 ): Promise<StrapiResponse<BlogPost[]>> {
   return fetchAPI(
-    `/api/blog-posts?populate=*&sort=publishedAt:desc${query ? `&${query}` : ''}`
+    `/api/blog-posts?populate=*&sort=createdAt:desc${query ? `&${query}` : ''}`
   );
 }
 
@@ -19,7 +19,7 @@ export async function getBlogPost(
 }
 
 export async function createBlogPost(
-  data: Partial<BlogPost>
+  data: BlogPostInput | Partial<BlogPost>
 ): Promise<StrapiResponse<BlogPost>> {
   return fetchAPI('/api/blog-posts', {
     method: 'POST',
@@ -29,10 +29,14 @@ export async function createBlogPost(
 
 export async function updateBlogPost(
   documentId: string,
-  data: Partial<BlogPost>
+  data: BlogPostInput | Partial<BlogPost>
 ): Promise<StrapiResponse<BlogPost>> {
   return fetchAPI(`/api/blog-posts/${documentId}`, {
     method: 'PUT',
     body: JSON.stringify({ data }),
   });
+}
+
+export async function deleteBlogPost(documentId: string): Promise<void> {
+  return fetchAPI(`/api/blog-posts/${documentId}`, { method: 'DELETE' });
 }

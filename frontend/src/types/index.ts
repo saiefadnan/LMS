@@ -145,14 +145,21 @@ export interface BlogPost {
   id: number;
   documentId: string;
   title: string;
-  content: string;
-  slug: string;
-  coverImage?: StrapiMedia;
+  body: string;
+  content?: string;
+  coverImage?: string | StrapiMedia;
   author?: User;
   status: 'draft' | 'published';
   publishedAt?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface BlogPostInput {
+  title: string;
+  body: string;
+  coverImage?: string;
+  status?: 'draft' | 'published';
 }
 
 // ─── Strapi Utilities ───────────────────────────────────────────

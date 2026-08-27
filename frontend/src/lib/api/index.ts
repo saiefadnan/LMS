@@ -14,5 +14,5 @@ export { getLessons, getLesson, createLesson, updateLesson, deleteLesson } from 
 export { enrollInCourse, getMyEnrollments } from './enrollments';
 export { markLessonComplete, getMyProgress } from './progress';
 export { getQuizzes, getQuiz, createQuiz, updateQuiz, deleteQuiz, submitQuizResult, getMyQuizResults, getQuizResult } from './quizzes';
-export { getBlogPosts, getBlogPost, createBlogPost, updateBlogPost } from './blog';
+export { getBlogPosts, getBlogPost, createBlogPost, updateBlogPost, deleteBlogPost } from './blog';
 export { getAllUsers, updateUserRole } from './admin';

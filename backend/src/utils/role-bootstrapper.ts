@@ -129,6 +129,14 @@ export const bootstrapRoles = async (strapi: Core.Strapi) => {
     'plugin::users-permissions.role.find',
   ];
 
+  const publicPermissions = [
+    'api::course.course.find',
+    'api::course.course.findOne',
+    'api::blog-post.blog-post.find',
+    'api::blog-post.blog-post.findOne',
+  ];
+
+  await grantPermissions('public', publicPermissions);
   await grantPermissions('student', studentPermissions);
   await grantPermissions('instructor', instructorPermissions);
   await grantPermissions('content_manager', contentManagerPermissions);
