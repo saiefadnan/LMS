@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { LessonManager } from '@/components/features/LessonManager';
 import { QuizManager } from '@/components/features/QuizManager';
+import { StudentProgressManager } from '@/components/features/StudentProgressManager';
 
 export default function EditCoursePage() {
   const params = useParams();
@@ -189,6 +190,9 @@ export default function EditCoursePage() {
           
           {/* Quiz Manager Component */}
           <QuizManager course={course} onQuizChanged={fetchCourse} />
+
+          {/* Enrolled Students & Progress Component */}
+          <StudentProgressManager courseDocumentId={course.documentId} />
         </div>
 
         {/* Right Column - Status/Meta */}

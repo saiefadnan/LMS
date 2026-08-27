@@ -3,10 +3,6 @@
  * 
  * Extends the default Strapi controller.
  * Auto-sets the instructor relation to the authenticated user on create.
- * 
- * In Strapi v5, relation fields (like `instructor`) cannot be passed through
- * the Content API body or query filters — they are rejected by the strict
- * parameter validator. Instead we handle relations server-side.
  */
 import { factories } from '@strapi/strapi';
 
@@ -40,8 +36,6 @@ export default factories.createCoreController('api::course.course', ({ strapi })
 
   /**
    * Custom action: returns courses belonging to the authenticated instructor.
-   * Strapi v5 blocks filtering by relation fields in the Content API,
-   * so we query the database directly.
    */
   async findMyCourses(ctx) {
     const user = ctx.state.user;
@@ -59,5 +53,140 @@ export default factories.createCoreController('api::course.course', ({ strapi })
 
     ctx.body = { data: courses };
   },
-}));
 
+  /**
+   * Custom action: returns all enrolled students and their detailed lesson & quiz progress for this course.
+   */
+  async getCourseStudentProgress(ctx) {
+    const user = ctx.state.user;
+    if (!user) {
+      return ctx.unauthorized();
+    }
+
+    const { documentId } = ctx.params;
+    const course = await strapi.db.query('api::course.course').findOne({
+      where: { documentId },
+      populate: ['instructor', 'lessons', 'quizzes'],
+    });
+
+    if (!course) {
+      return ctx.notFound('Course not found');
+    }
+
+    const roleType =
+      user.role?.type ||
+      (
+        await strapi.db.query('plugin::users-permissions.user').findOne({
+          where: { id: user.id },
+          populate: ['role'],
+        })
+      )?.role?.type;
+
+    const isAuthorized =
+      roleType === 'admin' ||
+      roleType === 'content_manager' ||
+      course.instructor?.id === user.id;
+
+    if (!isAuthorized) {
+      return ctx.forbidden('You can only view student progress for your own courses.');
+    }
+
+    const page = Math.max(1, parseInt(ctx.query.page as string) || 1);
+    const pageSize = Math.min(100, Math.max(1, parseInt(ctx.query.pageSize as string) || 10));
+    const search = ((ctx.query.search as string) || '').trim().toLowerCase();
+
+    // Get all enrollments for this course
+    const allEnrollments = await strapi.db.query('api::enrollment.enrollment').findMany({
+      where: { course: { documentId } },
+      populate: ['student'],
+      orderBy: { createdAt: 'desc' },
+    });
+
+    let filteredEnrollments = allEnrollments.filter((e: any) => e.student);
+    if (search) {
+      filteredEnrollments = filteredEnrollments.filter((e: any) =>
+        e.student?.username?.toLowerCase().includes(search) ||
+        e.student?.email?.toLowerCase().includes(search)
+      );
+    }
+
+    const total = filteredEnrollments.length;
+    const pageCount = Math.ceil(total / pageSize) || 1;
+    const offset = (page - 1) * pageSize;
+    const paginatedEnrollments = filteredEnrollments.slice(offset, offset + pageSize);
+
+    const lessonIds = (course.lessons || []).map((l: any) => l.id);
+    const quizIds = (course.quizzes || []).map((q: any) => q.id);
+
+    // Compute progress for paginated students
+    const studentProgressList = await Promise.all(
+      paginatedEnrollments.map(async (enrollment: any) => {
+        const student = enrollment.student;
+        if (!student) return null;
+
+        let completedLessonsCount = 0;
+        if (lessonIds.length > 0) {
+          const progresses = await strapi.db.query('api::progress.progress').findMany({
+            where: {
+              student: { id: student.id },
+              lesson: { id: { $in: lessonIds } },
+              completed: true,
+            },
+          });
+          completedLessonsCount = progresses.length;
+        }
+
+        let quizResults: any[] = [];
+        if (quizIds.length > 0) {
+          quizResults = await strapi.db.query('api::quiz-result.quiz-result').findMany({
+            where: {
+              student: { id: student.id },
+              quiz: { id: { $in: quizIds } },
+            },
+            populate: ['quiz'],
+          });
+        }
+
+        const totalLessons = course.lessons?.length || 0;
+        const progressPercentage =
+          totalLessons > 0 ? Math.round((completedLessonsCount / totalLessons) * 100) : 0;
+
+        return {
+          student: {
+            id: student.id,
+            username: student.username,
+            email: student.email,
+          },
+          enrolledAt: enrollment.enrolledAt || enrollment.createdAt,
+          completedLessonsCount,
+          totalLessons,
+          progressPercentage,
+          quizResults: quizResults.map((qr: any) => ({
+            id: qr.id,
+            quizTitle: qr.quiz?.title || 'Quiz',
+            score: qr.score,
+            totalQuestions: qr.totalQuestions,
+            passed: qr.passed,
+            percentage: qr.totalQuestions > 0 ? Math.round((qr.score / qr.totalQuestions) * 100) : 0,
+          })),
+        };
+      })
+    );
+
+    ctx.body = {
+      course: {
+        documentId: course.documentId,
+        title: course.title,
+        totalLessons: course.lessons?.length || 0,
+        totalQuizzes: course.quizzes?.length || 0,
+      },
+      pagination: {
+        page,
+        pageSize,
+        total,
+        pageCount,
+      },
+      students: studentProgressList.filter(Boolean),
+    };
+  },
+}));

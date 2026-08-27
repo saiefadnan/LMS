@@ -14,5 +14,5 @@ export default async (policyContext: any, config: any, { strapi }: any) => {
       })
     )?.role?.type;
 
-  return roleType === 'admin' || roleType === 'instructor';
+  return roleType === 'admin' || roleType === 'instructor' || roleType === 'content_manager';
 };

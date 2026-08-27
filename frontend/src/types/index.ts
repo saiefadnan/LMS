@@ -162,6 +162,46 @@ export interface BlogPostInput {
   status?: 'draft' | 'published';
 }
 
+// ─── Course Student Progress ────────────────────────────────────
+
+export interface StudentQuizSummary {
+  id: number;
+  quizTitle: string;
+  score: number;
+  totalQuestions: number;
+  passed: boolean;
+  percentage: number;
+}
+
+export interface CourseStudentProgressItem {
+  student: {
+    id: number;
+    username: string;
+    email: string;
+  };
+  enrolledAt: string;
+  completedLessonsCount: number;
+  totalLessons: number;
+  progressPercentage: number;
+  quizResults: StudentQuizSummary[];
+}
+
+export interface CourseProgressResponse {
+  course: {
+    documentId: string;
+    title: string;
+    totalLessons: number;
+    totalQuizzes: number;
+  };
+  pagination?: {
+    page: number;
+    pageSize: number;
+    total: number;
+    pageCount: number;
+  };
+  students: CourseStudentProgressItem[];
+}
+
 // ─── Strapi Utilities ───────────────────────────────────────────
 
 export interface StrapiMedia {
