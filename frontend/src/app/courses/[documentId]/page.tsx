@@ -8,9 +8,11 @@ import { type Course } from '@/types';
 import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { Logo } from '@/components/ui/Logo';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { Footer } from '@/components/ui/Footer';
 import { getThumbnailSrc } from '@/lib/utils/thumbnail';
 import { ArrowLeft, ArrowRight, BookOpen, Settings, Video, FileText, CheckCircle2 } from 'lucide-react';
-import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 export default function CourseDetailsPage() {
   const params = useParams();
@@ -269,6 +271,9 @@ export default function CourseDetailsPage() {
           </div>
         )}
       </div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }
