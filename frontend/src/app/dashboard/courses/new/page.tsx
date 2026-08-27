@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -16,6 +16,14 @@ export default function NewCoursePage() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const [error, setError] = useState('');
+
+  const roleType = (typeof user?.role === 'object' ? user?.role?.type : user?.role) || 'student';
+
+  useEffect(() => {
+    if (user && roleType === 'student') {
+      router.push('/dashboard');
+    }
+  }, [user, roleType, router]);
 
   const {
     register,

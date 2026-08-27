@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { getCourse, updateCourse, deleteCourse } from '@/lib/api';
 import { courseSchema, type CourseFormValues } from '@/lib/validations';
 import { type Course } from '@/types';
+import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
@@ -18,11 +19,14 @@ import { StudentProgressManager } from '@/components/features/StudentProgressMan
 export default function EditCoursePage() {
   const params = useParams();
   const router = useRouter();
+  const user = useAuthStore((s) => s.user);
   const documentId = params.documentId as string;
 
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [saveError, setSaveError] = useState('');
+
+  const roleType = (typeof user?.role === 'object' ? user?.role?.type : user?.role) || 'student';
 
   const {
     register,
@@ -36,17 +40,32 @@ export default function EditCoursePage() {
   const fetchCourse = useCallback(async () => {
     try {
       const res = await getCourse(documentId);
-      setCourse(res.data);
+      const courseData = res.data;
+
+      if (user && roleType === 'student') {
+        router.push('/dashboard/my-courses');
+        return;
+      }
+      if (user && roleType === 'instructor') {
+        const isOwner = (courseData.instructor as any)?.id === user.id || (courseData.instructor as any) === user.id;
+        if (courseData.instructor && !isOwner) {
+          alert('You can only edit courses you created.');
+          router.push('/dashboard/courses');
+          return;
+        }
+      }
+
+      setCourse(courseData);
       // Populate form
       reset({
-        title: res.data.title,
-        description: res.data.description,
-        level: res.data.level,
-        category: res.data.category,
-        published: res.data.published,
-        thumbnail: typeof res.data.thumbnail === 'string' 
-          ? res.data.thumbnail 
-          : res.data.thumbnail?.url || '',
+        title: courseData.title,
+        description: courseData.description,
+        level: courseData.level,
+        category: courseData.category,
+        published: courseData.published,
+        thumbnail: typeof courseData.thumbnail === 'string' 
+          ? courseData.thumbnail 
+          : courseData.thumbnail?.url || '',
       });
     } catch (error) {
       console.error('Failed to load course', error);
@@ -54,7 +73,7 @@ export default function EditCoursePage() {
     } finally {
       setLoading(false);
     }
-  }, [documentId, reset]);
+  }, [documentId, reset, user, roleType, router]);
 
   useEffect(() => {
     if (documentId) {

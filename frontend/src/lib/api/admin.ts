@@ -31,15 +31,17 @@ export async function deleteUser(userId: number): Promise<void> {
 export async function getPlatformStats(): Promise<{
   totalUsers: number;
   totalCourses: number;
+  totalEnrollments: number;
   totalBlogPosts: number;
   totalStudents: number;
   totalInstructors: number;
   totalManagers: number;
 }> {
-  const [users, coursesRes, blogsRes] = await Promise.all([
+  const [users, coursesRes, blogsRes, enrollmentsRes] = await Promise.all([
     getAllUsers().catch(() => [] as User[]),
     fetchAPI<StrapiResponse<Course[]>>('/api/courses').catch(() => ({ data: [] })),
     fetchAPI<StrapiResponse<BlogPost[]>>('/api/blog-posts').catch(() => ({ data: [] })),
+    fetchAPI<StrapiResponse<any[]>>('/api/enrollments').catch(() => ({ data: [] })),
   ]);
 
   const students = users.filter((u) => u.role?.type === 'student').length;
@@ -49,6 +51,7 @@ export async function getPlatformStats(): Promise<{
   return {
     totalUsers: users.length,
     totalCourses: coursesRes.data?.length || 0,
+    totalEnrollments: enrollmentsRes.data?.length || 0,
     totalBlogPosts: blogsRes.data?.length || 0,
     totalStudents: students,
     totalInstructors: instructors,
