@@ -75,19 +75,19 @@ export default function NewCoursePage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/dashboard/courses" className="text-surface-500 hover:text-surface-900 flex items-center gap-1.5 text-xs font-medium transition-colors">
+        <Link href="/dashboard/courses" className="text-surface-500 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-100 flex items-center gap-1.5 text-xs font-medium transition-colors">
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Courses</span>
         </Link>
       </div>
-      <h1 className="text-2xl font-bold text-surface-900 mb-6">Create New Course</h1>
+      <h1 className="text-2xl font-bold text-surface-900 dark:text-surface-50">Create New Course</h1>
 
-      <div className="bg-white rounded-xl border border-surface-200 p-6 md:p-8 shadow-xs">
+      <div className="bg-white dark:bg-surface-900 rounded-xl border border-surface-200 dark:border-surface-800 p-6 md:p-8 shadow-xs">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {error && (
-            <div className="p-3 text-sm text-red-700 bg-red-50 rounded-lg border border-red-200 flex items-center gap-2.5">
+            <div className="p-3 text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/50 rounded-lg border border-red-200 dark:border-red-900 flex items-center gap-2.5">
               <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
               <span>{error}</span>
             </div>
@@ -110,18 +110,18 @@ export default function NewCoursePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-surface-700 mb-1">
+              <label className="block text-sm font-semibold text-surface-800 dark:text-surface-200 mb-1.5">
                 Difficulty Level
               </label>
               <select
                 {...register('level')}
-                className="flex h-10 w-full rounded-lg border border-surface-300 bg-white px-3 py-2 text-sm text-surface-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                className="flex h-10 w-full rounded-lg border border-surface-300 dark:border-surface-700 bg-white dark:bg-surface-800 px-3 py-2 text-sm text-surface-900 dark:text-surface-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
               >
-                <option value="beginner">Beginner</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="advanced">Advanced</option>
+                <option value="beginner" className="dark:bg-surface-900">Beginner</option>
+                <option value="intermediate" className="dark:bg-surface-900">Intermediate</option>
+                <option value="advanced" className="dark:bg-surface-900">Advanced</option>
               </select>
-              {errors.level && <p className="mt-1 text-sm text-red-500">{errors.level.message}</p>}
+              {errors.level && <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.level.message}</p>}
             </div>
 
             <Input
@@ -144,16 +144,18 @@ export default function NewCoursePage() {
               type="checkbox"
               id="published"
               {...register('published')}
-              className="w-4 h-4 text-brand-600 rounded border-surface-300 focus:ring-brand-500"
+              className="w-4 h-4 text-brand-600 rounded border-surface-300 dark:border-surface-700 focus:ring-brand-500 cursor-pointer"
             />
-            <label htmlFor="published" className="text-sm font-medium text-surface-700">
+            <label htmlFor="published" className="text-sm font-medium text-surface-700 dark:text-surface-300 cursor-pointer">
               Publish immediately (visible to students)
             </label>
           </div>
 
-          <div className="pt-4 border-t border-surface-100 flex justify-end gap-3">
+          <div className="flex justify-end gap-3 pt-4 border-t border-surface-200 dark:border-surface-800">
             <Link href="/dashboard/courses">
-              <Button type="button" variant="ghost">Cancel</Button>
+              <Button variant="secondary" type="button">
+                Cancel
+              </Button>
             </Link>
             <Button type="submit" isLoading={isSubmitting}>
               Create Course

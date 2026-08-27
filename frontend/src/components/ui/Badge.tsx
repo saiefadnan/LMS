@@ -15,12 +15,12 @@ function Badge({ className = '', variant = "default", size = "md", ...props }: B
   };
 
   const variants = {
-    default: "border-brand-200 bg-brand-50 text-brand-700",
-    success: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    warning: "border-amber-200 bg-amber-50 text-amber-800",
-    destructive: "border-red-200 bg-red-50 text-red-700",
-    neutral: "border-surface-200 bg-surface-100 text-surface-700",
-    outline: "border-surface-200 text-surface-700 bg-white",
+    default: "border-brand-200 dark:border-brand-800 bg-brand-50 dark:bg-brand-950/60 text-brand-700 dark:text-brand-300",
+    success: "border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300",
+    warning: "border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300",
+    destructive: "border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-300",
+    neutral: "border-surface-200 dark:border-surface-700 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300",
+    outline: "border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300 bg-white dark:bg-surface-900",
   };
 
   return (

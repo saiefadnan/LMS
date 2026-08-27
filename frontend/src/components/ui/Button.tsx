@@ -13,13 +13,13 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variants = {
       primary:
-        "bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800 shadow-sm hover:shadow focus-visible:ring-brand-500",
+        "bg-brand-600 dark:bg-brand-500 text-white hover:bg-brand-700 dark:hover:bg-brand-600 active:bg-brand-800 shadow-sm hover:shadow focus-visible:ring-brand-500",
       secondary:
-        "bg-surface-100 text-surface-800 hover:bg-surface-200 active:bg-surface-300 border border-surface-200/80 focus-visible:ring-surface-400",
+        "bg-surface-100 dark:bg-surface-800 text-surface-800 dark:text-surface-200 hover:bg-surface-200 dark:hover:bg-surface-700 active:bg-surface-300 dark:active:bg-surface-600 border border-surface-200/80 dark:border-surface-700 focus-visible:ring-surface-400",
       outline:
-        "bg-white text-surface-700 hover:bg-surface-50 active:bg-surface-100 border border-surface-300 hover:border-surface-400 focus-visible:ring-brand-500",
+        "bg-white dark:bg-surface-900 text-surface-700 dark:text-surface-200 hover:bg-surface-50 dark:hover:bg-surface-800 active:bg-surface-100 dark:active:bg-surface-700 border border-surface-300 dark:border-surface-700 hover:border-surface-400 dark:hover:border-surface-600 focus-visible:ring-brand-500",
       ghost:
-        "text-surface-600 hover:text-surface-900 hover:bg-surface-100/80 active:bg-surface-200/60 focus-visible:ring-surface-400",
+        "text-surface-600 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-100 hover:bg-surface-100/80 dark:hover:bg-surface-800/80 active:bg-surface-200/60 dark:active:bg-surface-700/60 focus-visible:ring-surface-400",
       danger:
         "bg-red-600 text-white hover:bg-red-700 active:bg-red-800 shadow-sm focus-visible:ring-red-500",
       destructive:

@@ -80,8 +80,8 @@ export default function MyCoursesPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-surface-900">My Enrolled Courses</h1>
-          <p className="text-surface-500 text-sm mt-0.5">Pick up right where you left off</p>
+          <h1 className="text-2xl font-bold text-surface-900 dark:text-surface-50 tracking-tight">My Enrolled Courses</h1>
+          <p className="text-surface-500 dark:text-surface-400 text-sm mt-0.5">Pick up right where you left off</p>
         </div>
         <Link href="/courses">
           <Button variant="secondary" className="cursor-pointer">
@@ -92,9 +92,9 @@ export default function MyCoursesPage() {
 
       {/* Search & Counter Bar */}
       {enrolledCourses.length > 0 && (
-        <div className="bg-white p-3 rounded-xl border border-surface-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="bg-white dark:bg-surface-900 p-3 rounded-xl border border-surface-200 dark:border-surface-800 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="relative w-full sm:w-80">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-surface-400" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-surface-400 dark:text-surface-500" />
             <input
               type="text"
               placeholder="Search your enrolled courses..."
@@ -103,18 +103,18 @@ export default function MyCoursesPage() {
                 setSearchQuery(e.target.value);
                 setPage(1);
               }}
-              className="w-full pl-10 pr-4 py-1.5 bg-surface-50 border border-surface-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-surface-900"
+              className="w-full pl-10 pr-4 py-1.5 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white dark:focus:bg-surface-900 text-surface-900 dark:text-surface-100 placeholder:text-surface-400 dark:placeholder:text-surface-500"
             />
           </div>
 
-          <span className="text-xs text-surface-500 font-medium">
+          <span className="text-xs text-surface-500 dark:text-surface-400 font-medium">
             Showing {startCount}–{endCount} of {totalCourses} course{totalCourses !== 1 ? 's' : ''}
           </span>
         </div>
       )}
 
       {loading ? (
-        <div className="animate-pulse bg-white rounded-xl h-64 border border-surface-200"></div>
+        <div className="animate-pulse bg-white dark:bg-surface-900 rounded-xl h-64 border border-surface-200 dark:border-surface-800"></div>
       ) : (
         <>
           <CourseGrid 
@@ -129,16 +129,16 @@ export default function MyCoursesPage() {
               return (
                 <div className="w-full space-y-2.5">
                   <div>
-                    <div className="flex justify-between items-center text-xs font-semibold text-surface-600 mb-1">
+                    <div className="flex justify-between items-center text-xs font-semibold text-surface-600 dark:text-surface-400 mb-1">
                       <span>Progress ({prog.completed}/{prog.total} lessons)</span>
-                      <span className={`font-bold ${prog.percentage === 100 ? 'text-green-600' : 'text-brand-700'}`}>
+                      <span className={`font-bold ${prog.percentage === 100 ? 'text-emerald-600 dark:text-emerald-400' : 'text-brand-700 dark:text-brand-400'}`}>
                         {prog.percentage}%
                       </span>
                     </div>
-                    <div className="w-full h-2 bg-surface-100 rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-surface-100 dark:bg-surface-800 rounded-full overflow-hidden">
                       <div
                         className={`h-full transition-all duration-500 rounded-full ${
-                          prog.percentage === 100 ? 'bg-green-500' : 'bg-brand-600'
+                          prog.percentage === 100 ? 'bg-emerald-500' : 'bg-brand-600 dark:bg-brand-500'
                         }`}
                         style={{ width: `${prog.percentage}%` }}
                       />
@@ -171,7 +171,7 @@ export default function MyCoursesPage() {
                 Previous
               </Button>
 
-              <span className="text-xs font-semibold text-surface-700 bg-white px-3 py-1.5 rounded-lg border border-surface-200 shadow-sm">
+              <span className="text-xs font-semibold text-surface-700 dark:text-surface-300 bg-white dark:bg-surface-900 px-3 py-1.5 rounded-lg border border-surface-200 dark:border-surface-800 shadow-xs">
                 Page {page} of {pageCount}
               </span>
 

@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /*
  * LearnHub LMS Design System
  * 
@@ -7,12 +9,7 @@
  * - Primary (Teal/Blue): Trust, focus, calm — ideal for navigation & reading areas
  * - Accent (Amber/Orange): Energy, engagement — CTAs & progress indicators
  * - Success (Green): Growth, completion — progress tracking & completed states
- * - Neutral (Warm grays): Reduced eye strain for long study sessions
- * 
- * Following the 60-30-10 rule:
- * - 60% Neutral backgrounds (warm off-whites, soft grays)
- * - 30% Primary brand color (teal-blue tones)
- * - 10% Accent colors (amber for CTAs, green for success)
+ * - Neutral (Warm grays & deep slate darks): Reduced eye strain for long study sessions
  */
 
 @theme {
@@ -38,12 +35,15 @@
   --color-success-400: oklch(0.78 0.15 155);
   --color-success-500: oklch(0.68 0.16 155);
 
-  /* ── Surface (Warm neutrals — reduces eye strain) ── */
+  /* ── Surface Neutrals ── */
   --color-surface-50: oklch(0.985 0.002 80);
   --color-surface-100: oklch(0.97 0.004 80);
   --color-surface-200: oklch(0.94 0.006 80);
   --color-surface-300: oklch(0.90 0.008 80);
   --color-surface-400: oklch(0.82 0.01 80);
+  --color-surface-500: oklch(0.60 0.015 260);
+  --color-surface-600: oklch(0.45 0.015 260);
+  --color-surface-700: oklch(0.35 0.015 260);
   --color-surface-800: oklch(0.25 0.01 260);
   --color-surface-900: oklch(0.18 0.015 260);
   --color-surface-950: oklch(0.13 0.02 260);
@@ -53,12 +53,18 @@
 
 html {
   scroll-behavior: smooth;
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 body {
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* ── Focus ring for accessibility ── */
@@ -86,6 +92,14 @@ body {
   background: oklch(0.5 0.02 260 / 0.5);
 }
 
+.dark ::-webkit-scrollbar-thumb {
+  background: oklch(0.4 0.02 260 / 0.4);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.5 0.02 260 / 0.6);
+}
+
 /* ── Skeleton loading animation ── */
 @keyframes shimmer {
   0% { background-position: -200% 0; }
@@ -102,3 +116,75 @@ body {
   animation: shimmer 1.5s ease-in-out infinite;
   border-radius: 8px;
 }
+
+.dark .skeleton {
+  background: linear-gradient(90deg,
+    oklch(0.25 0 0 / 0.5) 25%,
+    oklch(0.32 0 0 / 0.5) 50%,
+    oklch(0.25 0 0 / 0.5) 75%
+  );
+  background-size: 200% 100%;
+}
+
+/* ── Auth Page Transition Keyframes (Horizontal Slide Left <-> Right) ── */
+@keyframes slideInFromLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-80px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromRight {
+  0% {
+    opacity: 0;
+    transform: translateX(80px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideItemFromLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideItemFromRight {
+  0% {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-left {
+  animation: slideInFromLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-slide-right {
+  animation: slideInFromRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-item-slide-left {
+  animation: slideItemFromLeft 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-item-slide-right {
+  animation: slideItemFromRight 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+

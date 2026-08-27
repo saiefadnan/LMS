@@ -52,8 +52,8 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
 
   if (loading) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-surface-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
+      <div className="h-screen w-full flex items-center justify-center bg-surface-50 dark:bg-surface-950">
+        <div className="animate-spin rounded-full h-12 w-12 border-2 border-brand-600 border-t-transparent"></div>
       </div>
     );
   }
@@ -65,7 +65,7 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
     .map(p => p.lesson!.id);
 
   return (
-    <div className="h-screen w-full flex overflow-hidden bg-surface-50 text-surface-900">
+    <div className="h-screen w-full flex overflow-hidden bg-surface-50 dark:bg-surface-950 text-surface-900 dark:text-surface-100 transition-colors duration-150">
       <LearningSidebar 
         course={course} 
         completedLessonIds={completedLessonIds} 

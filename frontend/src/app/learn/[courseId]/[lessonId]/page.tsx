@@ -124,12 +124,12 @@ export default function LessonPage() {
       
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-surface-900">{currentLesson.title}</h1>
+        <h1 className="text-3xl font-bold text-surface-900 dark:text-surface-50 tracking-tight">{currentLesson.title}</h1>
       </div>
 
       {/* Video Player */}
       {currentLesson.videoUrl && (
-        <div className="w-full aspect-video bg-black rounded-2xl overflow-hidden mb-8 shadow-xl">
+        <div className="w-full aspect-video bg-black rounded-2xl overflow-hidden mb-8 shadow-xl border border-surface-200/20">
           <iframe 
             src={getEmbedUrl(currentLesson.videoUrl)} 
             className="w-full h-full"
@@ -141,16 +141,16 @@ export default function LessonPage() {
       )}
 
       {/* Lesson Content */}
-      <div className="prose prose-surface max-w-none mb-12 text-surface-800 whitespace-pre-wrap leading-relaxed text-lg">
+      <div className="prose prose-surface dark:prose-invert max-w-none mb-12 text-surface-800 dark:text-surface-200 whitespace-pre-wrap leading-relaxed text-lg font-serif">
         {currentLesson.content || 'No text content available for this lesson.'}
       </div>
 
       {/* Action / Next Steps */}
-      <div className="mt-12 p-8 bg-white border border-surface-200 rounded-2xl flex flex-col items-center justify-center text-center shadow-sm">
-        <h3 className="text-xl font-bold text-surface-900 mb-2">
+      <div className="mt-12 p-8 bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-2xl flex flex-col items-center justify-center text-center shadow-xs">
+        <h3 className="text-xl font-bold text-surface-900 dark:text-surface-50 mb-2">
           {isCompleted ? "You've completed this lesson!" : "Finished learning?"}
         </h3>
-        <p className="text-surface-500 mb-6">
+        <p className="text-surface-500 dark:text-surface-400 mb-6 text-sm">
           {isCompleted 
             ? "Great job. Keep up the momentum and move on to the next one." 
             : "Mark this lesson as complete to track your progress."}
@@ -165,7 +165,7 @@ export default function LessonPage() {
         >
           {marking ? 'Marking...' : isCompleted ? (
             <>
-              <CheckCircle2 className="w-5 h-5 mr-2 text-green-500" />
+              <CheckCircle2 className="w-5 h-5 mr-2 text-emerald-500" />
               Completed
             </>
           ) : (
@@ -175,7 +175,7 @@ export default function LessonPage() {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="mt-8 flex items-center justify-between pt-8 border-t border-surface-200">
+      <div className="mt-8 flex items-center justify-between pt-8 border-t border-surface-200 dark:border-surface-800">
         {prevLesson ? (
           <Link href={`/learn/${courseId}/${prevLesson.documentId}`}>
             <Button variant="ghost" className="gap-2">
@@ -196,7 +196,7 @@ export default function LessonPage() {
           </Link>
         ) : course.quizzes && course.quizzes.length > 0 ? (
           <Link href={`/learn/${courseId}/quiz/${course.quizzes[0].documentId}`}>
-            <Button variant="primary" className="gap-2 group bg-amber-600 hover:bg-amber-700 text-white">
+            <Button variant="primary" className="gap-2 group bg-amber-600 dark:bg-amber-500 hover:bg-amber-700 dark:hover:bg-amber-600 text-white">
               <Trophy className="w-4 h-4" />
               <span>Take Course Assessment</span>
               <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
