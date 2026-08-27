@@ -7,7 +7,7 @@ import { getAllUsers, getRoles, updateUserRole, deleteUser } from '@/lib/api';
 import { type User, type UserRole } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Users, Shield, GraduationCap, BookOpen, Search, Trash2, Check, AlertCircle } from 'lucide-react';
+import { Users, Shield, GraduationCap, BookOpen, Search, Trash2, Check, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function UserManagementPage() {
   const currentUser = useAuthStore((s) => s.user);
@@ -97,6 +97,9 @@ export default function UserManagementPage() {
     }
   };
 
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
   const filteredUsers = users.filter((u) => {
     const term = searchQuery.toLowerCase();
     const matchesSearch =
@@ -108,6 +111,13 @@ export default function UserManagementPage() {
 
     return matchesSearch && matchesRole;
   });
+
+  const totalUsersCount = filteredUsers.length;
+  const pageCount = Math.ceil(totalUsersCount / pageSize) || 1;
+  const paginatedUsers = filteredUsers.slice((page - 1) * pageSize, page * pageSize);
+
+  const startCount = totalUsersCount === 0 ? 0 : (page - 1) * pageSize + 1;
+  const endCount = Math.min(page * pageSize, totalUsersCount);
 
   const studentCount = users.filter((u) => (typeof u.role === 'object' ? u.role?.type : u.role) === 'student').length;
   const instructorCount = users.filter((u) => (typeof u.role === 'object' ? u.role?.type : u.role) === 'instructor').length;
@@ -210,21 +220,27 @@ export default function UserManagementPage() {
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="bg-white p-4 rounded-xl border border-surface-200 shadow-sm mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="relative w-full sm:w-80">
+      <div className="bg-white p-4 rounded-xl border border-surface-200 shadow-sm mb-6 flex flex-col lg:flex-row items-center justify-between gap-4">
+        <div className="relative w-full lg:w-72">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-surface-400" />
           <input
             type="text"
             placeholder="Search by username or email..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(1);
+            }}
             className="w-full pl-10 pr-4 py-2 bg-surface-50 border border-surface-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-surface-900"
           />
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+        <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0">
           <button
-            onClick={() => setRoleFilter('all')}
+            onClick={() => {
+              setRoleFilter('all');
+              setPage(1);
+            }}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
               roleFilter === 'all'
                 ? 'bg-brand-600 text-white'
@@ -234,7 +250,10 @@ export default function UserManagementPage() {
             All Roles ({users.length})
           </button>
           <button
-            onClick={() => setRoleFilter('student')}
+            onClick={() => {
+              setRoleFilter('student');
+              setPage(1);
+            }}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
               roleFilter === 'student'
                 ? 'bg-emerald-600 text-white'
@@ -244,7 +263,10 @@ export default function UserManagementPage() {
             Students ({studentCount})
           </button>
           <button
-            onClick={() => setRoleFilter('instructor')}
+            onClick={() => {
+              setRoleFilter('instructor');
+              setPage(1);
+            }}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
               roleFilter === 'instructor'
                 ? 'bg-amber-600 text-white'
@@ -254,7 +276,10 @@ export default function UserManagementPage() {
             Instructors ({instructorCount})
           </button>
           <button
-            onClick={() => setRoleFilter('content_manager')}
+            onClick={() => {
+              setRoleFilter('content_manager');
+              setPage(1);
+            }}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
               roleFilter === 'content_manager'
                 ? 'bg-blue-600 text-white'
@@ -264,7 +289,10 @@ export default function UserManagementPage() {
             Managers ({managerCount})
           </button>
           <button
-            onClick={() => setRoleFilter('admin')}
+            onClick={() => {
+              setRoleFilter('admin');
+              setPage(1);
+            }}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
               roleFilter === 'admin'
                 ? 'bg-purple-600 text-white'
@@ -273,6 +301,22 @@ export default function UserManagementPage() {
           >
             Admins ({adminCount})
           </button>
+        </div>
+
+        <div className="flex items-center gap-2 self-end lg:self-auto text-xs text-surface-500 font-medium">
+          <span>Per page:</span>
+          <select
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              setPage(1);
+            }}
+            className="bg-surface-50 border border-surface-200 rounded-lg px-2.5 py-1 text-xs font-semibold text-surface-800 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer"
+          >
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+          </select>
         </div>
       </div>
 
@@ -304,7 +348,7 @@ export default function UserManagementPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-100">
-                {filteredUsers.map((userItem) => {
+                {paginatedUsers.map((userItem) => {
                   const currentRoleType = typeof userItem.role === 'object' ? userItem.role?.type : userItem.role;
                   const currentRoleId = typeof userItem.role === 'object' ? userItem.role?.id : undefined;
                   const isSelf = userItem.id === currentUser?.id;
@@ -392,6 +436,43 @@ export default function UserManagementPage() {
                 })}
               </tbody>
             </table>
+          </div>
+
+          {/* Pagination Footer */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-surface-200 bg-surface-50 text-xs text-surface-500">
+            <div>
+              Showing <span className="font-bold text-surface-900">{startCount}</span> to{' '}
+              <span className="font-bold text-surface-900">{endCount}</span> of{' '}
+              <span className="font-bold text-surface-900">{totalUsersCount}</span> users
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                className="gap-1 px-2.5 py-1 text-xs cursor-pointer"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+                Previous
+              </Button>
+
+              <span className="px-3 py-1 font-semibold text-surface-700 bg-white rounded border border-surface-200">
+                Page {page} of {pageCount}
+              </span>
+
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                disabled={page >= pageCount}
+                className="gap-1 px-2.5 py-1 text-xs cursor-pointer"
+              >
+                Next
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Button>
+            </div>
           </div>
         </div>
       )}

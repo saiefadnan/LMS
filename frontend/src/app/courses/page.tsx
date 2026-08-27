@@ -7,10 +7,15 @@ import { type Course } from '@/types';
 import { CourseGrid } from '@/components/features/CourseGrid';
 import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui/Button';
+import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function CoursesCatalogPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [levelFilter, setLevelFilter] = useState('all');
+  const [page, setPage] = useState(1);
+  const pageSize = 6;
   const user = useAuthStore((s) => s.user);
 
   useEffect(() => {
@@ -26,6 +31,25 @@ export default function CoursesCatalogPage() {
     }
     loadCourses();
   }, []);
+
+  const filteredCourses = courses.filter((course) => {
+    const term = searchQuery.toLowerCase();
+    const matchesSearch =
+      course.title.toLowerCase().includes(term) ||
+      (course.description || '').toLowerCase().includes(term) ||
+      (course.category || '').toLowerCase().includes(term);
+
+    const matchesLevel = levelFilter === 'all' || course.level === levelFilter;
+
+    return matchesSearch && matchesLevel;
+  });
+
+  const totalCourses = filteredCourses.length;
+  const pageCount = Math.ceil(totalCourses / pageSize) || 1;
+  const paginatedCourses = filteredCourses.slice((page - 1) * pageSize, page * pageSize);
+
+  const startCount = totalCourses === 0 ? 0 : (page - 1) * pageSize + 1;
+  const endCount = Math.min(page * pageSize, totalCourses);
 
   return (
     <div className="min-h-screen bg-surface-50 flex flex-col">
@@ -63,22 +87,95 @@ export default function CoursesCatalogPage() {
 
       {/* Hero Section */}
       <div className="bg-surface-900 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
+          <h1 className="text-4xl md:text-5xl font-bold">
             Expand Your Knowledge
           </h1>
           <p className="text-xl text-surface-300 max-w-2xl mx-auto">
-            Discover hundreds of premium courses created by expert instructors. Start learning today.
+            Discover premium courses created by expert instructors. Start learning today.
           </p>
+
+          {/* Search bar inside hero */}
+          <div className="max-w-md mx-auto pt-4 relative">
+            <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-surface-400" />
+            <input
+              type="text"
+              placeholder="Search courses by topic, title, or category..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1);
+              }}
+              className="w-full pl-12 pr-4 py-3 rounded-xl bg-white text-surface-900 shadow-lg placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm font-medium"
+            />
+          </div>
         </div>
       </div>
 
       {/* Catalog Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-grow w-full">
-        <div className="mb-8 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-surface-900">All Courses</h2>
-          <div className="text-surface-500 text-sm">
-            Showing {courses.length} result{courses.length !== 1 ? 's' : ''}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-grow w-full space-y-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-surface-200 pb-4">
+          <div>
+            <h2 className="text-2xl font-bold text-surface-900">All Courses</h2>
+            <p className="text-xs text-surface-500 mt-0.5">
+              Showing {startCount}–{endCount} of {totalCourses} course{totalCourses !== 1 ? 's' : ''}
+            </p>
+          </div>
+
+          {/* Difficulty Filter Tabs */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setLevelFilter('all');
+                setPage(1);
+              }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                levelFilter === 'all'
+                  ? 'bg-brand-600 text-white'
+                  : 'bg-white text-surface-600 border border-surface-200 hover:bg-surface-100'
+              }`}
+            >
+              All Levels
+            </button>
+            <button
+              onClick={() => {
+                setLevelFilter('beginner');
+                setPage(1);
+              }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                levelFilter === 'beginner'
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-white text-surface-600 border border-surface-200 hover:bg-surface-100'
+              }`}
+            >
+              Beginner
+            </button>
+            <button
+              onClick={() => {
+                setLevelFilter('intermediate');
+                setPage(1);
+              }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                levelFilter === 'intermediate'
+                  ? 'bg-amber-600 text-white'
+                  : 'bg-white text-surface-600 border border-surface-200 hover:bg-surface-100'
+              }`}
+            >
+              Intermediate
+            </button>
+            <button
+              onClick={() => {
+                setLevelFilter('advanced');
+                setPage(1);
+              }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                levelFilter === 'advanced'
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-white text-surface-600 border border-surface-200 hover:bg-surface-100'
+              }`}
+            >
+              Advanced
+            </button>
           </div>
         </div>
 
@@ -96,7 +193,47 @@ export default function CoursesCatalogPage() {
             ))}
           </div>
         ) : (
-          <CourseGrid courses={courses} />
+          <>
+            <CourseGrid
+              courses={paginatedCourses}
+              emptyMessage={
+                searchQuery || levelFilter !== 'all'
+                  ? 'No courses matched your search or filter.'
+                  : 'No courses found in the catalog.'
+              }
+            />
+
+            {/* Pagination Controls */}
+            {pageCount > 1 && (
+              <div className="flex items-center justify-center gap-3 pt-8">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                  className="gap-1 px-3 py-1.5 text-xs cursor-pointer"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  Previous
+                </Button>
+
+                <span className="text-xs font-semibold text-surface-700 bg-white px-3 py-1.5 rounded-lg border border-surface-200 shadow-sm">
+                  Page {page} of {pageCount}
+                </span>
+
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                  disabled={page >= pageCount}
+                  className="gap-1 px-3 py-1.5 text-xs cursor-pointer"
+                >
+                  Next
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </div>
 
