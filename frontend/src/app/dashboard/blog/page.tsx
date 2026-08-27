@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { getBlogPosts, updateBlogPost, deleteBlogPost } from '@/lib/api';
 import { type BlogPost } from '@/types';
 import { Button } from '@/components/ui/Button';
-import { Plus, Edit, Trash2, Eye, Globe, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Badge } from '@/components/ui/Badge';
+import { Plus, Edit, Trash2, Eye, Globe, Search, ChevronLeft, ChevronRight, FileText, PenTool, ExternalLink } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth';
 
 import { useRouter } from 'next/navigation';
@@ -98,15 +99,16 @@ export default function DashboardBlogPage() {
         </div>
         <div className="flex items-center gap-3">
           <Link href="/blog" target="_blank">
-            <Button variant="ghost" size="sm" className="gap-1.5 cursor-pointer">
+            <Button variant="outline" size="sm" className="gap-1.5 cursor-pointer text-xs">
               <Globe className="w-4 h-4" />
-              View Public Blog ↗
+              <span>View Public Blog</span>
+              <ExternalLink className="w-3 h-3 text-surface-400" />
             </Button>
           </Link>
           <Link href="/dashboard/blog/new">
-            <Button variant="primary" className="gap-2 cursor-pointer">
+            <Button variant="primary" size="sm" className="gap-1.5 cursor-pointer text-xs">
               <Plus className="w-4 h-4" />
-              Write New Post
+              <span>Write New Post</span>
             </Button>
           </Link>
         </div>
@@ -114,39 +116,39 @@ export default function DashboardBlogPage() {
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <div className="bg-white p-5 rounded-xl border border-surface-200 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center text-xl font-bold">
-            📄
+        <div className="bg-white p-5 rounded-xl border border-surface-200 shadow-xs flex items-center gap-4">
+          <div className="w-11 h-11 rounded-lg bg-surface-100 text-surface-700 flex items-center justify-center border border-surface-200">
+            <FileText className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-2xl font-black text-surface-900">{posts.length}</span>
-            <p className="text-xs text-surface-500">Total Articles</p>
+            <span className="text-2xl font-bold text-surface-900">{posts.length}</span>
+            <p className="text-xs text-surface-500 font-medium">Total Articles</p>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-surface-200 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl font-bold">
-            🌐
+        <div className="bg-white p-5 rounded-xl border border-surface-200 shadow-xs flex items-center gap-4">
+          <div className="w-11 h-11 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200">
+            <Globe className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-2xl font-black text-emerald-600">{publishedCount}</span>
-            <p className="text-xs text-surface-500">Live & Published</p>
+            <span className="text-2xl font-bold text-emerald-700">{publishedCount}</span>
+            <p className="text-xs text-surface-500 font-medium">Live & Published</p>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-surface-200 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-xl font-bold">
-            ✏️
+        <div className="bg-white p-5 rounded-xl border border-surface-200 shadow-xs flex items-center gap-4">
+          <div className="w-11 h-11 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200">
+            <PenTool className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-2xl font-black text-amber-600">{draftCount}</span>
-            <p className="text-xs text-surface-500">Drafts in Progress</p>
+            <span className="text-2xl font-bold text-amber-700">{draftCount}</span>
+            <p className="text-xs text-surface-500 font-medium">Drafts in Progress</p>
           </div>
         </div>
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="bg-white p-4 rounded-xl border border-surface-200 shadow-sm mb-6 flex flex-col lg:flex-row items-center justify-between gap-4">
+      <div className="bg-white p-4 rounded-xl border border-surface-200 shadow-xs mb-6 flex flex-col lg:flex-row items-center justify-between gap-4">
         <div className="relative w-full lg:w-72">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-surface-400" />
           <input
@@ -157,7 +159,7 @@ export default function DashboardBlogPage() {
               setSearchQuery(e.target.value);
               setPage(1);
             }}
-            className="w-full pl-10 pr-4 py-2 bg-surface-50 border border-surface-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-surface-900"
+            className="w-full pl-10 pr-4 py-2 bg-surface-50 border border-surface-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-surface-900"
           />
         </div>
 
@@ -168,7 +170,7 @@ export default function DashboardBlogPage() {
               setFilter('all');
               setPage(1);
             }}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
               filter === 'all'
                 ? 'bg-brand-600 text-white'
                 : 'bg-surface-100 text-surface-600 hover:bg-surface-200'
@@ -181,7 +183,7 @@ export default function DashboardBlogPage() {
               setFilter('published');
               setPage(1);
             }}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
               filter === 'published'
                 ? 'bg-emerald-600 text-white'
                 : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
@@ -194,7 +196,7 @@ export default function DashboardBlogPage() {
               setFilter('draft');
               setPage(1);
             }}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
               filter === 'draft'
                 ? 'bg-amber-600 text-white'
                 : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
@@ -227,22 +229,25 @@ export default function DashboardBlogPage() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 mx-auto"></div>
         </div>
       ) : filteredPosts.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-xl border border-dashed border-surface-300 p-6">
-          <span className="text-4xl block mb-2">✍️</span>
-          <h3 className="font-bold text-surface-900 mb-1">No blog posts found</h3>
-          <p className="text-sm text-surface-500 mb-4">
+        <div className="text-center py-16 bg-white rounded-xl border border-dashed border-surface-200 p-8 shadow-2xs">
+          <div className="w-12 h-12 rounded-full bg-surface-100 text-surface-400 flex items-center justify-center mx-auto mb-3">
+            <PenTool className="w-6 h-6" />
+          </div>
+          <h3 className="font-bold text-surface-900 mb-1 text-sm">No blog posts found</h3>
+          <p className="text-xs text-surface-500 mb-4 max-w-sm mx-auto">
             {searchQuery
               ? 'Try adjusting your search query or status filter.'
-              : 'Click below to write your next article.'}
+              : 'Click below to write your first editorial article.'}
           </p>
           <Link href="/dashboard/blog/new">
-            <Button variant="secondary" size="sm" className="cursor-pointer">
-              + Write New Post
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+              <Plus className="w-3.5 h-3.5" />
+              <span>Write New Post</span>
             </Button>
           </Link>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-surface-200 overflow-hidden shadow-sm">
+        <div className="bg-white rounded-xl border border-surface-200 overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-sm">
               <thead>
@@ -259,22 +264,16 @@ export default function DashboardBlogPage() {
                   const isPublished = post.status === 'published';
                   return (
                     <tr key={post.documentId || post.id} className="hover:bg-surface-50/70 transition-colors">
-                      <td className="p-4 pl-6 font-medium text-surface-900 max-w-xs truncate">
+                      <td className="p-4 pl-6 font-semibold text-surface-900 max-w-xs truncate text-xs sm:text-sm">
                         {post.title}
                       </td>
-                      <td className="p-4 text-surface-600">
-                        {post.author?.username || 'You'}
+                      <td className="p-4 text-surface-600 text-xs">
+                        {post.author?.username || 'Editorial Team'}
                       </td>
                       <td className="p-4">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${
-                            isPublished
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                              : 'bg-amber-50 text-amber-700 border border-amber-200'
-                          }`}
-                        >
-                          {isPublished ? '● Published' : '○ Draft'}
-                        </span>
+                        <Badge variant={isPublished ? 'success' : 'warning'} size="sm">
+                          {isPublished ? 'Published' : 'Draft'}
+                        </Badge>
                       </td>
                       <td className="p-4 text-surface-500 text-xs">
                         {new Date(post.createdAt).toLocaleDateString()}

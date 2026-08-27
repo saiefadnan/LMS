@@ -10,6 +10,8 @@ import { useAuthStore } from '@/stores/auth';
 import { registerSchema, type RegisterFormValues } from '@/lib/validations';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Logo } from '@/components/ui/Logo';
+import { GraduationCap, UserCheck, AlertCircle } from 'lucide-react';
 
 export default function RegisterPage() {
   const [error, setError] = useState('');
@@ -56,7 +58,7 @@ export default function RegisterPage() {
   if (loading || user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface-50">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-brand-600 border-t-transparent"></div>
       </div>
     );
   }
@@ -66,55 +68,55 @@ export default function RegisterPage() {
       {/* Left Panel - Form */}
       <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-20 xl:px-24">
         <div className="mx-auto w-full max-w-md">
-          <div className="mb-10 text-center lg:text-left">
-            <Link href="/" className="lg:hidden text-2xl font-bold tracking-tight text-surface-900 flex items-center justify-center gap-1 mb-8">
-              <span className="text-brand-600">Learn</span>Hub
-            </Link>
-            <h2 className="text-3xl font-bold text-surface-900">Create Account</h2>
-            <p className="mt-2 text-surface-500">
+          <div className="mb-8 text-center lg:text-left">
+            <div className="lg:hidden flex justify-center mb-6">
+              <Logo size="md" href="/" />
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-surface-900 tracking-tight">Create Account</h2>
+            <p className="mt-1 text-surface-500 text-xs sm:text-sm">
               Join thousands of learners and instructors today
             </p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {error && (
-              <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg border border-red-100 flex items-start gap-2">
-                <span className="text-red-500 mt-0.5">⚠️</span>
+              <div className="p-3 text-sm text-red-700 bg-red-50 rounded-lg border border-red-200 flex items-center gap-2.5">
+                <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
             {/* Role Selection UI */}
             <div>
-              <label className="block text-sm font-medium text-surface-700 mb-3">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-surface-600 mb-2">
                 I want to...
               </label>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => setValue('role', 'student')}
-                  className={`p-4 rounded-xl border-2 text-left transition-all duration-200 ${
+                  className={`p-3.5 rounded-xl border-2 text-left transition-all duration-200 cursor-pointer ${
                     selectedRole === 'student'
-                      ? 'border-brand-500 bg-brand-50'
-                      : 'border-surface-200 bg-white hover:border-brand-300'
+                      ? 'border-brand-600 bg-brand-50/80 shadow-xs ring-1 ring-brand-600'
+                      : 'border-surface-200 bg-white hover:border-surface-300'
                   }`}
                 >
-                  <span className="text-2xl mb-2 block">🎓</span>
-                  <span className={`block font-medium ${selectedRole === 'student' ? 'text-brand-900' : 'text-surface-900'}`}>Learn</span>
-                  <span className="text-xs text-surface-500 mt-1 block">Take courses</span>
+                  <GraduationCap className={`w-5 h-5 mb-1.5 ${selectedRole === 'student' ? 'text-brand-600' : 'text-surface-400'}`} />
+                  <span className={`block font-semibold text-sm ${selectedRole === 'student' ? 'text-brand-900' : 'text-surface-900'}`}>Learn</span>
+                  <span className="text-xs text-surface-500 mt-0.5 block">Take courses & quizzes</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setValue('role', 'instructor')}
-                  className={`p-4 rounded-xl border-2 text-left transition-all duration-200 ${
+                  className={`p-3.5 rounded-xl border-2 text-left transition-all duration-200 cursor-pointer ${
                     selectedRole === 'instructor'
-                      ? 'border-brand-500 bg-brand-50'
-                      : 'border-surface-200 bg-white hover:border-brand-300'
+                      ? 'border-brand-600 bg-brand-50/80 shadow-xs ring-1 ring-brand-600'
+                      : 'border-surface-200 bg-white hover:border-surface-300'
                   }`}
                 >
-                  <span className="text-2xl mb-2 block">👨‍🏫</span>
-                  <span className={`block font-medium ${selectedRole === 'instructor' ? 'text-brand-900' : 'text-surface-900'}`}>Teach</span>
-                  <span className="text-xs text-surface-500 mt-1 block">Create courses</span>
+                  <UserCheck className={`w-5 h-5 mb-1.5 ${selectedRole === 'instructor' ? 'text-brand-600' : 'text-surface-400'}`} />
+                  <span className={`block font-semibold text-sm ${selectedRole === 'instructor' ? 'text-brand-900' : 'text-surface-900'}`}>Teach</span>
+                  <span className="text-xs text-surface-500 mt-0.5 block">Publish courses & lessons</span>
                 </button>
               </div>
             </div>
@@ -162,10 +164,8 @@ export default function RegisterPage() {
 
       {/* Right Panel - Brand / Features (Hidden on mobile) */}
       <div className="hidden lg:flex lg:w-1/2 bg-surface-900 p-12 flex-col justify-between">
-        <div className="text-white text-right">
-          <Link href="/" className="text-3xl font-bold tracking-tight text-white inline-flex items-center gap-2">
-            <span className="text-brand-500">Learn</span>Hub
-          </Link>
+        <div className="text-white">
+          <Logo size="lg" theme="dark" href="/" />
         </div>
         
         <div className="mb-24">

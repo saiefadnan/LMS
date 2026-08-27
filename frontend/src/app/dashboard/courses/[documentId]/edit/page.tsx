@@ -15,6 +15,7 @@ import { Textarea } from '@/components/ui/Textarea';
 import { LessonManager } from '@/components/features/LessonManager';
 import { QuizManager } from '@/components/features/QuizManager';
 import { StudentProgressManager } from '@/components/features/StudentProgressManager';
+import { ArrowLeft, ExternalLink, Trash2, AlertCircle } from 'lucide-react';
 
 export default function EditCoursePage() {
   const params = useParams();
@@ -121,38 +122,44 @@ export default function EditCoursePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-brand-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-brand-600 border-t-transparent"></div>
       </div>
     );
   }
 
   if (!course) {
-    return <div>Course not found</div>;
+    return <div className="text-surface-600 text-sm">Course not found</div>;
   }
 
   return (
-    <div className="max-w-4xl mx-auto pb-12">
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard/courses" className="text-surface-500 hover:text-surface-900">
-            ← Back
+    <div className="max-w-5xl mx-auto pb-12 space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard/courses" className="text-surface-500 hover:text-surface-900 flex items-center gap-1.5 text-xs font-medium transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Courses</span>
           </Link>
-          <h1 className="text-2xl font-bold text-surface-900">Edit Course</h1>
         </div>
         <Link href={`/courses/${course.documentId}`} target="_blank">
-          <Button variant="ghost">View Public Page ↗</Button>
+          <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+            <span>View Public Page</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </Button>
         </Link>
       </div>
+
+      <h1 className="text-2xl font-bold text-surface-900">Edit Course: {course.title}</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column - Form */}
         <div className="lg:col-span-2 space-y-8">
-          <div className="bg-white rounded-xl border border-surface-200 p-6 md:p-8">
-            <h2 className="text-lg font-bold text-surface-900 mb-6">Course Details</h2>
+          <div className="bg-white rounded-xl border border-surface-200 p-6 md:p-8 shadow-xs">
+            <h2 className="text-base font-bold text-surface-900 mb-5">Course Details</h2>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {saveError && (
-                <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg border border-red-100">
-                  {saveError}
+                <div className="p-3 text-sm text-red-700 bg-red-50 rounded-lg border border-red-200 flex items-center gap-2.5">
+                  <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+                  <span>{saveError}</span>
                 </div>
               )}
 
@@ -202,9 +209,9 @@ export default function EditCoursePage() {
                   type="checkbox"
                   id="published"
                   {...register('published')}
-                  className="w-4 h-4 text-brand-600 rounded border-surface-300 focus:ring-brand-500"
+                  className="w-4 h-4 text-brand-600 rounded border-surface-300 focus:ring-brand-500 cursor-pointer"
                 />
-                <label htmlFor="published" className="text-sm font-medium text-surface-700">
+                <label htmlFor="published" className="text-sm font-medium text-surface-700 cursor-pointer">
                   Publish immediately (visible to students)
                 </label>
               </div>
@@ -229,36 +236,36 @@ export default function EditCoursePage() {
 
         {/* Right Column - Status/Meta */}
         <div className="space-y-6">
-          <div className="bg-surface-50 rounded-xl border border-surface-200 p-6">
-            <h3 className="font-bold text-surface-900 mb-4">Course Status</h3>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between pb-2 border-b border-surface-200">
+          <div className="bg-surface-50 rounded-xl border border-surface-200 p-5 shadow-xs">
+            <h3 className="font-bold text-surface-900 text-sm mb-3.5">Course Overview</h3>
+            <div className="space-y-2.5 text-xs">
+              <div className="flex justify-between pb-2 border-b border-surface-200/80">
                 <span className="text-surface-500">Status</span>
-                <span className={course.published ? 'text-green-600 font-medium' : 'text-amber-600 font-medium'}>
+                <span className={course.published ? 'text-emerald-700 font-semibold' : 'text-amber-700 font-semibold'}>
                   {course.published ? 'Published' : 'Draft'}
                 </span>
               </div>
-              <div className="flex justify-between pb-2 border-b border-surface-200">
+              <div className="flex justify-between pb-2 border-b border-surface-200/80">
                 <span className="text-surface-500">Students</span>
-                <span className="text-surface-900 font-medium">
+                <span className="text-surface-900 font-semibold">
                   {course.enrollments?.length || 0}
                 </span>
               </div>
-              <div className="flex justify-between pb-2 border-b border-surface-200">
+              <div className="flex justify-between pb-2 border-b border-surface-200/80">
                 <span className="text-surface-500">Lessons</span>
-                <span className="text-surface-900 font-medium">
+                <span className="text-surface-900 font-semibold">
                   {course.lessons?.length || 0}
                 </span>
               </div>
-              <div className="flex justify-between pb-2 border-b border-surface-200">
+              <div className="flex justify-between pb-2 border-b border-surface-200/80">
                 <span className="text-surface-500">Quizzes</span>
-                <span className="text-surface-900 font-medium">
+                <span className="text-surface-900 font-semibold">
                   {course.quizzes?.length || 0}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-surface-500">Created</span>
-                <span className="text-surface-900">
+                <span className="text-surface-700">
                   {new Date(course.createdAt).toLocaleDateString()}
                 </span>
               </div>
@@ -266,18 +273,19 @@ export default function EditCoursePage() {
           </div>
 
           {/* Danger Zone */}
-          <div className="bg-red-50/50 rounded-xl border border-red-200 p-6 space-y-3">
-            <h3 className="font-bold text-red-900 text-sm">Danger Zone</h3>
-            <p className="text-xs text-red-600">
+          <div className="bg-red-50/50 rounded-xl border border-red-200 p-5 space-y-3 shadow-xs">
+            <h3 className="font-bold text-red-900 text-xs uppercase tracking-wider">Danger Zone</h3>
+            <p className="text-[11px] text-red-600 leading-relaxed">
               Permanently remove this course, its lessons, quizzes, and associated records.
             </p>
             <Button
               variant="danger"
               size="sm"
               onClick={handleDeleteCourse}
-              className="w-full cursor-pointer text-xs"
+              className="w-full gap-1.5 text-xs font-semibold"
             >
-              🗑️ Delete Course
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Delete Course</span>
             </Button>
           </div>
         </div>

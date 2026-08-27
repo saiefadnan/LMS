@@ -7,7 +7,7 @@ import { getAllUsers, getRoles, updateUserRole, deleteUser } from '@/lib/api';
 import { type User, type UserRole } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Users, Shield, GraduationCap, BookOpen, Search, Trash2, Check, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Users, Shield, GraduationCap, BookOpen, Search, Trash2, Check, AlertCircle, ChevronLeft, ChevronRight, UserCheck, ShieldCheck } from 'lucide-react';
 
 export default function UserManagementPage() {
   const currentUser = useAuthStore((s) => s.user);
@@ -179,8 +179,8 @@ export default function UserManagementPage() {
       {/* Metric Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="bg-white p-5 rounded-xl border border-surface-200 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-lg bg-surface-100 text-surface-700 flex items-center justify-center text-xl font-bold">
-            👥
+          <div className="w-12 h-12 rounded-lg bg-surface-100 text-surface-700 flex items-center justify-center border border-surface-200">
+            <Users className="w-5 h-5" />
           </div>
           <div>
             <span className="text-2xl font-black text-surface-900">{users.length}</span>
@@ -189,8 +189,8 @@ export default function UserManagementPage() {
         </div>
 
         <div className="bg-white p-5 rounded-xl border border-surface-200 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl font-bold">
-            🎓
+          <div className="w-12 h-12 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200">
+            <GraduationCap className="w-5 h-5" />
           </div>
           <div>
             <span className="text-2xl font-black text-emerald-600">{studentCount}</span>
@@ -199,8 +199,8 @@ export default function UserManagementPage() {
         </div>
 
         <div className="bg-white p-5 rounded-xl border border-surface-200 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-xl font-bold">
-            👨‍🏫
+          <div className="w-12 h-12 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200">
+            <UserCheck className="w-5 h-5" />
           </div>
           <div>
             <span className="text-2xl font-black text-amber-600">{instructorCount}</span>
@@ -209,8 +209,8 @@ export default function UserManagementPage() {
         </div>
 
         <div className="bg-white p-5 rounded-xl border border-surface-200 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-xl font-bold">
-            🛡️
+          <div className="w-12 h-12 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center border border-purple-200">
+            <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
             <span className="text-2xl font-black text-purple-600">{managerCount + adminCount}</span>
@@ -327,11 +327,13 @@ export default function UserManagementPage() {
           <p className="text-surface-500 text-sm mt-3">Loading users directory...</p>
         </div>
       ) : filteredUsers.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-xl border border-dashed border-surface-300 p-6">
-          <span className="text-4xl block mb-2">🔍</span>
-          <h3 className="font-bold text-surface-900 mb-1">No users matched your criteria</h3>
-          <p className="text-sm text-surface-500">
-            Try adjusting your search terms or filter settings.
+        <div className="text-center py-16 bg-white rounded-xl border border-dashed border-surface-200 p-8 shadow-2xs">
+          <div className="w-12 h-12 rounded-full bg-surface-100 text-surface-400 flex items-center justify-center mx-auto mb-3">
+            <Search className="w-6 h-6" />
+          </div>
+          <h3 className="font-bold text-surface-900 mb-1 text-sm">No users matched your criteria</h3>
+          <p className="text-xs text-surface-500 max-w-sm mx-auto">
+            Try adjusting your search terms or role filter settings.
           </p>
         </div>
       ) : (

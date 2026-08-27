@@ -146,10 +146,10 @@ export default function MyCoursesPage() {
                   </div>
                   <Link href={`/learn/${course.documentId}`} className="w-full block">
                     <Button 
-                      variant={prog.percentage === 100 ? 'secondary' : 'primary'} 
-                      className="w-full group cursor-pointer text-xs"
+                      variant={prog.percentage === 100 ? 'outline' : 'primary'} 
+                      className="w-full text-xs"
                     >
-                      {prog.percentage === 100 ? 'Review Course 🏆' : prog.completed > 0 ? 'Resume Learning →' : 'Start Course →'}
+                      <span>{prog.percentage === 100 ? 'Review Curriculum' : prog.completed > 0 ? 'Resume Learning' : 'Start Course'}</span>
                     </Button>
                   </Link>
                 </div>

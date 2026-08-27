@@ -8,6 +8,7 @@ import { CourseGrid } from '@/components/features/CourseGrid';
 import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui/Button';
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Logo } from '@/components/ui/Logo';
 
 export default function CoursesCatalogPage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -58,9 +59,7 @@ export default function CoursesCatalogPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Link href="/" className="text-2xl font-bold tracking-tight text-surface-900 flex items-center gap-1">
-                <span className="text-brand-600">Learn</span>Hub
-              </Link>
+              <Logo size="md" href="/" />
             </div>
             <div className="flex items-center gap-4">
               <Link href="/blog" className="text-surface-600 hover:text-surface-900 font-medium hidden sm:block mr-2">

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { getBlogPost } from '@/lib/api';
 import { type BlogPost } from '@/types';
 import { Button } from '@/components/ui/Button';
-import { Calendar, Clock, ArrowLeft, User, Share2, BookOpen } from 'lucide-react';
+import { Calendar, Clock, ArrowLeft, User, Share2, BookOpen, Newspaper } from 'lucide-react';
 import { getThumbnailSrc } from '@/lib/utils/thumbnail';
 
 export default function BlogPostDetailPage() {
@@ -59,7 +59,7 @@ export default function BlogPostDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-600"></div>
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-brand-600 border-t-transparent"></div>
       </div>
     );
   }
@@ -67,14 +67,16 @@ export default function BlogPostDetailPage() {
   if (error || !post) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface-50 p-6">
-        <div className="text-center max-w-md bg-white p-8 rounded-2xl border border-surface-200 shadow-sm">
-          <span className="text-4xl block mb-3">📰</span>
-          <h2 className="text-2xl font-bold text-surface-900 mb-2">Article Unavailable</h2>
-          <p className="text-surface-500 text-sm mb-6">
+        <div className="text-center max-w-md bg-white p-8 rounded-2xl border border-surface-200 shadow-xs">
+          <div className="w-12 h-12 rounded-full bg-surface-100 text-surface-400 flex items-center justify-center mx-auto mb-3">
+            <Newspaper className="w-6 h-6" />
+          </div>
+          <h2 className="text-xl font-bold text-surface-900 mb-1">Article Unavailable</h2>
+          <p className="text-surface-500 text-xs mb-6 max-w-sm mx-auto">
             {error || 'This article does not exist or has not been published yet.'}
           </p>
           <Link href="/blog">
-            <Button variant="secondary">Back to All Articles</Button>
+            <Button variant="secondary" size="sm">Back to All Articles</Button>
           </Link>
         </div>
       </div>

@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { getCourse, markLessonComplete } from '@/lib/api';
 import { Course, Lesson } from '@/types';
 import { Button } from '@/components/ui/Button';
-import { CheckCircle2, ChevronLeft, ChevronRight, PlayCircle } from 'lucide-react';
+import { CheckCircle2, ChevronLeft, ChevronRight, PlayCircle, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import { useProgressStore } from '@/stores/progress';
 import { useAuthStore } from '@/stores/auth';
@@ -197,7 +197,8 @@ export default function LessonPage() {
         ) : course.quizzes && course.quizzes.length > 0 ? (
           <Link href={`/learn/${courseId}/quiz/${course.quizzes[0].documentId}`}>
             <Button variant="primary" className="gap-2 group bg-amber-600 hover:bg-amber-700 text-white">
-              Take Course Quiz 🏆
+              <Trophy className="w-4 h-4" />
+              <span>Take Course Assessment</span>
               <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>

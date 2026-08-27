@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { getThumbnailSrc } from '@/lib/utils/thumbnail';
+import { BookOpen, User, ArrowRight, Layers, Folder } from 'lucide-react';
 
 interface CourseGridProps {
   courses: Course[];
@@ -19,8 +20,12 @@ export function CourseGrid({
   
   if (courses.length === 0) {
     return (
-      <div className="text-center py-12 bg-white rounded-xl border border-surface-200">
-        <p className="text-surface-500">{emptyMessage}</p>
+      <div className="text-center py-16 bg-white rounded-2xl border border-surface-200 shadow-xs px-4">
+        <div className="w-12 h-12 rounded-xl bg-surface-100 text-surface-400 flex items-center justify-center mx-auto mb-3">
+          <BookOpen className="w-6 h-6" />
+        </div>
+        <p className="text-surface-900 font-semibold text-base">{emptyMessage}</p>
+        <p className="text-surface-500 text-xs mt-1">Try adjusting your filters or search keywords.</p>
       </div>
     );
   }
@@ -28,47 +33,63 @@ export function CourseGrid({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {courses.map((course) => (
-        <Card key={course.documentId} className="flex flex-col overflow-hidden hover:shadow-md transition-shadow duration-300">
-          {/* Thumbnail or fallback icon */}
-          <div className="h-48 bg-surface-100 flex items-center justify-center relative overflow-hidden">
-            {getThumbnailSrc(course.thumbnail)
-              ? <img src={getThumbnailSrc(course.thumbnail)} alt={course.title} className="w-full h-full object-cover" />
-              : <span className="text-4xl text-surface-300">📚</span>
-            }
-            <div className="absolute top-3 left-3 flex gap-2">
-              <Badge variant="default" className="bg-white/90 backdrop-blur-sm text-surface-900 border-surface-200">
-                {course.level}
-              </Badge>
-              <Badge variant="outline" className="bg-white/90 backdrop-blur-sm text-surface-900 border-surface-200">
-                {course.category}
-              </Badge>
+        <Card 
+          key={course.documentId} 
+          className="flex flex-col overflow-hidden border border-surface-200/90 hover:border-brand-200 hover:shadow-md transition-all duration-200 bg-white group rounded-xl"
+        >
+          {/* Thumbnail Header */}
+          <div className="h-44 bg-gradient-to-br from-surface-100 via-surface-50 to-surface-100 flex items-center justify-center relative overflow-hidden border-b border-surface-100">
+            {getThumbnailSrc(course.thumbnail) ? (
+              <img 
+                src={getThumbnailSrc(course.thumbnail)} 
+                alt={course.title} 
+                className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300" 
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center text-surface-300">
+                <BookOpen className="w-10 h-10 stroke-[1.5]" />
+              </div>
+            )}
+            <div className="absolute top-3 left-3 flex gap-1.5 flex-wrap">
+              {course.level && (
+                <Badge variant="outline" size="sm" className="bg-white/95 backdrop-blur-xs font-semibold shadow-xs">
+                  {course.level}
+                </Badge>
+              )}
+              {course.category && (
+                <Badge variant="default" size="sm" className="bg-brand-50/95 backdrop-blur-xs shadow-xs">
+                  {course.category}
+                </Badge>
+              )}
             </div>
           </div>
           
-          <CardHeader className="pb-3 flex-grow">
-            <CardTitle className="text-xl mb-2 line-clamp-2">{course.title}</CardTitle>
-            <CardDescription className="line-clamp-2">
-              {course.description}
+          <CardHeader className="p-5 pb-3 flex-grow">
+            <CardTitle className="text-base font-bold text-surface-900 leading-snug line-clamp-2 group-hover:text-brand-700 transition-colors">
+              {course.title}
+            </CardTitle>
+            <CardDescription className="text-surface-500 text-xs line-clamp-2 mt-1.5 leading-relaxed">
+              {course.description || 'Comprehensive curriculum designed to master core concepts.'}
             </CardDescription>
           </CardHeader>
           
-          <CardContent className="pb-4">
-            <div className="flex items-center gap-2 text-sm text-surface-500">
-              <span className="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold">
+          <CardContent className="px-5 pb-4 pt-0">
+            <div className="flex items-center gap-2 text-xs text-surface-600">
+              <div className="w-5 h-5 rounded-full bg-surface-100 border border-surface-200 text-surface-700 flex items-center justify-center text-[10px] font-bold shrink-0">
                 {course.instructor?.username?.charAt(0).toUpperCase() || 'I'}
-              </span>
-              <span>{course.instructor?.username || 'Unknown Instructor'}</span>
+              </div>
+              <span className="truncate font-medium">{course.instructor?.username || 'Verified Instructor'}</span>
             </div>
           </CardContent>
           
-          <CardFooter className="pt-0 flex justify-between items-center mt-auto border-t border-surface-100 pt-4">
+          <CardFooter className="px-5 py-3.5 mt-auto border-t border-surface-100 bg-surface-50/40">
             {renderAction ? (
               renderAction(course)
             ) : (
-              <Link href={`/courses/${course.documentId}`} className="w-full">
-                <Button variant="secondary" className="w-full group">
-                  View Course
-                  <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+              <Link href={`/courses/${course.documentId}`} className="w-full block">
+                <Button variant="outline" size="sm" className="w-full justify-between group/btn text-xs font-medium">
+                  <span>View Syllabus</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-surface-400 group-hover/btn:translate-x-1 transition-transform" />
                 </Button>
               </Link>
             )}

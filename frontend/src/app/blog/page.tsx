@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { getBlogPosts } from '@/lib/api';
 import { type BlogPost } from '@/types';
 import { Button } from '@/components/ui/Button';
-import { BookOpen, Calendar, Clock, User, ArrowRight, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { BookOpen, Calendar, Clock, User, ArrowRight, Search, ChevronLeft, ChevronRight, Newspaper, FileText } from 'lucide-react';
 import { getThumbnailSrc } from '@/lib/utils/thumbnail';
+import { Logo } from '@/components/ui/Logo';
 
 export default function BlogIndexPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -36,7 +37,8 @@ export default function BlogIndexPage() {
     const term = searchQuery.toLowerCase();
     return (
       post.title.toLowerCase().includes(term) ||
-      (post.body || post.content || '').toLowerCase().includes(term)
+      (post.body || post.content || '').toLowerCase().includes(term) ||
+      (post.author?.username || '').toLowerCase().includes(term)
     );
   });
 
@@ -53,7 +55,26 @@ export default function BlogIndexPage() {
   };
 
   return (
-    <div className="min-h-screen bg-surface-50">
+    <div className="min-h-screen bg-surface-50 flex flex-col">
+      {/* Top Navbar */}
+      <nav className="bg-white border-b border-surface-200 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex items-center">
+              <Logo size="md" href="/" />
+            </div>
+            <div className="flex items-center gap-4">
+              <Link href="/courses" className="text-surface-600 hover:text-surface-900 font-medium text-sm">
+                Browse Courses
+              </Link>
+              <Link href="/dashboard">
+                <Button variant="secondary" size="sm">Dashboard</Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </nav>
+
       {/* Header Banner */}
       <div className="bg-gradient-to-b from-brand-900 via-brand-800 to-brand-900 text-white py-16 px-6">
         <div className="max-w-6xl mx-auto text-center space-y-4">
@@ -93,7 +114,9 @@ export default function BlogIndexPage() {
           </div>
         ) : filteredPosts.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-2xl border border-surface-200 p-8 shadow-sm">
-            <span className="text-5xl block mb-4">📰</span>
+            <div className="w-12 h-12 rounded-full bg-surface-100 text-surface-400 flex items-center justify-center mx-auto mb-3">
+              <Newspaper className="w-6 h-6" />
+            </div>
             <h3 className="text-xl font-bold text-surface-900 mb-2">No Articles Found</h3>
             <p className="text-surface-500 text-sm max-w-md mx-auto mb-6">
               {searchQuery
@@ -120,8 +143,8 @@ export default function BlogIndexPage() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-brand-50 to-brand-100 text-6xl text-brand-300">
-                        ✍️
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-surface-100 to-surface-200 text-surface-400">
+                        <FileText className="w-16 h-16 stroke-[1]" />
                       </div>
                     )}
                     <div className="absolute top-4 left-4">
@@ -206,8 +229,8 @@ export default function BlogIndexPage() {
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-surface-100 to-surface-200 text-4xl text-surface-400">
-                            📄
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-surface-100 to-surface-200 text-surface-400">
+                            <FileText className="w-10 h-10 stroke-[1.5]" />
                           </div>
                         )}
                       </div>
