@@ -9,7 +9,7 @@
  */
 export { fetchAPI } from './client';
 export { loginUser, registerUser, getMe, logout } from './auth';
-export { getCourses, getMyCourses, getCourse, createCourse, updateCourse, deleteCourse } from './courses';
+export { getCourses, getMyCourses, getCourse, createCourse, updateCourse, deleteCourse, getCourseStudentProgress } from './courses';
 export { getLessons, getLesson, createLesson, updateLesson, deleteLesson } from './lessons';
 export { enrollInCourse, getMyEnrollments } from './enrollments';
 export { markLessonComplete, getMyProgress } from './progress';

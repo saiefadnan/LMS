@@ -84,6 +84,7 @@ export const bootstrapRoles = async (strapi: Core.Strapi) => {
     'api::course.course.update',
     'api::course.course.delete',
     'api::course.course.findMyCourses',
+    'api::course.course.getCourseStudentProgress',
     // Lesson management
     'api::lesson.lesson.create',
     'api::lesson.lesson.update',

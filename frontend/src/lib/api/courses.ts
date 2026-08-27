@@ -36,3 +36,15 @@ export async function updateCourse(
 export async function deleteCourse(documentId: string): Promise<void> {
   return fetchAPI(`/api/courses/${documentId}`, { method: 'DELETE' });
 }
+
+export async function getCourseStudentProgress(
+  documentId: string,
+  params: { page?: number; pageSize?: number; search?: string } = {}
+): Promise<import('@/types').CourseProgressResponse> {
+  const query = new URLSearchParams();
+  if (params.page) query.set('page', String(params.page));
+  if (params.pageSize) query.set('pageSize', String(params.pageSize));
+  if (params.search) query.set('search', params.search);
+  const qStr = query.toString();
+  return fetchAPI(`/api/courses/${documentId}/students-progress${qStr ? `?${qStr}` : ''}`);
+}
