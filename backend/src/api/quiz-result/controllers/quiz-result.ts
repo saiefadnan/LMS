@@ -33,30 +33,48 @@ export default factories.createCoreController('api::quiz-result.quiz-result', ({
     const user = ctx.state.user;
     if (!user) return ctx.unauthorized();
 
-    // If Admin or Content Manager, return all results
-    if (user.role?.type === 'admin' || user.role?.type === 'content_manager') {
-      return super.find(ctx);
-    }
+    const userWithRole = await strapi.db.query('plugin::users-permissions.user').findOne({
+      where: { id: user.id },
+      populate: ['role']
+    });
+    const roleType = userWithRole?.role?.type || 'student';
 
-    // If Instructor, they can only see results for quizzes belonging to THEIR courses
-    if (user.role?.type === 'instructor') {
-      ctx.query.filters = {
-        ...(ctx.query.filters || {}),
+    let filters: any = {};
+
+    if (roleType === 'admin' || roleType === 'content_manager') {
+      // Global managers can see all results
+      filters = {};
+    } else if (roleType === 'instructor') {
+      filters = {
         quiz: {
           course: {
             instructor: { id: user.id }
           }
         }
       };
-      return super.find(ctx);
+    } else {
+      // Student only sees their own results
+      filters = {
+        student: { id: user.id }
+      };
     }
 
-    // If Student, they can only see their OWN quiz results
-    ctx.query.filters = {
-      ...(ctx.query.filters || {}),
-      student: { id: user.id }
-    };
-    return super.find(ctx);
+    const results = await strapi.documents('api::quiz-result.quiz-result').findMany({
+      filters,
+      populate: {
+        quiz: {
+          populate: {
+            course: true
+          }
+        },
+        student: {
+          fields: ['id', 'username', 'email']
+        }
+      },
+      sort: 'createdAt:desc'
+    });
+
+    return { data: results, meta: {} };
   },
 
   async findOne(ctx) {
@@ -64,28 +82,45 @@ export default factories.createCoreController('api::quiz-result.quiz-result', ({
     if (!user) return ctx.unauthorized();
 
     const { id } = ctx.params;
-    const result = await strapi.db.query('api::quiz-result.quiz-result').findOne({
-      where: { documentId: id },
-      populate: { quiz: { populate: { course: { populate: ['instructor'] } } }, student: true }
+    const result = await strapi.documents('api::quiz-result.quiz-result').findOne({
+      documentId: id,
+      populate: {
+        quiz: {
+          populate: {
+            course: {
+              populate: ['instructor']
+            }
+          }
+        },
+        student: {
+          fields: ['id', 'username', 'email']
+        }
+      }
     });
 
     if (!result) return ctx.notFound();
 
-    if (user.role?.type === 'admin' || user.role?.type === 'content_manager') {
-      return super.findOne(ctx);
+    const userWithRole = await strapi.db.query('plugin::users-permissions.user').findOne({
+      where: { id: user.id },
+      populate: ['role']
+    });
+    const roleType = userWithRole?.role?.type || 'student';
+
+    if (roleType === 'admin' || roleType === 'content_manager') {
+      return { data: result };
     }
 
-    if (user.role?.type === 'instructor') {
-      if (result.quiz?.course?.instructor?.id !== user.id) {
+    if (roleType === 'instructor') {
+      if ((result.quiz as any)?.course?.instructor?.id !== user.id) {
         return ctx.forbidden('Not authorized to view this result');
       }
-      return super.findOne(ctx);
+      return { data: result };
     }
 
-    if (result.student?.id !== user.id) {
+    if ((result.student as any)?.id !== user.id) {
       return ctx.forbidden('Not authorized to view this result');
     }
 
-    return super.findOne(ctx);
+    return { data: result };
   }
 }));

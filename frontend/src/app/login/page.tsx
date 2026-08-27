@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -14,6 +14,8 @@ import { Input } from '@/components/ui/Input';
 export default function LoginPage() {
   const [error, setError] = useState('');
   const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+  const loading = useAuthStore((s) => s.loading);
   const refreshUser = useAuthStore((s) => s.refreshUser);
 
   const {
@@ -28,6 +30,12 @@ export default function LoginPage() {
     },
   });
 
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace('/dashboard');
+    }
+  }, [user, loading, router]);
+
   const onSubmit = async (data: LoginFormValues) => {
     try {
       setError('');
@@ -38,6 +46,14 @@ export default function LoginPage() {
       setError(err.message || 'Invalid credentials');
     }
   };
+
+  if (loading || user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-surface-50">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex bg-surface-50">
