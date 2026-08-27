@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { getMyEnrollments } from '@/lib/api';
+import { getMyEnrollments, getMyProgress } from '@/lib/api';
 import { type Enrollment } from '@/types';
 import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui/Button';
@@ -11,6 +11,7 @@ import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function MyCoursesPage() {
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [progressMap, setProgressMap] = useState<Record<string, { completed: number; total: number; percentage: number }>>({});
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
@@ -18,18 +19,38 @@ export default function MyCoursesPage() {
   const user = useAuthStore((s) => s.user);
 
   useEffect(() => {
-    async function fetchEnrollments() {
+    async function fetchEnrollmentsAndProgress() {
       if (!user) return;
       try {
         const res = await getMyEnrollments();
-        setEnrollments(res.data || []);
+        const rawEnrollments = res.data || [];
+        setEnrollments(rawEnrollments);
+
+        // Fetch progress for each course in parallel
+        const map: Record<string, { completed: number; total: number; percentage: number }> = {};
+        await Promise.all(
+          rawEnrollments.map(async (e) => {
+            const course = e.course;
+            if (!course || !course.documentId) return;
+            try {
+              const progRes = await getMyProgress(course.documentId);
+              const completedCount = (progRes.data || []).filter((p) => p.completed).length;
+              const totalLessons = course.lessons?.length || 0;
+              const percentage = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
+              map[course.documentId] = { completed: completedCount, total: totalLessons, percentage };
+            } catch {
+              map[course.documentId] = { completed: 0, total: course.lessons?.length || 0, percentage: 0 };
+            }
+          })
+        );
+        setProgressMap(map);
       } catch (error) {
         console.error('Failed to load enrollments', error);
       } finally {
         setLoading(false);
       }
     }
-    fetchEnrollments();
+    fetchEnrollmentsAndProgress();
   }, [user]);
 
   if (!user) return null;
@@ -59,7 +80,7 @@ export default function MyCoursesPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-surface-900">My Learning</h1>
+          <h1 className="text-2xl font-bold text-surface-900">My Enrolled Courses</h1>
           <p className="text-surface-500 text-sm mt-0.5">Pick up right where you left off</p>
         </div>
         <Link href="/courses">
@@ -103,14 +124,37 @@ export default function MyCoursesPage() {
                 ? 'No enrolled courses matched your search.'
                 : "You haven't enrolled in any courses yet."
             }
-            renderAction={(course) => (
-              <Link href={`/learn/${course.documentId}`} className="w-full">
-                <Button variant="primary" className="w-full group cursor-pointer">
-                  Resume Course
-                  <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
-                </Button>
-              </Link>
-            )}
+            renderAction={(course) => {
+              const prog = progressMap[course.documentId] || { completed: 0, total: course.lessons?.length || 0, percentage: 0 };
+              return (
+                <div className="w-full space-y-2.5">
+                  <div>
+                    <div className="flex justify-between items-center text-xs font-semibold text-surface-600 mb-1">
+                      <span>Progress ({prog.completed}/{prog.total} lessons)</span>
+                      <span className={`font-bold ${prog.percentage === 100 ? 'text-green-600' : 'text-brand-700'}`}>
+                        {prog.percentage}%
+                      </span>
+                    </div>
+                    <div className="w-full h-2 bg-surface-100 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-500 rounded-full ${
+                          prog.percentage === 100 ? 'bg-green-500' : 'bg-brand-600'
+                        }`}
+                        style={{ width: `${prog.percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                  <Link href={`/learn/${course.documentId}`} className="w-full block">
+                    <Button 
+                      variant={prog.percentage === 100 ? 'secondary' : 'primary'} 
+                      className="w-full group cursor-pointer text-xs"
+                    >
+                      {prog.percentage === 100 ? 'Review Course 🏆' : prog.completed > 0 ? 'Resume Learning →' : 'Start Course →'}
+                    </Button>
+                  </Link>
+                </div>
+              );
+            }}
           />
 
           {/* Pagination Controls */}
