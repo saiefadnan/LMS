@@ -1,16 +1,17 @@
 /**
  * Auth API — login, register, getMe
  */
-import { fetchAPI } from './client';
+import { apiClient } from './client';
+import { API_ENDPOINTS } from '@/config/endpoints';
 import type { AuthResponse, User } from '@/types';
 
 export async function loginUser(
   identifier: string,
   password: string
 ): Promise<AuthResponse> {
-  const data = await fetchAPI<AuthResponse>('/api/auth/local', {
-    method: 'POST',
-    body: JSON.stringify({ identifier, password }),
+  const data = await apiClient.post<AuthResponse>(API_ENDPOINTS.AUTH.LOGIN, {
+    identifier,
+    password,
   });
 
   if (data.jwt) {
@@ -26,9 +27,11 @@ export async function registerUser(
   password: string,
   role: string = 'student'
 ): Promise<AuthResponse> {
-  const data = await fetchAPI<AuthResponse>('/api/auth/local/register', {
-    method: 'POST',
-    body: JSON.stringify({ username, email, password, role }),
+  const data = await apiClient.post<AuthResponse>(API_ENDPOINTS.AUTH.REGISTER, {
+    username,
+    email,
+    password,
+    role,
   });
 
   if (data.jwt) {
@@ -39,7 +42,7 @@ export async function registerUser(
 }
 
 export async function getMe(): Promise<User> {
-  return fetchAPI<User>('/api/users/me?populate=role');
+  return apiClient.get<User>(`${API_ENDPOINTS.AUTH.ME}?populate=role`);
 }
 
 export function logout(): void {

@@ -1,16 +1,16 @@
 /**
  * Enrollments API
  */
-import { fetchAPI } from './client';
+import { apiClient } from './client';
+import { API_ENDPOINTS } from '@/config/endpoints';
 import type { Enrollment, StrapiResponse } from '@/types';
 
 export async function enrollInCourse(courseId: string | number): Promise<StrapiResponse<Enrollment>> {
-  return fetchAPI('/api/enrollments', {
-    method: 'POST',
-    body: JSON.stringify({ data: { course: courseId } }),
+  return apiClient.post<StrapiResponse<Enrollment>>(API_ENDPOINTS.ENROLLMENTS.ROOT, {
+    data: { course: courseId },
   });
 }
 
 export async function getMyEnrollments(): Promise<StrapiResponse<Enrollment[]>> {
-  return fetchAPI('/api/enrollments/my');
+  return apiClient.get<StrapiResponse<Enrollment[]>>(API_ENDPOINTS.ENROLLMENTS.MY);
 }

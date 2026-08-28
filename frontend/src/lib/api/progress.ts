@@ -1,22 +1,20 @@
 /**
  * Progress API
  */
-import { fetchAPI } from './client';
+import { apiClient } from './client';
+import { API_ENDPOINTS } from '@/config/endpoints';
 import type { Progress, StrapiResponse } from '@/types';
 
 export async function markLessonComplete(
   lessonId: string | number
 ): Promise<StrapiResponse<Progress>> {
-  return fetchAPI('/api/progresses', {
-    method: 'POST',
-    body: JSON.stringify({
-      data: { lesson: lessonId, completed: true },
-    }),
+  return apiClient.post<StrapiResponse<Progress>>(API_ENDPOINTS.PROGRESS.ROOT, {
+    data: { lesson: lessonId, completed: true },
   });
 }
 
 export async function getMyProgress(
   courseDocumentId: string
 ): Promise<StrapiResponse<Progress[]>> {
-  return fetchAPI(`/api/progresses/my/${courseDocumentId}`);
+  return apiClient.get<StrapiResponse<Progress[]>>(API_ENDPOINTS.PROGRESS.MY_COURSE(courseDocumentId));
 }

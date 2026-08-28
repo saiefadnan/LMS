@@ -1,42 +1,39 @@
 /**
  * Blog API
  */
-import { fetchAPI } from './client';
+import { apiClient } from './client';
+import { API_ENDPOINTS } from '@/config/endpoints';
 import type { BlogPost, BlogPostInput, StrapiResponse } from '@/types';
 
 export async function getBlogPosts(
   query: string = ''
 ): Promise<StrapiResponse<BlogPost[]>> {
-  return fetchAPI(
-    `/api/blog-posts?populate=*&sort=createdAt:desc${query ? `&${query}` : ''}`
+  return apiClient.get<StrapiResponse<BlogPost[]>>(
+    `${API_ENDPOINTS.BLOG.ROOT}?populate=*&sort=createdAt:desc${query ? `&${query}` : ''}`
   );
 }
 
 export async function getBlogPost(
   documentId: string
 ): Promise<StrapiResponse<BlogPost>> {
-  return fetchAPI(`/api/blog-posts/${documentId}?populate=*`);
+  return apiClient.get<StrapiResponse<BlogPost>>(
+    `${API_ENDPOINTS.BLOG.DETAIL(documentId)}?populate=*`
+  );
 }
 
 export async function createBlogPost(
   data: BlogPostInput | Partial<BlogPost>
 ): Promise<StrapiResponse<BlogPost>> {
-  return fetchAPI('/api/blog-posts', {
-    method: 'POST',
-    body: JSON.stringify({ data }),
-  });
+  return apiClient.post<StrapiResponse<BlogPost>>(API_ENDPOINTS.BLOG.ROOT, { data });
 }
 
 export async function updateBlogPost(
   documentId: string,
   data: BlogPostInput | Partial<BlogPost>
 ): Promise<StrapiResponse<BlogPost>> {
-  return fetchAPI(`/api/blog-posts/${documentId}`, {
-    method: 'PUT',
-    body: JSON.stringify({ data }),
-  });
+  return apiClient.put<StrapiResponse<BlogPost>>(API_ENDPOINTS.BLOG.DETAIL(documentId), { data });
 }
 
 export async function deleteBlogPost(documentId: string): Promise<void> {
-  return fetchAPI(`/api/blog-posts/${documentId}`, { method: 'DELETE' });
+  return apiClient.delete<void>(API_ENDPOINTS.BLOG.DETAIL(documentId));
 }
