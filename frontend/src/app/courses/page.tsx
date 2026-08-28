@@ -11,28 +11,23 @@ import { CourseFilters } from '@/components/features/courses/CourseFilters';
 import { GraduationCap } from 'lucide-react';
 
 export default function CoursesCatalogPage() {
-  const { data: courses = [], isLoading } = useCourses();
   const [searchQuery, setSearchQuery] = useState('');
   const [levelFilter, setLevelFilter] = useState('all');
   const [page, setPage] = useState(1);
   const pageSize = 6;
 
-  const filteredCourses = courses.filter((course) => {
-    const term = searchQuery.toLowerCase();
-    const matchesSearch =
-      course.title.toLowerCase().includes(term) ||
-      (course.description || '').toLowerCase().includes(term) ||
-      (course.category || '').toLowerCase().includes(term);
-
-    const matchesLevel = levelFilter === 'all' || course.level === levelFilter;
-
-    return matchesSearch && matchesLevel;
+  const { data, isLoading } = useCourses({
+    page,
+    pageSize,
+    search: searchQuery,
+    level: levelFilter !== 'all' ? levelFilter : undefined,
   });
 
-  const totalCourses = filteredCourses.length;
-  const pageCount = Math.ceil(totalCourses / pageSize) || 1;
-  const paginatedCourses = filteredCourses.slice((page - 1) * pageSize, page * pageSize);
+  const courses = data?.courses || [];
+  const pagination = data?.pagination || { page: 1, pageSize: 6, pageCount: 1, total: 0 };
 
+  const totalCourses = pagination.total;
+  const pageCount = pagination.pageCount;
   const startCount = totalCourses === 0 ? 0 : (page - 1) * pageSize + 1;
   const endCount = Math.min(page * pageSize, totalCourses);
 
@@ -77,7 +72,7 @@ export default function CoursesCatalogPage() {
         ) : (
           <>
             <CourseGrid
-              courses={paginatedCourses}
+              courses={courses}
               emptyMessage={
                 searchQuery || levelFilter !== 'all'
                   ? 'No courses match your active search filters.'

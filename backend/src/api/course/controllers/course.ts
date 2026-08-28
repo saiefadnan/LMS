@@ -71,11 +71,11 @@ export default factories.createCoreController('api::course.course', ({ strapi })
       'student';
 
     try {
-      const courses = await strapi
+      const result = await strapi
         .service('api::course.course')
-        .getMyCourses(user, roleType);
+        .getMyCourses(user, roleType, ctx.query);
 
-      ctx.body = { data: courses };
+      ctx.body = result;
     } catch (err: any) {
       return ctx.badRequest(err.message || 'Failed to fetch courses.');
     }

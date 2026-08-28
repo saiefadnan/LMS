@@ -18,12 +18,11 @@ import { CallToActionBanner } from '@/components/features/landing/CallToActionBa
 export default function Home() {
   const user = useAuthStore((s) => s.user);
   const [activeCategory, setActiveCategory] = useState('all');
+  const { data: coursesData } = useCourses({ pageSize: 6 });
+  const { data: postsData } = useBlogPosts({ pageSize: 3, status: 'published' });
 
-  const { data: allCourses = [] } = useCourses();
-  const { data: allPosts = [] } = useBlogPosts();
-
-  const courses = allCourses.slice(0, 6);
-  const posts = allPosts.slice(0, 3);
+  const courses = coursesData?.courses || [];
+  const posts = postsData?.posts || [];
   const categories = ['all', 'programming', 'web development', 'data science'];
 
   return (

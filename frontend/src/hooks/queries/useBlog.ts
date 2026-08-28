@@ -7,6 +7,7 @@ import {
   createBlogPost,
   updateBlogPost,
   deleteBlogPost,
+  type BlogQueryParams,
 } from '@/lib/api/blog';
 import type { BlogPost, BlogPostInput } from '@/types';
 
@@ -14,19 +15,27 @@ import type { BlogPost, BlogPostInput } from '@/types';
 export const blogKeys = {
   all: ['blog-posts'] as const,
   lists: () => [...blogKeys.all, 'list'] as const,
-  list: (query: string) => [...blogKeys.lists(), { query }] as const,
+  list: (params: BlogQueryParams = {}) => [...blogKeys.lists(), params] as const,
   details: () => [...blogKeys.all, 'detail'] as const,
   detail: (id: string) => [...blogKeys.details(), id] as const,
 };
 
 /**
- * Fetch all public or dashboard blog posts
+ * Fetch all public or dashboard blog posts with server pagination & filtering
  */
-export function useBlogPosts(query: string = '') {
+export function useBlogPosts(params: BlogQueryParams = {}) {
   return useQuery({
-    queryKey: blogKeys.list(query),
-    queryFn: () => getBlogPosts(query),
-    select: (data) => data.data || [],
+    queryKey: blogKeys.list(params),
+    queryFn: () => getBlogPosts(params),
+    select: (res) => ({
+      posts: res.data || [],
+      pagination: res.meta?.pagination || {
+        page: 1,
+        pageSize: 10,
+        pageCount: 1,
+        total: res.data?.length || 0,
+      },
+    }),
   });
 }
 

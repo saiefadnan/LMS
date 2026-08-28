@@ -9,6 +9,7 @@ import {
   updateCourse,
   deleteCourse,
   getCourseStudentProgress,
+  type CourseQueryParams,
 } from '@/lib/api/courses';
 import { enrollInCourse, getMyEnrollments } from '@/lib/api/enrollments';
 import type { Course, CourseInput } from '@/types';
@@ -17,8 +18,8 @@ import type { Course, CourseInput } from '@/types';
 export const courseKeys = {
   all: ['courses'] as const,
   lists: () => [...courseKeys.all, 'list'] as const,
-  list: (query: string) => [...courseKeys.lists(), { query }] as const,
-  myCourses: () => [...courseKeys.all, 'my-courses'] as const,
+  list: (params: CourseQueryParams = {}) => [...courseKeys.lists(), params] as const,
+  myCourses: (params: any = {}) => [...courseKeys.all, 'my-courses', params] as const,
   myEnrollments: () => ['enrollments', 'my'] as const,
   details: () => [...courseKeys.all, 'detail'] as const,
   detail: (id: string) => [...courseKeys.details(), id] as const,
@@ -26,24 +27,43 @@ export const courseKeys = {
 };
 
 /**
- * Fetch public or filtered courses catalog
+ * Fetch public or filtered courses catalog with server pagination & filtering
  */
-export function useCourses(query: string = '') {
+export function useCourses(params: CourseQueryParams = {}) {
   return useQuery({
-    queryKey: courseKeys.list(query),
-    queryFn: () => getCourses(query),
-    select: (data) => data.data || [],
+    queryKey: courseKeys.list(params),
+    queryFn: () => getCourses(params),
+    select: (res) => ({
+      courses: res.data || [],
+      pagination: res.meta?.pagination || {
+        page: 1,
+        pageSize: 10,
+        pageCount: 1,
+        total: res.data?.length || 0,
+      },
+    }),
   });
 }
 
 /**
- * Fetch instructor authored courses or all courses for managers
+ * Fetch instructor authored courses with server pagination & search
  */
-export function useMyCourses(enabled: boolean = true) {
+export function useMyCourses(
+  params: { page?: number; pageSize?: number; search?: string } = {},
+  enabled: boolean = true
+) {
   return useQuery({
-    queryKey: courseKeys.myCourses(),
-    queryFn: () => getMyCourses(),
-    select: (data) => data.data || [],
+    queryKey: courseKeys.myCourses(params),
+    queryFn: () => getMyCourses(params),
+    select: (res) => ({
+      courses: res.data || [],
+      pagination: res.meta?.pagination || {
+        page: 1,
+        pageSize: 10,
+        pageCount: 1,
+        total: res.data?.length || 0,
+      },
+    }),
     enabled,
   });
 }
@@ -127,10 +147,10 @@ export function useUpdateCourse() {
   return useMutation({
     mutationFn: ({ documentId, data }: { documentId: string; data: CourseInput | Partial<Course> }) =>
       updateCourse(documentId, data),
-    onSuccess: (res, { documentId }) => {
+    onSuccess: (_, { documentId }) => {
       queryClient.invalidateQueries({ queryKey: courseKeys.detail(documentId) });
       queryClient.invalidateQueries({ queryKey: courseKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: courseKeys.myCourses() });
+      queryClient.invalidateQueries({ queryKey: courseKeys.all });
     },
   });
 }
@@ -145,7 +165,6 @@ export function useDeleteCourse() {
     mutationFn: (documentId: string) => deleteCourse(documentId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: courseKeys.all });
-      queryClient.invalidateQueries({ queryKey: courseKeys.myEnrollments() });
     },
   });
 }
