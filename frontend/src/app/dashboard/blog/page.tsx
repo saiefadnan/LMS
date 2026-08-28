@@ -26,14 +26,28 @@ export default function DashboardBlogPage() {
     }
   }, [user, roleType, router]);
 
-  const { data: posts = [], isLoading } = useBlogPosts();
-  const updateMutation = useUpdateBlogPost();
-  const deleteMutation = useDeleteBlogPost();
-
   const [filter, setFilter] = useState<'all' | 'published' | 'draft'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  // Server-side paginated queries
+  const { data, isLoading } = useBlogPosts({
+    page,
+    pageSize,
+    search: searchQuery,
+    status: filter !== 'all' ? filter : undefined,
+  });
+
+  // Overall metric query
+  const allPostsQuery = useBlogPosts();
+  const allPosts = allPostsQuery.data?.posts || [];
+
+  const updateMutation = useUpdateBlogPost();
+  const deleteMutation = useDeleteBlogPost();
+
+  const posts = data?.posts || [];
+  const pagination = data?.pagination || { page: 1, pageSize: 10, pageCount: 1, total: 0 };
 
   const handleToggleStatus = async (post: BlogPost) => {
     const nextStatus = post.status === 'published' ? 'draft' : 'published';
@@ -71,25 +85,11 @@ export default function DashboardBlogPage() {
     }
   };
 
-  const publishedCount = posts.filter((p) => p.status === 'published').length;
-  const draftCount = posts.filter((p) => p.status === 'draft').length;
+  const publishedCount = allPosts.filter((p) => p.status === 'published').length;
+  const draftCount = allPosts.filter((p) => p.status === 'draft').length;
 
-  const filteredPosts = posts.filter((p) => {
-    const term = searchQuery.toLowerCase();
-    const matchesSearch =
-      p.title.toLowerCase().includes(term) ||
-      (p.author?.username || '').toLowerCase().includes(term);
-
-    if (!matchesSearch) return false;
-    if (filter === 'published') return p.status === 'published';
-    if (filter === 'draft') return p.status === 'draft';
-    return true;
-  });
-
-  const totalPostsCount = filteredPosts.length;
-  const pageCount = Math.ceil(totalPostsCount / pageSize) || 1;
-  const paginatedPosts = filteredPosts.slice((page - 1) * pageSize, page * pageSize);
-
+  const totalPostsCount = pagination.total;
+  const pageCount = pagination.pageCount;
   const startCount = totalPostsCount === 0 ? 0 : (page - 1) * pageSize + 1;
   const endCount = Math.min(page * pageSize, totalPostsCount);
 
@@ -122,7 +122,7 @@ export default function DashboardBlogPage() {
 
       {/* Metric Cards */}
       <BlogMetricCards
-        totalCount={posts.length}
+        totalCount={allPosts.length}
         publishedCount={publishedCount}
         draftCount={draftCount}
       />
@@ -139,7 +139,7 @@ export default function DashboardBlogPage() {
           setFilter(f);
           setPage(1);
         }}
-        totalCount={posts.length}
+        totalCount={allPosts.length}
         publishedCount={publishedCount}
         draftCount={draftCount}
         pageSize={pageSize}
@@ -157,13 +157,13 @@ export default function DashboardBlogPage() {
       ) : (
         <div className="space-y-4">
           <BlogManagementTable
-            posts={paginatedPosts}
+            posts={posts}
             onToggleStatus={handleToggleStatus}
             onDelete={handleDelete}
             searchQuery={searchQuery}
           />
 
-          {paginatedPosts.length > 0 && (
+          {posts.length > 0 && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border border-surface-200 dark:border-surface-800 rounded-xl bg-white dark:bg-surface-900 text-xs text-surface-500 dark:text-surface-400">
               <div>
                 Showing <span className="font-bold text-surface-900 dark:text-surface-100">{startCount}</span> to{' '}

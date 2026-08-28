@@ -78,16 +78,49 @@ export default factories.createCoreService('api::course.course', ({ strapi }) =>
   },
 
   /**
-   * Fetch courses for instructor or all courses for managers/admins.
+   * Fetch courses for instructor or all courses for managers/admins with server-side pagination & search.
    */
-  async getMyCourses(user: any, roleType: string) {
+  async getMyCourses(user: any, roleType: string, query: any = {}) {
     const isGlobalManager = roleType === 'admin' || roleType === 'content_manager';
+    const where: any = isGlobalManager ? {} : { instructor: { id: user.id } };
 
-    return await strapi.db.query('api::course.course').findMany({
-      where: isGlobalManager ? {} : { instructor: { id: user.id } },
-      populate: ['instructor', 'lessons', 'enrollments'],
-      orderBy: { createdAt: 'desc' },
-    });
+    const search = ((query.search as string) || '').trim();
+    if (search) {
+      where.$or = [
+        { title: { $containsi: search } },
+        { description: { $containsi: search } },
+        { category: { $containsi: search } },
+      ];
+    }
+
+    const page = Math.max(1, parseInt(query.page as string) || 1);
+    const pageSize = Math.min(100, Math.max(1, parseInt(query.pageSize as string) || 10));
+    const offset = (page - 1) * pageSize;
+
+    const [courses, total] = await Promise.all([
+      strapi.db.query('api::course.course').findMany({
+        where,
+        populate: ['instructor', 'lessons', 'enrollments'],
+        orderBy: { createdAt: 'desc' },
+        limit: pageSize,
+        offset: offset,
+      }),
+      strapi.db.query('api::course.course').count({ where }),
+    ]);
+
+    const pageCount = Math.ceil(total / pageSize) || 1;
+
+    return {
+      data: courses,
+      meta: {
+        pagination: {
+          page,
+          pageSize,
+          pageCount,
+          total,
+        },
+      },
+    };
   },
 
   /**

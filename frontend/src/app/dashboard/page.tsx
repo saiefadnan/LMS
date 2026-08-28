@@ -48,11 +48,15 @@ export default function DashboardPage() {
     roleType === 'admin' || roleType === 'content_manager'
   );
   const { data: allUsers = [], isLoading: usersLoading } = useUsers(roleType === 'admin');
-  const { data: allCourses = [], isLoading: coursesLoading } = useCourses();
-  const { data: myCourses = [], isLoading: myCoursesLoading } = useMyCourses(roleType === 'instructor');
+  const { data: coursesData, isLoading: coursesLoading } = useCourses();
+  const { data: myCoursesData, isLoading: myCoursesLoading } = useMyCourses({}, roleType === 'instructor');
   const { data: studentEnrollments = [], isLoading: enrollmentsLoading } = useMyEnrollments(roleType === 'student');
   const { data: studentQuizResults = [], isLoading: quizResultsLoading } = useMyQuizResults(roleType === 'student');
-  const { data: allPosts = [], isLoading: postsLoading } = useBlogPosts();
+  const { data: postsData, isLoading: postsLoading } = useBlogPosts();
+
+  const allCourses = coursesData?.courses || [];
+  const myCourses = myCoursesData?.courses || [];
+  const allPosts = postsData?.posts || [];
 
   if (!user) return null;
 

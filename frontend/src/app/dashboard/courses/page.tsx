@@ -20,12 +20,19 @@ export default function InstructorCoursesPage() {
   const roleType = (typeof user?.role === 'object' ? user?.role?.type : user?.role) || 'student';
   const isGlobalManager = roleType === 'admin' || roleType === 'content_manager';
 
-  // For global managers, fetch all courses; for instructors, fetch authored courses
-  const allCoursesQuery = useCourses();
-  const myCoursesQuery = useMyCourses(!isGlobalManager && Boolean(user));
+  // Server-side paginated queries
+  const allCoursesQuery = useCourses(
+    isGlobalManager ? { page, pageSize, search: searchQuery } : { page: 1, pageSize: 1 }
+  );
+  const myCoursesQuery = useMyCourses(
+    !isGlobalManager ? { page, pageSize, search: searchQuery } : {},
+    !isGlobalManager && Boolean(user)
+  );
 
-  const courses = isGlobalManager ? allCoursesQuery.data || [] : myCoursesQuery.data || [];
-  const isLoading = isGlobalManager ? allCoursesQuery.isLoading : myCoursesQuery.isLoading;
+  const activeQuery = isGlobalManager ? allCoursesQuery : myCoursesQuery;
+  const courses = activeQuery.data?.courses || [];
+  const pagination = activeQuery.data?.pagination || { page: 1, pageSize: 6, pageCount: 1, total: 0 };
+  const isLoading = activeQuery.isLoading;
 
   const deleteMutation = useDeleteCourse();
 
@@ -51,19 +58,8 @@ export default function InstructorCoursesPage() {
 
   if (!user) return null;
 
-  const filteredCourses = courses.filter((c) => {
-    const term = searchQuery.toLowerCase();
-    return (
-      c.title.toLowerCase().includes(term) ||
-      (c.description || '').toLowerCase().includes(term) ||
-      (c.category || '').toLowerCase().includes(term)
-    );
-  });
-
-  const totalCourses = filteredCourses.length;
-  const pageCount = Math.ceil(totalCourses / pageSize) || 1;
-  const paginatedCourses = filteredCourses.slice((page - 1) * pageSize, page * pageSize);
-
+  const totalCourses = pagination.total;
+  const pageCount = pagination.pageCount;
   const startCount = totalCourses === 0 ? 0 : (page - 1) * pageSize + 1;
   const endCount = Math.min(page * pageSize, totalCourses);
 
@@ -74,7 +70,9 @@ export default function InstructorCoursesPage() {
           <h1 className="text-2xl font-bold text-surface-900 dark:text-surface-50 tracking-tight">
             {isGlobalManager ? 'All Courses' : 'My Courses'}
           </h1>
-          <p className="text-surface-500 dark:text-surface-400 text-sm mt-0.5">Manage your curriculum and student enrollments</p>
+          <p className="text-surface-500 dark:text-surface-400 text-sm mt-0.5">
+            Manage your curriculum and student enrollments
+          </p>
         </div>
         <Link href="/dashboard/courses/new">
           <Button variant="primary" className="gap-2 cursor-pointer">
@@ -109,8 +107,8 @@ export default function InstructorCoursesPage() {
         <div className="animate-pulse bg-white dark:bg-surface-900 rounded-xl h-64 border border-surface-200 dark:border-surface-800"></div>
       ) : (
         <>
-          <CourseGrid 
-            courses={paginatedCourses} 
+          <CourseGrid
+            courses={courses}
             emptyMessage={
               searchQuery
                 ? 'No courses matched your search query.'

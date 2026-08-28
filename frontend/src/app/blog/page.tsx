@@ -11,24 +11,22 @@ import { BlogCard } from '@/components/features/blog/BlogCard';
 import { BookOpen } from 'lucide-react';
 
 export default function BlogIndexPage() {
-  const { data: posts = [], isLoading } = useBlogPosts();
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const pageSize = 6;
 
-  const filteredPosts = posts.filter((post) => {
-    const term = searchQuery.toLowerCase();
-    return (
-      post.title.toLowerCase().includes(term) ||
-      (post.body || post.content || '').toLowerCase().includes(term) ||
-      (post.author?.username || '').toLowerCase().includes(term)
-    );
+  const { data, isLoading } = useBlogPosts({
+    page,
+    pageSize,
+    search: searchQuery,
+    status: 'published',
   });
 
-  const featuredPost = filteredPosts.length > 0 ? filteredPosts[0] : null;
-  const allRemainingPosts = filteredPosts.length > 1 ? filteredPosts.slice(1) : [];
-  const pageCount = Math.ceil(allRemainingPosts.length / pageSize) || 1;
-  const paginatedRemainingPosts = allRemainingPosts.slice((page - 1) * pageSize, page * pageSize);
+  const posts = data?.posts || [];
+  const pagination = data?.pagination || { page: 1, pageSize: 6, pageCount: 1, total: 0 };
+
+  const featuredPost = page === 1 && posts.length > 0 ? posts[0] : null;
+  const displayPosts = page === 1 && posts.length > 1 ? posts.slice(1) : posts;
 
   return (
     <div className="min-h-screen bg-surface-50 dark:bg-surface-950 flex flex-col transition-colors duration-150">
@@ -60,7 +58,7 @@ export default function BlogIndexPage() {
               ))}
             </div>
           </div>
-        ) : filteredPosts.length === 0 ? (
+        ) : posts.length === 0 ? (
           <div className="text-center py-20 bg-white dark:bg-surface-900 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-xs max-w-md mx-auto p-8">
             <div className="w-12 h-12 rounded-xl bg-surface-100 dark:bg-surface-800 flex items-center justify-center mx-auto mb-3 text-surface-400">
               <BookOpen className="w-6 h-6" />
@@ -72,28 +70,28 @@ export default function BlogIndexPage() {
           </div>
         ) : (
           <div className="space-y-12">
-            {/* Featured Article Top Slot */}
+            {/* Featured Article Top Slot (Page 1 only) */}
             {featuredPost && <FeaturedBlogCard post={featuredPost} />}
 
-            {/* Remaining Articles Grid */}
-            {paginatedRemainingPosts.length > 0 && (
+            {/* Articles Grid */}
+            {displayPosts.length > 0 && (
               <div className="space-y-6 pt-4 border-t border-surface-200 dark:border-surface-800">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-bold text-surface-900 dark:text-surface-50">Latest Articles</h2>
                   <span className="text-xs text-surface-500 font-medium">
-                    Showing {paginatedRemainingPosts.length} of {allRemainingPosts.length} post{allRemainingPosts.length !== 1 ? 's' : ''}
+                    Showing {posts.length} of {pagination.total} post{pagination.total !== 1 ? 's' : ''}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {paginatedRemainingPosts.map((post) => (
+                  {displayPosts.map((post) => (
                     <BlogCard key={post.documentId || post.id} post={post} />
                   ))}
                 </div>
 
                 <Pagination
                   currentPage={page}
-                  totalPages={pageCount}
+                  totalPages={pagination.pageCount}
                   onPageChange={setPage}
                 />
               </div>
