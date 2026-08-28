@@ -9,6 +9,8 @@ import { type Lesson, type Course } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
+import { Plus, Edit2, Trash2, Video, FileText, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
+import { modal } from '@/stores/modal';
 
 interface LessonManagerProps {
   course: Course;
@@ -93,12 +95,23 @@ export function LessonManager({ course, onLessonChanged }: LessonManagerProps) {
   };
 
   const handleDelete = async (lessonDocId: string) => {
-    if (!window.confirm('Are you sure you want to delete this lesson?')) return;
+    const confirmed = await modal.confirm({
+      title: 'Delete Lesson Module',
+      message: 'Are you sure you want to permanently delete this lesson and all associated student progress? This cannot be undone.',
+      variant: 'danger',
+      confirmText: 'Delete Lesson',
+    });
+    if (!confirmed) return;
+
     try {
       await deleteLesson(lessonDocId);
       onLessonChanged();
     } catch (err: any) {
-      alert(err.message || 'Failed to delete lesson');
+      modal.alert({
+        title: 'Deletion Failed',
+        message: err.message || 'Failed to delete lesson.',
+        variant: 'danger',
+      });
     }
   };
 

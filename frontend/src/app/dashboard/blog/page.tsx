@@ -2,14 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { getBlogPosts, updateBlogPost, deleteBlogPost } from '@/lib/api';
 import { type BlogPost } from '@/types';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Plus, Edit, Trash2, Eye, Globe, Search, ChevronLeft, ChevronRight, FileText, PenTool, ExternalLink } from 'lucide-react';
+import { Pagination } from '@/components/ui/Pagination';
+import { BlogMetricCards } from '@/components/features/blog/BlogMetricCards';
+import { BlogTableFilters } from '@/components/features/blog/BlogTableFilters';
+import { BlogManagementTable } from '@/components/features/blog/BlogManagementTable';
+import { Plus, Globe, ExternalLink } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth';
-
-import { useRouter } from 'next/navigation';
+import { modal } from '@/stores/modal';
 
 export default function DashboardBlogPage() {
   const router = useRouter();
@@ -51,17 +54,32 @@ export default function DashboardBlogPage() {
       await updateBlogPost(post.documentId, { status: nextStatus });
       fetchPosts();
     } catch (err: any) {
-      alert(err.message || 'Failed to update post status');
+      modal.alert({
+        title: 'Status Update Failed',
+        message: err.message || 'Failed to update post status.',
+        variant: 'danger',
+      });
     }
   };
 
   const handleDelete = async (postDocId: string) => {
-    if (!window.confirm('Are you sure you want to delete this blog post?')) return;
+    const confirmed = await modal.confirm({
+      title: 'Delete Publication Post',
+      message: 'Are you sure you want to permanently delete this blog article? This action cannot be undone.',
+      variant: 'danger',
+      confirmText: 'Delete Article',
+    });
+    if (!confirmed) return;
+
     try {
       await deleteBlogPost(postDocId);
       fetchPosts();
     } catch (err: any) {
-      alert(err.message || 'Failed to delete blog post');
+      modal.alert({
+        title: 'Deletion Failed',
+        message: err.message || 'Failed to delete blog post.',
+        variant: 'danger',
+      });
     }
   };
 
@@ -115,262 +133,63 @@ export default function DashboardBlogPage() {
       </div>
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <div className="bg-white dark:bg-surface-900 p-5 rounded-xl border border-surface-200 dark:border-surface-800 shadow-xs flex items-center gap-4">
-          <div className="w-11 h-11 rounded-lg bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 flex items-center justify-center border border-surface-200 dark:border-surface-700">
-            <FileText className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="text-2xl font-bold text-surface-900 dark:text-surface-50">{posts.length}</span>
-            <p className="text-xs text-surface-500 dark:text-surface-400 font-medium">Total Articles</p>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-surface-900 p-5 rounded-xl border border-surface-200 dark:border-surface-800 shadow-xs flex items-center gap-4">
-          <div className="w-11 h-11 rounded-lg bg-emerald-50 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-200 dark:border-emerald-900">
-            <Globe className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">{publishedCount}</span>
-            <p className="text-xs text-surface-500 dark:text-surface-400 font-medium">Live & Published</p>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-surface-900 p-5 rounded-xl border border-surface-200 dark:border-surface-800 shadow-xs flex items-center gap-4">
-          <div className="w-11 h-11 rounded-lg bg-amber-50 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-200 dark:border-amber-900">
-            <PenTool className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="text-2xl font-bold text-amber-700 dark:text-amber-400">{draftCount}</span>
-            <p className="text-xs text-surface-500 dark:text-surface-400 font-medium">Drafts in Progress</p>
-          </div>
-        </div>
-      </div>
+      <BlogMetricCards
+        totalCount={posts.length}
+        publishedCount={publishedCount}
+        draftCount={draftCount}
+      />
 
       {/* Search & Filter Bar */}
-      <div className="bg-white dark:bg-surface-900 p-4 rounded-xl border border-surface-200 dark:border-surface-800 shadow-xs mb-6 flex flex-col lg:flex-row items-center justify-between gap-4">
-        <div className="relative w-full lg:w-72">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-surface-400 dark:text-surface-500" />
-          <input
-            type="text"
-            placeholder="Search article by title..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setPage(1);
-            }}
-            className="w-full pl-10 pr-4 py-2 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 text-surface-900 dark:text-surface-100 placeholder:text-surface-400 dark:placeholder:text-surface-500"
-          />
-        </div>
-
-        {/* Filter Tabs */}
-        <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-          <button
-            onClick={() => {
-              setFilter('all');
-              setPage(1);
-            }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
-              filter === 'all'
-                ? 'bg-brand-600 text-white'
-                : 'bg-surface-100 dark:bg-surface-800 text-surface-600 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-700'
-            }`}
-          >
-            All Posts ({posts.length})
-          </button>
-          <button
-            onClick={() => {
-              setFilter('published');
-              setPage(1);
-            }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
-              filter === 'published'
-                ? 'bg-emerald-600 text-white'
-                : 'bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60'
-            }`}
-          >
-            Published ({publishedCount})
-          </button>
-          <button
-            onClick={() => {
-              setFilter('draft');
-              setPage(1);
-            }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
-              filter === 'draft'
-                ? 'bg-amber-600 text-white'
-                : 'bg-amber-50 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/60'
-            }`}
-          >
-            Drafts ({draftCount})
-          </button>
-        </div>
-
-        <div className="flex items-center gap-2 self-end lg:self-auto text-xs text-surface-500 dark:text-surface-400 font-medium">
-          <span>Per page:</span>
-          <select
-            value={pageSize}
-            onChange={(e) => {
-              setPageSize(Number(e.target.value));
-              setPage(1);
-            }}
-            className="bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg px-2.5 py-1 text-xs font-semibold text-surface-800 dark:text-surface-200 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer"
-          >
-            <option value={10}>10</option>
-            <option value={25}>25</option>
-            <option value={50}>50</option>
-          </select>
-        </div>
-      </div>
+      <BlogTableFilters
+        searchQuery={searchQuery}
+        onSearchChange={(q) => {
+          setSearchQuery(q);
+          setPage(1);
+        }}
+        filter={filter}
+        onFilterChange={(f) => {
+          setFilter(f);
+          setPage(1);
+        }}
+        totalCount={posts.length}
+        publishedCount={publishedCount}
+        draftCount={draftCount}
+        pageSize={pageSize}
+        onPageSizeChange={(size) => {
+          setPageSize(size);
+          setPage(1);
+        }}
+      />
 
       {/* Posts Table */}
       {loading ? (
         <div className="p-12 text-center bg-white dark:bg-surface-900 rounded-xl border border-surface-200 dark:border-surface-800">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 dark:border-brand-400 mx-auto"></div>
         </div>
-      ) : filteredPosts.length === 0 ? (
-        <div className="text-center py-16 bg-white dark:bg-surface-900 rounded-xl border border-dashed border-surface-200 dark:border-surface-800 p-8 shadow-2xs">
-          <div className="w-12 h-12 rounded-full bg-surface-100 dark:bg-surface-800 text-surface-400 dark:text-surface-500 flex items-center justify-center mx-auto mb-3">
-            <PenTool className="w-6 h-6" />
-          </div>
-          <h3 className="font-bold text-surface-900 dark:text-surface-100 mb-1 text-sm">No blog posts found</h3>
-          <p className="text-xs text-surface-500 dark:text-surface-400 mb-4 max-w-sm mx-auto">
-            {searchQuery
-              ? 'Try adjusting your search query or status filter.'
-              : 'Click below to write your first editorial article.'}
-          </p>
-          <Link href="/dashboard/blog/new">
-            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
-              <Plus className="w-3.5 h-3.5" />
-              <span>Write New Post</span>
-            </Button>
-          </Link>
-        </div>
       ) : (
-        <div className="bg-white dark:bg-surface-900 rounded-xl border border-surface-200 dark:border-surface-800 overflow-hidden shadow-xs">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-sm">
-              <thead>
-                <tr className="bg-surface-50 dark:bg-surface-800/60 border-b border-surface-200 dark:border-surface-800 text-surface-500 dark:text-surface-400 font-semibold text-xs uppercase tracking-wider">
-                  <th className="p-4 pl-6">Title</th>
-                  <th className="p-4">Author</th>
-                  <th className="p-4">Status</th>
-                  <th className="p-4">Created Date</th>
-                  <th className="p-4 pr-6 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-surface-100 dark:divide-surface-800">
-                {paginatedPosts.map((post) => {
-                  const isPublished = post.status === 'published';
-                  return (
-                    <tr key={post.documentId || post.id} className="hover:bg-surface-50/70 dark:hover:bg-surface-800/40 transition-colors">
-                      <td className="p-4 pl-6 font-semibold text-surface-900 dark:text-surface-100 max-w-xs truncate text-xs sm:text-sm">
-                        {post.title}
-                      </td>
-                      <td className="p-4 text-surface-600 dark:text-surface-400 text-xs">
-                        {post.author?.username || 'Editorial Team'}
-                      </td>
-                      <td className="p-4">
-                        <Badge variant={isPublished ? 'success' : 'warning'} size="sm">
-                          {isPublished ? 'Published' : 'Draft'}
-                        </Badge>
-                      </td>
-                      <td className="p-4 text-surface-500 dark:text-surface-400 text-xs">
-                        {new Date(post.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="p-4 pr-6 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            type="button"
-                            onClick={() => handleToggleStatus(post)}
-                            className={`px-2.5 py-1 rounded-md text-xs font-semibold border transition-colors cursor-pointer ${
-                              isPublished
-                                ? 'bg-surface-50 dark:bg-surface-800 text-surface-700 dark:text-surface-300 border-surface-200 dark:border-surface-700 hover:bg-surface-100 dark:hover:bg-surface-700'
-                                : 'bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900 hover:bg-emerald-100 dark:hover:bg-emerald-900/60'
-                            }`}
-                            title={isPublished ? 'Unpublish to draft' : 'Publish to live site'}
-                          >
-                            {isPublished ? 'Unpublish' : 'Publish Live'}
-                          </button>
+        <div className="space-y-4">
+          <BlogManagementTable
+            posts={paginatedPosts}
+            onToggleStatus={handleToggleStatus}
+            onDelete={handleDelete}
+            searchQuery={searchQuery}
+          />
 
-                          {isPublished && (
-                            <Link href={`/blog/${post.documentId}`} target="_blank">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="p-2 text-surface-500 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-100 cursor-pointer"
-                                title="View Public Page"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </Button>
-                            </Link>
-                          )}
+          {paginatedPosts.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border border-surface-200 dark:border-surface-800 rounded-xl bg-white dark:bg-surface-900 text-xs text-surface-500 dark:text-surface-400">
+              <div>
+                Showing <span className="font-bold text-surface-900 dark:text-surface-100">{startCount}</span> to{' '}
+                <span className="font-bold text-surface-900 dark:text-surface-100">{endCount}</span> of{' '}
+                <span className="font-bold text-surface-900 dark:text-surface-100">{totalPostsCount}</span> articles
+              </div>
 
-                          <Link href={`/dashboard/blog/${post.documentId}/edit`}>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="p-2 text-surface-500 dark:text-surface-400 hover:text-brand-600 dark:hover:text-brand-400 cursor-pointer"
-                              title="Edit Post"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                          </Link>
-
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDelete(post.documentId)}
-                            className="p-2 text-surface-400 dark:text-surface-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer"
-                            title="Delete Post"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination Footer */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-surface-200 dark:border-surface-800 bg-surface-50 dark:bg-surface-900 text-xs text-surface-500 dark:text-surface-400">
-            <div>
-              Showing <span className="font-bold text-surface-900 dark:text-surface-100">{startCount}</span> to{' '}
-              <span className="font-bold text-surface-900 dark:text-surface-100">{endCount}</span> of{' '}
-              <span className="font-bold text-surface-900 dark:text-surface-100">{totalPostsCount}</span> articles
+              <Pagination
+                currentPage={page}
+                totalPages={pageCount}
+                onPageChange={setPage}
+              />
             </div>
-
-            <div className="flex items-center gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page <= 1}
-                className="gap-1 px-2.5 py-1 text-xs cursor-pointer"
-              >
-                <ChevronLeft className="w-3.5 h-3.5" />
-                Previous
-              </Button>
-
-              <span className="px-3 py-1 font-semibold text-surface-700 dark:text-surface-300 bg-white dark:bg-surface-800 rounded border border-surface-200 dark:border-surface-700">
-                Page {page} of {pageCount}
-              </span>
-
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
-                disabled={page >= pageCount}
-                className="gap-1 px-2.5 py-1 text-xs cursor-pointer"
-              >
-                Next
-                <ChevronRight className="w-3.5 h-3.5" />
-              </Button>
-            </div>
-          </div>
+          )}
         </div>
       )}
     </div>

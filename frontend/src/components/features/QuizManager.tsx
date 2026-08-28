@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { HelpCircle, AlertCircle, Plus, Trash2, Edit3, CheckCircle2, X } from 'lucide-react';
 
+import { modal } from '@/stores/modal';
+
 interface QuizManagerProps {
   course: Course;
   onQuizChanged: () => void;
@@ -151,12 +153,23 @@ export function QuizManager({ course, onQuizChanged }: QuizManagerProps) {
   };
 
   const handleDelete = async (quizDocId: string) => {
-    if (!window.confirm('Are you sure you want to delete this quiz?')) return;
+    const confirmed = await modal.confirm({
+      title: 'Delete Assessment Quiz',
+      message: 'Are you sure you want to permanently remove this quiz and all student result records? This action cannot be undone.',
+      variant: 'danger',
+      confirmText: 'Delete Quiz',
+    });
+    if (!confirmed) return;
+
     try {
       await deleteQuiz(quizDocId);
       onQuizChanged();
     } catch (err: any) {
-      alert(err.message || 'Failed to delete quiz');
+      modal.alert({
+        title: 'Deletion Failed',
+        message: err.message || 'Failed to delete quiz. Please try again.',
+        variant: 'danger',
+      });
     }
   };
 

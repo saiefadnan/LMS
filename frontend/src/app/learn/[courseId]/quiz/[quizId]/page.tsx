@@ -7,7 +7,10 @@ import { getQuiz, submitQuizResult, getMyQuizResults, getCourse } from '@/lib/ap
 import { useAuthStore } from '@/stores/auth';
 import { type Quiz, type QuizResult, type Course } from '@/types';
 import { Button } from '@/components/ui/Button';
-import { CheckCircle2, XCircle, Trophy, RotateCcw, ArrowRight, ArrowLeft, Award, AlertCircle } from 'lucide-react';
+import { QuizResultsBanner } from '@/components/features/quiz/QuizResultsBanner';
+import { QuizReviewBreakdown } from '@/components/features/quiz/QuizReviewBreakdown';
+import { QuizQuestionCard } from '@/components/features/quiz/QuizQuestionCard';
+import { Trophy, ArrowLeft, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export default function QuizPlayerPage() {
   const params = useParams();
@@ -154,7 +157,7 @@ export default function QuizPlayerPage() {
 
   if (loading) {
     return (
-      <div className="h-full w-full flex items-center justify-center">
+      <div className="h-full w-full flex items-center justify-center min-h-[350px]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
       </div>
     );
@@ -193,154 +196,19 @@ export default function QuizPlayerPage() {
       {/* ── RESULTS VIEW (After Submission) ── */}
       {submittedResult ? (
         <div className="space-y-8 animate-in fade-in duration-300">
-          {/* Score Banner */}
-          <div
-            className={`p-8 rounded-2xl border text-center relative overflow-hidden transition-colors ${
-              submittedResult.passed
-                ? 'bg-gradient-to-b from-emerald-50 to-white dark:from-emerald-950/70 dark:to-surface-900 border-emerald-200 dark:border-emerald-800/80'
-                : 'bg-gradient-to-b from-amber-50 to-white dark:from-amber-950/70 dark:to-surface-900 border-amber-200 dark:border-amber-800/80'
-            }`}
-          >
-            {submittedResult.passed ? (
-              <div className="inline-flex p-4 rounded-full mb-4 bg-emerald-100/60 dark:bg-emerald-950/80 shadow-xs border border-emerald-200 dark:border-emerald-800">
-                <Award className="w-12 h-12 text-emerald-600 dark:text-emerald-400" />
-              </div>
-            ) : (
-              <div className="inline-flex p-4 rounded-full mb-4 bg-amber-100/60 dark:bg-amber-950/80 shadow-xs border border-amber-200 dark:border-amber-800">
-                <RotateCcw className="w-12 h-12 text-amber-600 dark:text-amber-400" />
-              </div>
-            )}
+          <QuizResultsBanner
+            score={submittedResult.score}
+            totalQuestions={submittedResult.totalQuestions}
+            percentage={submittedResult.percentage}
+            passed={submittedResult.passed}
+            courseId={courseId}
+            onRetake={handleRetake}
+          />
 
-            <h2 className="text-2xl font-bold text-surface-900 dark:text-surface-50 mb-1">
-              {submittedResult.passed ? 'Assessment Completed Successfully' : 'Review Recommended'}
-            </h2>
-            <p className="text-surface-600 dark:text-surface-300 text-sm max-w-md mx-auto mb-6">
-              {submittedResult.passed
-                ? `You mastered this assessment with a score of ${submittedResult.percentage}%. Your certificate progress has been updated.`
-                : `You scored ${submittedResult.percentage}%. You need at least 70% to pass. Review the answers below and try again!`}
-            </p>
-
-            <div className="flex justify-center items-center gap-6 py-4 px-6 bg-white/80 dark:bg-surface-800/80 backdrop-blur rounded-xl max-w-xs mx-auto border border-surface-200 dark:border-surface-700 shadow-xs">
-              <div className="text-center">
-                <span className="text-xs text-surface-400 dark:text-surface-500 font-medium block">SCORE</span>
-                <span className="text-2xl font-black text-surface-900 dark:text-surface-50">
-                  {submittedResult.score} / {submittedResult.totalQuestions}
-                </span>
-              </div>
-              <div className="h-8 w-px bg-surface-200 dark:bg-surface-700" />
-              <div className="text-center">
-                <span className="text-xs text-surface-400 dark:text-surface-500 font-medium block">PERCENTAGE</span>
-                <span
-                  className={`text-2xl font-black ${
-                    submittedResult.passed ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'
-                  }`}
-                >
-                  {submittedResult.percentage}%
-                </span>
-              </div>
-            </div>
-
-            <div className="flex justify-center items-center gap-3 mt-8">
-              <Button onClick={handleRetake} variant="secondary" className="gap-2">
-                <RotateCcw className="w-4 h-4" />
-                Retake Quiz
-              </Button>
-              <Link href={`/learn/${courseId}`}>
-                <Button variant="primary" className="gap-2">
-                  Back to Course
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-          {/* Question by Question Review */}
-          <div className="space-y-6">
-            <h3 className="font-bold text-lg text-surface-900 dark:text-surface-50 flex items-center gap-2">
-              <span>Detailed Breakdown</span>
-              <span className="text-xs font-normal text-surface-500 dark:text-surface-400">
-                (Review correct answers vs your choices)
-              </span>
-            </h3>
-
-            {questions.map((q, qIndex) => {
-              const studentChoice = userAnswers[qIndex];
-              const targetCorrect = q.correctIndex !== undefined ? q.correctIndex : q.correctAnswer;
-              const isCorrect = studentChoice === targetCorrect;
-
-              return (
-                <div
-                  key={qIndex}
-                  className={`p-6 rounded-xl border bg-white dark:bg-surface-900 shadow-xs space-y-4 ${
-                    isCorrect ? 'border-emerald-200 dark:border-emerald-800' : 'border-red-200 dark:border-red-800'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-2.5">
-                      <span
-                        className={`w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center ${
-                          isCorrect 
-                            ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300' 
-                            : 'bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-300'
-                        }`}
-                      >
-                        {qIndex + 1}
-                      </span>
-                      <h4 className="font-semibold text-surface-900 dark:text-surface-100">
-                        {q.text || q.question || (q as any).questionText}
-                      </h4>
-                    </div>
-                    {isCorrect ? (
-                      <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-100 dark:border-emerald-900">
-                        <CheckCircle2 className="w-4 h-4" /> Correct
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-1 text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/60 px-2.5 py-1 rounded-full border border-red-100 dark:border-red-900">
-                        <XCircle className="w-4 h-4" /> Incorrect
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
-                    {q.options.map((opt, optIdx) => {
-                      const wasSelected = studentChoice === optIdx;
-                      const isOptionCorrect = targetCorrect === optIdx;
-                      const letter = String.fromCharCode(65 + optIdx);
-
-                      let badgeStyle = 'border-surface-200 dark:border-surface-800 bg-surface-50 dark:bg-surface-800/60 text-surface-700 dark:text-surface-300';
-                      if (isOptionCorrect) {
-                        badgeStyle = 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 ring-1 ring-emerald-500 font-medium';
-                      } else if (wasSelected && !isCorrect) {
-                        badgeStyle = 'border-red-400 bg-red-50 dark:bg-red-950/60 text-red-900 dark:text-red-300 font-medium';
-                      }
-
-                      return (
-                        <div
-                          key={optIdx}
-                          className={`p-3 rounded-lg border flex items-center justify-between text-sm ${badgeStyle}`}
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <span className="font-bold text-xs opacity-75">{letter}.</span>
-                            <span>{opt}</span>
-                          </div>
-                          {isOptionCorrect && (
-                            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/80 px-2 py-0.5 rounded">
-                              Correct Answer
-                            </span>
-                          )}
-                          {wasSelected && !isOptionCorrect && (
-                            <span className="text-xs font-bold text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/80 px-2 py-0.5 rounded">
-                              Your Choice
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <QuizReviewBreakdown
+            questions={questions}
+            userAnswers={userAnswers}
+          />
         </div>
       ) : (
         /* ── ACTIVE QUIZ TAKER ── */
@@ -385,48 +253,12 @@ export default function QuizPlayerPage() {
 
           {/* Question Card */}
           {currentQ && (
-            <div className="p-8 bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-2xl shadow-xs space-y-6">
-              <div className="flex items-start gap-4">
-                <span className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-950 text-brand-700 dark:text-brand-300 font-bold text-sm flex items-center justify-center shrink-0 border border-brand-200 dark:border-brand-800">
-                  {currentQuestionIndex + 1}
-                </span>
-                <h2 className="text-xl font-bold text-surface-900 dark:text-surface-50 leading-snug">
-                  {currentQ.text || currentQ.question || (currentQ as any).questionText}
-                </h2>
-              </div>
-
-              {/* Options */}
-              <div className="space-y-3 pt-2">
-                {currentQ.options.map((opt, optIndex) => {
-                  const isSelected = userAnswers[currentQuestionIndex] === optIndex;
-                  const letter = String.fromCharCode(65 + optIndex);
-
-                  return (
-                    <button
-                      key={optIndex}
-                      type="button"
-                      onClick={() => handleSelectOption(currentQuestionIndex, optIndex)}
-                      className={`w-full text-left p-4 rounded-xl border flex items-center gap-4 transition-all cursor-pointer ${
-                        isSelected
-                          ? 'border-brand-600 dark:border-brand-400 bg-brand-50/70 dark:bg-brand-950/60 text-brand-900 dark:text-brand-200 ring-2 ring-brand-500 shadow-xs'
-                          : 'border-surface-200 dark:border-surface-700 hover:border-surface-300 dark:hover:border-surface-600 hover:bg-surface-50 dark:hover:bg-surface-800 text-surface-800 dark:text-surface-200'
-                      }`}
-                    >
-                      <span
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs transition-colors shrink-0 ${
-                          isSelected
-                            ? 'bg-brand-600 dark:bg-brand-500 text-white'
-                            : 'bg-surface-100 dark:bg-surface-800 text-surface-600 dark:text-surface-400'
-                        }`}
-                      >
-                        {letter}
-                      </span>
-                      <span className="font-medium text-base">{opt}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            <QuizQuestionCard
+              question={currentQ}
+              questionIndex={currentQuestionIndex}
+              selectedOptionIndex={userAnswers[currentQuestionIndex]}
+              onSelectOption={(optIndex) => handleSelectOption(currentQuestionIndex, optIndex)}
+            />
           )}
 
           {/* Navigation Controls */}

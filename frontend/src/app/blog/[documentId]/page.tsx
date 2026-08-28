@@ -11,6 +11,8 @@ import { getThumbnailSrc } from '@/lib/utils/thumbnail';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { Footer } from '@/components/ui/Footer';
 
+import { modal } from '@/stores/modal';
+
 export default function BlogPostDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -54,7 +56,11 @@ export default function BlogPostDetailPage() {
       }).catch(() => {});
     } else {
       navigator.clipboard.writeText(window.location.href);
-      alert('Article link copied to clipboard!');
+      modal.alert({
+        title: 'Link Copied',
+        message: 'Article link has been copied to your clipboard.',
+        variant: 'success',
+      });
     }
   };
 

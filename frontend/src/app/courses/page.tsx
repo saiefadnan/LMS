@@ -1,16 +1,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { getCourses } from '@/lib/api';
 import { type Course } from '@/types';
-import { CourseGrid } from '@/components/features/CourseGrid';
-import { useAuthStore } from '@/stores/auth';
-import { Button } from '@/components/ui/Button';
-import { Search, ChevronLeft, ChevronRight, GraduationCap } from 'lucide-react';
-import { Logo } from '@/components/ui/Logo';
-import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { Navbar } from '@/components/ui/Navbar';
+import { PageHero } from '@/components/ui/PageHero';
 import { Footer } from '@/components/ui/Footer';
+import { Pagination } from '@/components/ui/Pagination';
+import { CourseGrid } from '@/components/features/CourseGrid';
+import { CourseFilters } from '@/components/features/courses/CourseFilters';
+import { GraduationCap } from 'lucide-react';
 
 export default function CoursesCatalogPage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -19,7 +18,6 @@ export default function CoursesCatalogPage() {
   const [levelFilter, setLevelFilter] = useState('all');
   const [page, setPage] = useState(1);
   const pageSize = 6;
-  const user = useAuthStore((s) => s.user);
 
   useEffect(() => {
     async function loadCourses() {
@@ -56,148 +54,40 @@ export default function CoursesCatalogPage() {
 
   return (
     <div className="min-h-screen bg-surface-50 dark:bg-surface-950 flex flex-col transition-colors duration-150">
-      {/* Navbar for Public Pages */}
-      <nav className="bg-white dark:bg-surface-900 border-b border-surface-200 dark:border-surface-800 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <Logo size="md" href="/" />
-            </div>
-            <div className="flex items-center gap-3 sm:gap-4">
-              <Link href="/blog" className="text-surface-600 dark:text-surface-300 hover:text-surface-900 dark:hover:text-surface-100 font-medium hidden sm:block mr-1">
-                Blog
-              </Link>
-              <ThemeToggle size="sm" />
-              {user ? (
-                <Link href="/dashboard">
-                  <Button variant="secondary">Dashboard</Button>
-                </Link>
-              ) : (
-                <>
-                  <Link href="/login">
-                    <Button variant="ghost">Log in</Button>
-                  </Link>
-                  <Link href="/register">
-                    <Button variant="primary">Sign up</Button>
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
-      {/* Hero Section */}
-      <div className="bg-gradient-to-b from-brand-900 via-brand-800 to-brand-900 dark:from-brand-950 dark:via-brand-900 dark:to-brand-950 text-white py-16 px-6 border-b border-brand-800/60 dark:border-brand-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-xs font-semibold text-brand-200 uppercase tracking-wider mb-1">
-            <GraduationCap className="w-4 h-4" />
-            <span>Course Directory</span>
-          </div>
-          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight">
-            Expand Your Knowledge
-          </h1>
-          <p className="text-lg text-brand-200 dark:text-surface-300 max-w-2xl mx-auto">
-            Discover premium courses created by expert instructors. Start learning today.
-          </p>
+      <PageHero
+        badgeIcon={<GraduationCap className="w-4 h-4" />}
+        badgeText="Course Directory"
+        title="Expand Your Knowledge"
+        description="Discover premium courses created by expert instructors. Start learning today."
+        searchQuery={searchQuery}
+        onSearchChange={(q) => {
+          setSearchQuery(q);
+          setPage(1);
+        }}
+        searchPlaceholder="Search courses by topic, title, or category..."
+      />
 
-          {/* Search bar inside hero */}
-          <div className="max-w-md mx-auto pt-4">
-            <div className="relative flex items-center">
-              <Search className="w-5 h-5 absolute left-4 text-surface-400 dark:text-surface-500 pointer-events-none z-10" />
-              <input
-                type="text"
-                placeholder="Search courses by topic, title, or category..."
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setPage(1);
-                }}
-                className="w-full pl-12 pr-4 py-3 rounded-xl bg-white dark:bg-surface-900 text-surface-900 dark:text-surface-100 shadow-lg placeholder:text-surface-400 dark:placeholder:text-surface-500 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm font-medium border border-transparent dark:border-surface-700"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Catalog Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-grow w-full space-y-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-surface-200 dark:border-surface-800 pb-4">
-          <div>
-            <h2 className="text-2xl font-bold text-surface-900 dark:text-surface-50">All Courses</h2>
-            <p className="text-xs text-surface-500 dark:text-surface-400 mt-0.5">
-              Showing {startCount}–{endCount} of {totalCourses} course{totalCourses !== 1 ? 's' : ''}
-            </p>
-          </div>
-
-          {/* Difficulty Filter Tabs */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                setLevelFilter('all');
-                setPage(1);
-              }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                levelFilter === 'all'
-                  ? 'bg-brand-600 dark:bg-brand-500 text-white'
-                  : 'bg-white dark:bg-surface-900 text-surface-600 dark:text-surface-300 border border-surface-200 dark:border-surface-800 hover:bg-surface-100 dark:hover:bg-surface-800'
-              }`}
-            >
-              All Levels
-            </button>
-            <button
-              onClick={() => {
-                setLevelFilter('beginner');
-                setPage(1);
-              }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                levelFilter === 'beginner'
-                  ? 'bg-emerald-600 dark:bg-emerald-500 text-white'
-                  : 'bg-white dark:bg-surface-900 text-surface-600 dark:text-surface-300 border border-surface-200 dark:border-surface-800 hover:bg-surface-100 dark:hover:bg-surface-800'
-              }`}
-            >
-              Beginner
-            </button>
-            <button
-              onClick={() => {
-                setLevelFilter('intermediate');
-                setPage(1);
-              }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                levelFilter === 'intermediate'
-                  ? 'bg-amber-600 dark:bg-amber-500 text-white'
-                  : 'bg-white dark:bg-surface-900 text-surface-600 dark:text-surface-300 border border-surface-200 dark:border-surface-800 hover:bg-surface-100 dark:hover:bg-surface-800'
-              }`}
-            >
-              Intermediate
-            </button>
-            <button
-              onClick={() => {
-                setLevelFilter('advanced');
-                setPage(1);
-              }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                levelFilter === 'advanced'
-                  ? 'bg-purple-600 dark:bg-purple-500 text-white'
-                  : 'bg-white dark:bg-surface-900 text-surface-600 dark:text-surface-300 border border-surface-200 dark:border-surface-800 hover:bg-surface-100 dark:hover:bg-surface-800'
-              }`}
-            >
-              Advanced
-            </button>
-          </div>
-        </div>
+        <CourseFilters
+          levelFilter={levelFilter}
+          onLevelChange={(lvl) => {
+            setLevelFilter(lvl);
+            setPage(1);
+          }}
+          totalCourses={totalCourses}
+          startCount={startCount}
+          endCount={endCount}
+        />
 
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="animate-pulse bg-white dark:bg-surface-900 rounded-xl border border-surface-200 dark:border-surface-800 overflow-hidden h-[400px]">
-                <div className="h-48 bg-surface-200 dark:bg-surface-800/80"></div>
-                <div className="p-6 space-y-4">
-                  <div className="h-6 bg-surface-200 dark:bg-surface-800/80 rounded w-3/4"></div>
-                  <div className="h-4 bg-surface-200 dark:bg-surface-800/80 rounded w-full"></div>
-                  <div className="h-4 bg-surface-200 dark:bg-surface-800/80 rounded w-5/6"></div>
-                </div>
-              </div>
+            {[1, 2, 3, 4, 5, 6].map((n) => (
+              <div
+                key={n}
+                className="h-80 bg-white dark:bg-surface-900 rounded-xl border border-surface-200 dark:border-surface-800 animate-pulse"
+              />
             ))}
           </div>
         ) : (
@@ -206,46 +96,20 @@ export default function CoursesCatalogPage() {
               courses={paginatedCourses}
               emptyMessage={
                 searchQuery || levelFilter !== 'all'
-                  ? 'No courses matched your search or filter.'
-                  : 'No courses found in the catalog.'
+                  ? 'No courses match your active search filters.'
+                  : 'No courses are currently available.'
               }
             />
 
-            {/* Pagination Controls */}
-            {pageCount > 1 && (
-              <div className="flex items-center justify-center gap-3 pt-8">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page <= 1}
-                  className="gap-1 px-3 py-1.5 text-xs cursor-pointer"
-                >
-                  <ChevronLeft className="w-3.5 h-3.5" />
-                  Previous
-                </Button>
-
-                <span className="text-xs font-semibold text-surface-700 bg-white px-3 py-1.5 rounded-lg border border-surface-200 shadow-sm">
-                  Page {page} of {pageCount}
-                </span>
-
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
-                  disabled={page >= pageCount}
-                  className="gap-1 px-3 py-1.5 text-xs cursor-pointer"
-                >
-                  Next
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </Button>
-              </div>
-            )}
+            <Pagination
+              currentPage={page}
+              totalPages={pageCount}
+              onPageChange={setPage}
+            />
           </>
         )}
       </div>
 
-      {/* Footer */}
       <Footer />
     </div>
   );
