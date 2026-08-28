@@ -10,9 +10,9 @@ export const API_ENDPOINTS = {
   },
   COURSES: {
     ROOT: '/api/courses',
-    MY_COURSES: '/api/courses/me',
+    MY_COURSES: '/api/courses/my',
     DETAIL: (documentId: string) => `/api/courses/${documentId}`,
-    STUDENT_PROGRESS: (documentId: string) => `/api/courses/${documentId}/student-progress`,
+    STUDENT_PROGRESS: (documentId: string) => `/api/courses/${documentId}/students-progress`,
   },
   ENROLLMENTS: {
     ROOT: '/api/enrollments',
