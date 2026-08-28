@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { getCourses } from '@/lib/api';
-import { type Course } from '@/types';
+import { useState } from 'react';
+import { useCourses } from '@/hooks/queries/useCourses';
 import { Navbar } from '@/components/ui/Navbar';
 import { PageHero } from '@/components/ui/PageHero';
 import { Footer } from '@/components/ui/Footer';
@@ -12,26 +11,11 @@ import { CourseFilters } from '@/components/features/courses/CourseFilters';
 import { GraduationCap } from 'lucide-react';
 
 export default function CoursesCatalogPage() {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: courses = [], isLoading } = useCourses();
   const [searchQuery, setSearchQuery] = useState('');
   const [levelFilter, setLevelFilter] = useState('all');
   const [page, setPage] = useState(1);
   const pageSize = 6;
-
-  useEffect(() => {
-    async function loadCourses() {
-      try {
-        const response = await getCourses();
-        setCourses(response.data || []);
-      } catch (error) {
-        console.error('Failed to load courses:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadCourses();
-  }, []);
 
   const filteredCourses = courses.filter((course) => {
     const term = searchQuery.toLowerCase();
@@ -81,7 +65,7 @@ export default function CoursesCatalogPage() {
           endCount={endCount}
         />
 
-        {loading ? (
+        {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((n) => (
               <div

@@ -1,16 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getBlogPost } from '@/lib/api';
-import { type BlogPost } from '@/types';
+import { useBlogPost } from '@/hooks/queries/useBlog';
 import { Button } from '@/components/ui/Button';
-import { Calendar, Clock, ArrowLeft, User, Share2, BookOpen, Newspaper } from 'lucide-react';
+import { Calendar, Clock, ArrowLeft, Share2, Newspaper } from 'lucide-react';
 import { getThumbnailSrc } from '@/lib/utils/thumbnail';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { Footer } from '@/components/ui/Footer';
-
 import { modal } from '@/stores/modal';
 
 export default function BlogPostDetailPage() {
@@ -18,28 +15,7 @@ export default function BlogPostDetailPage() {
   const router = useRouter();
   const documentId = params.documentId as string;
 
-  const [post, setPost] = useState<BlogPost | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    async function loadPost() {
-      try {
-        setLoading(true);
-        const res = await getBlogPost(documentId);
-        setPost(res.data);
-      } catch (err: any) {
-        console.error('Failed to load blog post', err);
-        setError('Article not found or not published.');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    if (documentId) {
-      loadPost();
-    }
-  }, [documentId]);
+  const { data: post, isLoading, isError } = useBlogPost(documentId);
 
   const getReadingTime = (text?: string) => {
     if (!text) return '2 min read';
@@ -64,7 +40,7 @@ export default function BlogPostDetailPage() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface-50 dark:bg-surface-950">
         <div className="animate-spin rounded-full h-10 w-10 border-2 border-brand-600 border-t-transparent"></div>
@@ -72,7 +48,7 @@ export default function BlogPostDetailPage() {
     );
   }
 
-  if (error || !post) {
+  if (isError || !post) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface-50 dark:bg-surface-950 p-6">
         <div className="text-center max-w-md bg-white dark:bg-surface-900 p-8 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-xs">
@@ -81,7 +57,7 @@ export default function BlogPostDetailPage() {
           </div>
           <h2 className="text-xl font-bold text-surface-900 dark:text-surface-100 mb-1">Article Unavailable</h2>
           <p className="text-surface-500 dark:text-surface-400 text-xs mb-6 max-w-sm mx-auto">
-            {error || 'This article does not exist or has not been published yet.'}
+            This article does not exist or has not been published yet.
           </p>
           <Link href="/blog">
             <Button variant="secondary" size="sm">Back to All Articles</Button>
@@ -106,7 +82,7 @@ export default function BlogPostDetailPage() {
 
           <div className="flex items-center gap-2">
             <ThemeToggle size="sm" />
-            <Button variant="ghost" size="sm" onClick={handleShare} className="gap-2 text-surface-600 dark:text-surface-300">
+            <Button variant="ghost" size="sm" onClick={handleShare} className="gap-2 text-surface-600 dark:text-surface-300 cursor-pointer">
               <Share2 className="w-4 h-4" />
               <span>Share</span>
             </Button>

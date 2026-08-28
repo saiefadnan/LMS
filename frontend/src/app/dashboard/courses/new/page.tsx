@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createCourse } from '@/lib/api';
+import { useCreateCourse } from '@/hooks/queries/useCourses';
 import { courseSchema, type CourseFormValues } from '@/lib/validations';
 import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui/Button';
@@ -17,6 +17,7 @@ export default function NewCoursePage() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const [error, setError] = useState('');
+  const createMutation = useCreateCourse();
 
   const roleType = (typeof user?.role === 'object' ? user?.role?.type : user?.role) || 'student';
 
@@ -29,7 +30,7 @@ export default function NewCoursePage() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<CourseFormValues>({
     resolver: zodResolver(courseSchema),
     defaultValues: {
@@ -47,7 +48,7 @@ export default function NewCoursePage() {
       setError('You must be logged in as an instructor to create a course.');
       return;
     }
-    
+
     try {
       setError('');
       const payload: Record<string, any> = {
@@ -58,12 +59,11 @@ export default function NewCoursePage() {
         published: Boolean(data.published),
       };
 
-      // Only include thumbnail if provided and not empty
       if (data.thumbnail && data.thumbnail.trim()) {
         payload.thumbnail = data.thumbnail.trim();
       }
-      
-      const res = await createCourse(payload);
+
+      const res = await createMutation.mutateAsync(payload);
       if (res?.data?.documentId) {
         router.push(`/dashboard/courses/${res.data.documentId}/edit`);
       } else {
@@ -77,7 +77,10 @@ export default function NewCoursePage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/dashboard/courses" className="text-surface-500 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-100 flex items-center gap-1.5 text-xs font-medium transition-colors">
+        <Link
+          href="/dashboard/courses"
+          className="text-surface-500 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-100 flex items-center gap-1.5 text-xs font-medium transition-colors"
+        >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Courses</span>
         </Link>
@@ -157,7 +160,7 @@ export default function NewCoursePage() {
                 Cancel
               </Button>
             </Link>
-            <Button type="submit" isLoading={isSubmitting}>
+            <Button type="submit" isLoading={createMutation.isPending} className="cursor-pointer">
               Create Course
             </Button>
           </div>

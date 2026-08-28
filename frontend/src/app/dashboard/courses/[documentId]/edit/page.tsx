@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getCourse, updateCourse, deleteCourse } from '@/lib/api';
+import { useCourse, useUpdateCourse, useDeleteCourse } from '@/hooks/queries/useCourses';
 import { type CourseFormValues } from '@/lib/validations';
-import { type Course } from '@/types';
 import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui/Button';
 import { LessonManager } from '@/components/features/LessonManager';
@@ -24,50 +23,14 @@ export default function EditCoursePage() {
   const user = useAuthStore((s) => s.user);
   const documentId = params.documentId as string;
 
-  const [course, setCourse] = useState<Course | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: course, isLoading, refetch } = useCourse(documentId);
+  const updateMutation = useUpdateCourse();
+  const deleteMutation = useDeleteCourse();
+
   const [saveError, setSaveError] = useState('');
   const [activeTab, setActiveTab] = useState<EditCourseTab>('details');
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const roleType = (typeof user?.role === 'object' ? user?.role?.type : user?.role) || 'student';
-
-  const fetchCourse = useCallback(async () => {
-    try {
-      const res = await getCourse(documentId);
-      const courseData = res.data;
-
-      if (user && roleType === 'student') {
-        router.push('/dashboard/my-courses');
-        return;
-      }
-      if (user && roleType === 'instructor') {
-        const isOwner = (courseData.instructor as any)?.id === user.id || (courseData.instructor as any) === user.id;
-        if (courseData.instructor && !isOwner) {
-          modal.alert({
-            title: 'Permission Denied',
-            message: 'You can only edit courses you created.',
-            variant: 'warning',
-          });
-          router.push('/dashboard/courses');
-          return;
-        }
-      }
-
-      setCourse(courseData);
-    } catch (error) {
-      console.error('Failed to load course', error);
-      setSaveError('Failed to load course data');
-    } finally {
-      setLoading(false);
-    }
-  }, [documentId, user, roleType, router]);
-
-  useEffect(() => {
-    if (documentId) {
-      fetchCourse();
-    }
-  }, [documentId, fetchCourse]);
 
   const handleSaveCourse = async (data: CourseFormValues) => {
     try {
@@ -84,13 +47,12 @@ export default function EditCoursePage() {
         payload.thumbnail = data.thumbnail.trim();
       }
 
-      await updateCourse(documentId, payload);
+      await updateMutation.mutateAsync({ documentId, data: payload });
       modal.alert({
         title: 'Course Updated',
         message: 'Your course details and configuration changes were saved successfully.',
         variant: 'success',
       });
-      fetchCourse();
     } catch (err: any) {
       setSaveError(err.message || 'Failed to update course');
     }
@@ -107,8 +69,7 @@ export default function EditCoursePage() {
     if (!confirmed) return;
 
     try {
-      setIsDeleting(true);
-      await deleteCourse(documentId);
+      await deleteMutation.mutateAsync(documentId);
       window.location.href = '/dashboard/courses';
     } catch (err: any) {
       console.error('Course deletion failed:', err);
@@ -117,11 +78,10 @@ export default function EditCoursePage() {
         message: err.message || 'Failed to delete course. Please try again.',
         variant: 'danger',
       });
-      setIsDeleting(false);
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-2 border-brand-600 border-t-transparent"></div>
@@ -131,6 +91,18 @@ export default function EditCoursePage() {
 
   if (!course) {
     return <div className="text-surface-600 text-sm">Course not found</div>;
+  }
+
+  const isOwner = (course.instructor as any)?.id === user?.id || (course.instructor as any) === user?.id;
+  if (user && roleType === 'instructor' && course.instructor && !isOwner) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-surface-600 dark:text-surface-400 text-sm mb-4">You can only edit courses you created.</p>
+        <Link href="/dashboard/courses">
+          <Button variant="secondary">Back to Courses</Button>
+        </Link>
+      </div>
+    );
   }
 
   const lessonCount = course.lessons?.length || 0;
@@ -201,7 +173,7 @@ export default function EditCoursePage() {
 
           <CourseEditSidebar
             course={course}
-            isDeleting={isDeleting}
+            isDeleting={deleteMutation.isPending}
             onDeleteCourse={handleDeleteCourse}
           />
         </div>
@@ -210,14 +182,14 @@ export default function EditCoursePage() {
       {/* Curriculum / Lessons View */}
       {(activeTab === 'lessons' || activeTab === 'all') && (
         <div className="w-full">
-          <LessonManager course={course} onLessonChanged={fetchCourse} />
+          <LessonManager course={course} onLessonChanged={() => refetch()} />
         </div>
       )}
 
       {/* Quizzes View */}
       {(activeTab === 'quizzes' || activeTab === 'all') && (
         <div className="w-full">
-          <QuizManager course={course} onQuizChanged={fetchCourse} />
+          <QuizManager course={course} onQuizChanged={() => refetch()} />
         </div>
       )}
 

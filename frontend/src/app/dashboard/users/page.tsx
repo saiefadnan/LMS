@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'next/navigation';
-import { getAllUsers, getRoles, updateUserRole, deleteUser } from '@/lib/api';
-import { type User, type UserRole } from '@/types';
+import { useUsers, useRoles, useUpdateUserRole, useDeleteUser } from '@/hooks/queries/useAdmin';
 import { Pagination } from '@/components/ui/Pagination';
 import { UserMetricCards } from '@/components/features/users/UserMetricCards';
 import { UserTableFilters } from '@/components/features/users/UserTableFilters';
@@ -16,48 +15,23 @@ export default function UserManagementPage() {
   const currentUser = useAuthStore((s) => s.user);
   const router = useRouter();
 
-  const [users, setUsers] = useState<User[]>([]);
-  const [roles, setRoles] = useState<UserRole[]>([]);
-  const [loading, setLoading] = useState(true);
+  const roleType = (typeof currentUser?.role === 'object' ? currentUser?.role?.type : currentUser?.role) || '';
+
+  const { data: users = [], isLoading: usersLoading } = useUsers(roleType === 'admin');
+  const { data: rawRoles = [], isLoading: rolesLoading } = useRoles(roleType === 'admin');
+  const updateRoleMutation = useUpdateUserRole();
+  const deleteUserMutation = useDeleteUser();
+
+  const roles = rawRoles.filter((r) =>
+    ['admin', 'content_manager', 'instructor', 'student'].includes(r.type)
+  );
+
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [updatingUserId, setUpdatingUserId] = useState<number | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-
-  const roleType = (typeof currentUser?.role === 'object' ? currentUser?.role?.type : currentUser?.role) || '';
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const [usersData, rolesData] = await Promise.all([
-        getAllUsers(),
-        getRoles().catch(() => ({ roles: [] })),
-      ]);
-
-      setUsers(usersData || []);
-      const standardRoles = (rolesData.roles || []).filter((r) =>
-        ['admin', 'content_manager', 'instructor', 'student'].includes(r.type)
-      );
-      setRoles(standardRoles);
-    } catch (err: any) {
-      console.error('Failed to load user management data', err);
-      showNotification(err.message || 'Failed to load users', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (currentUser && roleType !== 'admin') {
-      router.push('/dashboard');
-      return;
-    }
-    if (currentUser) {
-      fetchData();
-    }
-  }, [currentUser, roleType, router]);
 
   const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
     setNotification({ message, type });
@@ -69,10 +43,9 @@ export default function UserManagementPage() {
   const handleRoleChange = async (userId: number, newRoleId: number) => {
     try {
       setUpdatingUserId(userId);
-      await updateUserRole(userId, newRoleId);
+      await updateRoleMutation.mutateAsync({ userId, roleId: newRoleId });
       const roleObj = roles.find((r) => r.id === newRoleId);
       showNotification(`Role updated to ${roleObj?.name || 'new role'} successfully!`, 'success');
-      await fetchData();
     } catch (err: any) {
       console.error('Failed to update role', err);
       showNotification(err.message || 'Failed to update user role', 'error');
@@ -100,14 +73,19 @@ export default function UserManagementPage() {
     if (!confirmed) return;
 
     try {
-      await deleteUser(userId);
+      await deleteUserMutation.mutateAsync(userId);
       showNotification(`User "${username}" deleted.`, 'success');
-      await fetchData();
     } catch (err: any) {
       console.error('Failed to delete user', err);
       showNotification(err.message || 'Failed to delete user', 'error');
     }
   };
+
+  if (!currentUser || roleType !== 'admin') {
+    return null;
+  }
+
+  const loading = usersLoading || rolesLoading;
 
   const filteredUsers = users.filter((u) => {
     const term = searchQuery.toLowerCase();
@@ -132,8 +110,6 @@ export default function UserManagementPage() {
   const instructorCount = users.filter((u) => (typeof u.role === 'object' ? u.role?.type : u.role) === 'instructor').length;
   const managerCount = users.filter((u) => (typeof u.role === 'object' ? u.role?.type : u.role) === 'content_manager').length;
   const adminCount = users.filter((u) => (typeof u.role === 'object' ? u.role?.type : u.role) === 'admin').length;
-
-  if (!currentUser || roleType !== 'admin') return null;
 
   return (
     <div className="max-w-6xl mx-auto pb-12">

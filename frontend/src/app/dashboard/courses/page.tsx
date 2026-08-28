@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { getCourses, getMyCourses, deleteCourse } from '@/lib/api';
+import { useCourses, useMyCourses, useDeleteCourse } from '@/hooks/queries/useCourses';
 import { type Course } from '@/types';
 import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui/Button';
@@ -12,32 +12,22 @@ import { Search, Plus, Trash2 } from 'lucide-react';
 import { modal } from '@/stores/modal';
 
 export default function InstructorCoursesPage() {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
+  const user = useAuthStore((s) => s.user);
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const pageSize = 6;
-  const user = useAuthStore((s) => s.user);
 
   const roleType = (typeof user?.role === 'object' ? user?.role?.type : user?.role) || 'student';
+  const isGlobalManager = roleType === 'admin' || roleType === 'content_manager';
 
-  useEffect(() => {
-    async function fetchMyCourses() {
-      if (!user) return;
-      try {
-        setLoading(true);
-        const res = (roleType === 'admin' || roleType === 'content_manager')
-          ? await getCourses()
-          : await getMyCourses();
-        setCourses(res.data || []);
-      } catch (error) {
-        console.error('Failed to load courses', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchMyCourses();
-  }, [user, roleType]);
+  // For global managers, fetch all courses; for instructors, fetch authored courses
+  const allCoursesQuery = useCourses();
+  const myCoursesQuery = useMyCourses(!isGlobalManager && Boolean(user));
+
+  const courses = isGlobalManager ? allCoursesQuery.data || [] : myCoursesQuery.data || [];
+  const isLoading = isGlobalManager ? allCoursesQuery.isLoading : myCoursesQuery.isLoading;
+
+  const deleteMutation = useDeleteCourse();
 
   const handleDeleteCourse = async (targetCourse: Course) => {
     const confirmed = await modal.confirm({
@@ -49,8 +39,7 @@ export default function InstructorCoursesPage() {
     if (!confirmed) return;
 
     try {
-      await deleteCourse(targetCourse.documentId);
-      setCourses((prev) => prev.filter((c) => c.documentId !== targetCourse.documentId));
+      await deleteMutation.mutateAsync(targetCourse.documentId);
     } catch (err: any) {
       modal.alert({
         title: 'Deletion Failed',
@@ -61,8 +50,6 @@ export default function InstructorCoursesPage() {
   };
 
   if (!user) return null;
-
-  const isGlobalManager = roleType === 'admin' || roleType === 'content_manager';
 
   const filteredCourses = courses.filter((c) => {
     const term = searchQuery.toLowerCase();
@@ -118,7 +105,7 @@ export default function InstructorCoursesPage() {
         </span>
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="animate-pulse bg-white dark:bg-surface-900 rounded-xl h-64 border border-surface-200 dark:border-surface-800"></div>
       ) : (
         <>
@@ -142,6 +129,7 @@ export default function InstructorCoursesPage() {
                   onClick={() => handleDeleteCourse(course)}
                   className="px-2.5 text-xs cursor-pointer"
                   title="Delete course"
+                  disabled={deleteMutation.isPending}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </Button>
@@ -159,4 +147,3 @@ export default function InstructorCoursesPage() {
     </div>
   );
 }
-

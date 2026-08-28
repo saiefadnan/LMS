@@ -116,6 +116,8 @@ export interface Quiz {
   id: number;
   documentId: string;
   title: string;
+  description?: string;
+  passingScore?: number;
   questions: QuizQuestion[];
   course?: Course;
   createdAt: string;
@@ -123,6 +125,8 @@ export interface Quiz {
 
 export interface QuizInput {
   title: string;
+  description?: string;
+  passingScore?: number;
   questions: QuizQuestion[];
   course?: string | number | Course;
 }
@@ -136,6 +140,7 @@ export interface QuizResult {
   quiz?: Quiz;
   score: number;
   totalQuestions: number;
+  percentage?: number;
   answers: Record<string, number>;
   passed: boolean;
   createdAt: string;
