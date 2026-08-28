@@ -15,6 +15,7 @@ const config: Core.Config.Middlewares = [
       origin: [
         'http://localhost:3000',
         'http://127.0.0.1:3000',
+        'https://learnhub078.vercel.app',
         ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
         ...(process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',').map((s) => s.trim()) : []),
         /\.vercel\.app$/, // Allow all Vercel preview & production deployments
