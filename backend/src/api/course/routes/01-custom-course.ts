@@ -13,7 +13,7 @@ export default {
       path: '/courses/my',
       handler: 'api::course.course.findMyCourses',
       config: {
-        policies: ['global::is-instructor-or-admin'],
+        policies: ['global::is-course-manager'],
       },
     },
     {
@@ -21,7 +21,7 @@ export default {
       path: '/courses/:documentId/students-progress',
       handler: 'api::course.course.getCourseStudentProgress',
       config: {
-        policies: ['global::is-instructor-or-admin'],
+        policies: ['global::is-course-manager'],
       },
     },
   ],

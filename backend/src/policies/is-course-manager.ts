@@ -1,5 +1,10 @@
 /**
- * is-instructor-or-admin policy
+ * is-course-manager policy
+ * 
+ * Permits access to users with course management permissions:
+ * - Admin (global platform authority)
+ * - Instructor (course & curriculum author)
+ * - Content Manager (content review & curriculum oversight)
  */
 export default async (policyContext: any, config: any, { strapi }: any) => {
   const user = policyContext.state.user;

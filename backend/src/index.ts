@@ -1,6 +1,7 @@
 import type { Core } from '@strapi/strapi';
 import { registerAuthExtensions } from './utils/auth-extensions';
 import { bootstrapRoles } from './utils/role-bootstrapper';
+import { seedDemoData } from './utils/demo-seeder';
 
 export default {
   /**
@@ -13,9 +14,10 @@ export default {
 
   /**
    * Bootstrap phase — runs before the app starts.
-   * Used to seed databases, set up roles/permissions, etc.
+   * Used to seed databases, set up roles/permissions, and seed realistic demo data.
    */
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {
     await bootstrapRoles(strapi);
+    await seedDemoData(strapi);
   },
 };

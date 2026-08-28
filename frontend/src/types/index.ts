@@ -105,9 +105,11 @@ export interface Progress {
 // ─── Quiz ───────────────────────────────────────────────────────
 
 export interface QuizQuestion {
-  question: string;
+  question?: string;
+  text?: string;
   options: string[];
-  correctAnswer: number;
+  correctAnswer?: number;
+  correctIndex?: number;
 }
 
 export interface Quiz {

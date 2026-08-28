@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 
 export function Footer() {
   return (
-    <footer className="bg-white dark:bg-surface-950 border-t border-surface-200 dark:border-surface-800 py-12 transition-colors mt-auto w-full">
+    <footer className="bg-white dark:bg-surface-950 border-t border-surface-200 dark:border-surface-800 py-12 sm:py-16 transition-colors mt-16 sm:mt-24 w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-10 border-b border-surface-200 dark:border-surface-800">
           <div className="space-y-4">

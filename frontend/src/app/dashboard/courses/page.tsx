@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { getCourses, getMyCourses } from '@/lib/api';
+import { getCourses, getMyCourses, deleteCourse } from '@/lib/api';
 import { type Course } from '@/types';
 import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui/Button';
 import { CourseGrid } from '@/components/features/CourseGrid';
-import { Search, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
 
 export default function InstructorCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -39,6 +39,19 @@ export default function InstructorCoursesPage() {
     }
     fetchMyCourses();
   }, [user, roleType]);
+
+  const handleDeleteCourse = async (targetCourse: Course) => {
+    if (!window.confirm(`Are you sure you want to delete course "${targetCourse.title}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await deleteCourse(targetCourse.documentId);
+      setCourses((prev) => prev.filter((c) => c.documentId !== targetCourse.documentId));
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete course');
+    }
+  };
 
   if (!user) return null;
 
@@ -110,11 +123,22 @@ export default function InstructorCoursesPage() {
                 : "You haven't created any courses yet."
             }
             renderAction={(course) => (
-              <Link href={`/dashboard/courses/${course.documentId}/edit`} className="w-full">
-                <Button variant="secondary" className="w-full cursor-pointer">
-                  Edit Course & Progress
+              <div className="flex items-center gap-2 w-full">
+                <Link href={`/dashboard/courses/${course.documentId}/edit`} className="flex-1">
+                  <Button variant="secondary" className="w-full text-xs cursor-pointer">
+                    Edit Course
+                  </Button>
+                </Link>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => handleDeleteCourse(course)}
+                  className="px-2.5 text-xs cursor-pointer"
+                  title="Delete course"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
                 </Button>
-              </Link>
+              </div>
             )}
           />
 

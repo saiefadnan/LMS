@@ -10,14 +10,26 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
     
     if (!courseId) return ctx.badRequest('course ID is required');
 
+    const isNumeric = /^\d+$/.test(String(courseId));
+    const course = await strapi.db.query('api::course.course').findOne({
+      where: isNumeric ? { id: Number(courseId) } : { documentId: String(courseId) },
+      populate: ['instructor'],
+    });
+
+    if (!course) return ctx.notFound('Course not found');
+
+    const roleType =
+      user.role?.type ||
+      (
+        await strapi.db.query('plugin::users-permissions.user').findOne({
+          where: { id: user.id },
+          populate: ['role'],
+        })
+      )?.role?.type;
+
     // Admin and Content Manager can create a quiz for any course
-    if (user.role?.type !== 'admin' && user.role?.type !== 'content_manager') {
+    if (roleType !== 'admin' && roleType !== 'content_manager') {
       // Instructor must own the course
-      const course = await strapi.db.query('api::course.course').findOne({
-        where: { documentId: courseId },
-        populate: ['instructor'],
-      });
-      if (!course) return ctx.notFound('Course not found');
       if (course.instructor?.id !== user.id) {
         return ctx.forbidden('You can only create quizzes for your own courses');
       }
@@ -29,7 +41,7 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
     if (response?.data?.documentId) {
       await strapi.documents('api::quiz.quiz').update({
         documentId: response.data.documentId,
-        data: { course: courseId },
+        data: { course: course.id },
       });
     }
 
@@ -40,10 +52,20 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
     const user = ctx.state.user;
     if (!user) return ctx.unauthorized();
 
-    if (user.role?.type !== 'admin' && user.role?.type !== 'content_manager') {
+    const roleType =
+      user.role?.type ||
+      (
+        await strapi.db.query('plugin::users-permissions.user').findOne({
+          where: { id: user.id },
+          populate: ['role'],
+        })
+      )?.role?.type;
+
+    if (roleType !== 'admin' && roleType !== 'content_manager') {
       const { id } = ctx.params;
+      const isNumeric = /^\d+$/.test(String(id));
       const quiz = await strapi.db.query('api::quiz.quiz').findOne({
-        where: { documentId: id },
+        where: isNumeric ? { id: Number(id) } : { documentId: String(id) },
         populate: { course: { populate: ['instructor'] } },
       });
 
@@ -65,10 +87,20 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
     const user = ctx.state.user;
     if (!user) return ctx.unauthorized();
 
-    if (user.role?.type !== 'admin' && user.role?.type !== 'content_manager') {
+    const roleType =
+      user.role?.type ||
+      (
+        await strapi.db.query('plugin::users-permissions.user').findOne({
+          where: { id: user.id },
+          populate: ['role'],
+        })
+      )?.role?.type;
+
+    if (roleType !== 'admin' && roleType !== 'content_manager') {
       const { id } = ctx.params;
+      const isNumeric = /^\d+$/.test(String(id));
       const quiz = await strapi.db.query('api::quiz.quiz').findOne({
-        where: { documentId: id },
+        where: isNumeric ? { id: Number(id) } : { documentId: String(id) },
         populate: { course: { populate: ['instructor'] } },
       });
 

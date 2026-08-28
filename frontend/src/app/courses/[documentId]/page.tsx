@@ -236,7 +236,7 @@ export default function CourseDetailsPage() {
       </div>
 
       {/* Curriculum (Lessons preview) */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 mb-12">
         <h2 className="text-xl font-bold text-surface-900 dark:text-surface-50 mb-4 tracking-tight">Course Curriculum</h2>
         
         {course.lessons && course.lessons.length > 0 ? (
