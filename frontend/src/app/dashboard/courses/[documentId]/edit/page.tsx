@@ -107,16 +107,23 @@ export default function EditCoursePage() {
     }
   };
 
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const handleDeleteCourse = async () => {
     if (!course) return;
-    if (!window.confirm(`Are you sure you want to permanently delete course "${course.title}"? This cannot be undone.`)) {
-      return;
-    }
+    const confirmed = window.confirm(`Are you sure you want to permanently delete course "${course.title}"? This cannot be undone.`);
+    if (!confirmed) return;
+
     try {
+      setIsDeleting(true);
+      console.log('Deleting course with documentId:', documentId);
       await deleteCourse(documentId);
-      router.push('/dashboard/courses');
+      console.log('Course successfully deleted. Navigating to /dashboard/courses...');
+      window.location.href = '/dashboard/courses';
     } catch (err: any) {
+      console.error('Course deletion failed:', err);
       alert(err.message || 'Failed to delete course');
+      setIsDeleting(false);
     }
   };
 
@@ -399,9 +406,11 @@ export default function EditCoursePage() {
                 Permanently remove this course, its lessons, quizzes, and associated records.
               </p>
               <Button
+                type="button"
                 variant="danger"
                 size="sm"
                 onClick={handleDeleteCourse}
+                isLoading={isDeleting}
                 className="w-full gap-1.5 text-xs font-semibold cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />

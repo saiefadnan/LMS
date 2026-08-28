@@ -107,7 +107,8 @@ export default function QuizPlayerPage() {
       for (let i = 0; i < questions.length; i++) {
         const studentChoice = userAnswers[i];
         formattedAnswers[`q_${i}`] = studentChoice;
-        if (studentChoice === questions[i].correctAnswer) {
+        const targetCorrect = questions[i].correctIndex !== undefined ? questions[i].correctIndex : questions[i].correctAnswer;
+        if (studentChoice === targetCorrect) {
           score += 1;
         }
       }
@@ -178,13 +179,13 @@ export default function QuizPlayerPage() {
   return (
     <div className="max-w-3xl mx-auto py-8 px-6 pb-24">
       {/* Quiz Header */}
-      <div className="mb-8 pb-6 border-b border-surface-200">
-        <div className="flex items-center gap-2 text-xs font-semibold text-brand-600 uppercase tracking-wider mb-2">
+      <div className="mb-8 pb-6 border-b border-surface-200 dark:border-surface-800">
+        <div className="flex items-center gap-2 text-xs font-semibold text-brand-600 dark:text-brand-400 uppercase tracking-wider mb-2">
           <Trophy className="w-4 h-4" />
           <span>Course Assessment</span>
         </div>
-        <h1 className="text-3xl font-extrabold text-surface-900">{quiz.title}</h1>
-        <p className="text-sm text-surface-500 mt-1">
+        <h1 className="text-3xl font-extrabold text-surface-900 dark:text-surface-50 tracking-tight">{quiz.title}</h1>
+        <p className="text-sm text-surface-500 dark:text-surface-400 mt-1">
           Passing score: 70% • Total questions: {questions.length} • Auto-graded
         </p>
       </div>
@@ -194,18 +195,18 @@ export default function QuizPlayerPage() {
         <div className="space-y-8 animate-in fade-in duration-300">
           {/* Score Banner */}
           <div
-            className={`p-8 rounded-2xl border text-center relative overflow-hidden ${
+            className={`p-8 rounded-2xl border text-center relative overflow-hidden transition-colors ${
               submittedResult.passed
-                ? 'bg-gradient-to-b from-emerald-50 to-white border-emerald-200'
-                : 'bg-gradient-to-b from-amber-50 to-white border-amber-200'
+                ? 'bg-gradient-to-b from-emerald-50 to-white dark:from-emerald-950/70 dark:to-surface-900 border-emerald-200 dark:border-emerald-800/80'
+                : 'bg-gradient-to-b from-amber-50 to-white dark:from-amber-950/70 dark:to-surface-900 border-amber-200 dark:border-amber-800/80'
             }`}
           >
             {submittedResult.passed ? (
-              <div className="inline-flex p-4 rounded-full mb-4 bg-emerald-50 dark:bg-emerald-950/60 shadow-xs border border-emerald-100 dark:border-emerald-900">
+              <div className="inline-flex p-4 rounded-full mb-4 bg-emerald-100/60 dark:bg-emerald-950/80 shadow-xs border border-emerald-200 dark:border-emerald-800">
                 <Award className="w-12 h-12 text-emerald-600 dark:text-emerald-400" />
               </div>
             ) : (
-              <div className="inline-flex p-4 rounded-full mb-4 bg-amber-50 dark:bg-amber-950/60 shadow-xs border border-amber-100 dark:border-amber-900">
+              <div className="inline-flex p-4 rounded-full mb-4 bg-amber-100/60 dark:bg-amber-950/80 shadow-xs border border-amber-200 dark:border-amber-800">
                 <RotateCcw className="w-12 h-12 text-amber-600 dark:text-amber-400" />
               </div>
             )}
@@ -219,7 +220,7 @@ export default function QuizPlayerPage() {
                 : `You scored ${submittedResult.percentage}%. You need at least 70% to pass. Review the answers below and try again!`}
             </p>
 
-            <div className="flex justify-center items-center gap-6 py-4 px-6 bg-white/80 dark:bg-surface-900/80 backdrop-blur rounded-xl max-w-xs mx-auto border border-surface-200 dark:border-surface-700 shadow-xs">
+            <div className="flex justify-center items-center gap-6 py-4 px-6 bg-white/80 dark:bg-surface-800/80 backdrop-blur rounded-xl max-w-xs mx-auto border border-surface-200 dark:border-surface-700 shadow-xs">
               <div className="text-center">
                 <span className="text-xs text-surface-400 dark:text-surface-500 font-medium block">SCORE</span>
                 <span className="text-2xl font-black text-surface-900 dark:text-surface-50">
@@ -264,7 +265,8 @@ export default function QuizPlayerPage() {
 
             {questions.map((q, qIndex) => {
               const studentChoice = userAnswers[qIndex];
-              const isCorrect = studentChoice === q.correctAnswer;
+              const targetCorrect = q.correctIndex !== undefined ? q.correctIndex : q.correctAnswer;
+              const isCorrect = studentChoice === targetCorrect;
 
               return (
                 <div
@@ -284,7 +286,9 @@ export default function QuizPlayerPage() {
                       >
                         {qIndex + 1}
                       </span>
-                      <h4 className="font-semibold text-surface-900 dark:text-surface-100">{q.question}</h4>
+                      <h4 className="font-semibold text-surface-900 dark:text-surface-100">
+                        {q.text || q.question || (q as any).questionText}
+                      </h4>
                     </div>
                     {isCorrect ? (
                       <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-100 dark:border-emerald-900">
@@ -300,7 +304,7 @@ export default function QuizPlayerPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
                     {q.options.map((opt, optIdx) => {
                       const wasSelected = studentChoice === optIdx;
-                      const isOptionCorrect = q.correctAnswer === optIdx;
+                      const isOptionCorrect = targetCorrect === optIdx;
                       const letter = String.fromCharCode(65 + optIdx);
 
                       let badgeStyle = 'border-surface-200 dark:border-surface-800 bg-surface-50 dark:bg-surface-800/60 text-surface-700 dark:text-surface-300';
@@ -387,7 +391,7 @@ export default function QuizPlayerPage() {
                   {currentQuestionIndex + 1}
                 </span>
                 <h2 className="text-xl font-bold text-surface-900 dark:text-surface-50 leading-snug">
-                  {currentQ.question}
+                  {currentQ.text || currentQ.question || (currentQ as any).questionText}
                 </h2>
               </div>
 

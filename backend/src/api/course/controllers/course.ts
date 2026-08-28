@@ -35,6 +35,88 @@ export default factories.createCoreController('api::course.course', ({ strapi })
   },
 
   /**
+   * Safe Cascade Delete for Courses
+   */
+  async delete(ctx) {
+    const user = ctx.state.user;
+    if (!user) {
+      return ctx.unauthorized('You must be logged in.');
+    }
+
+    const { id } = ctx.params;
+    const documentId = id;
+
+    // Find course first
+    const isNumeric = /^\d+$/.test(String(documentId));
+    const course = await strapi.db.query('api::course.course').findOne({
+      where: isNumeric ? { $or: [{ documentId }, { id: Number(documentId) }] } : { documentId },
+      populate: ['instructor', 'lessons', 'quizzes'],
+    });
+
+    if (!course) {
+      return ctx.notFound('Course not found');
+    }
+
+    const roleType =
+      user.role?.type ||
+      (
+        await strapi.db.query('plugin::users-permissions.user').findOne({
+          where: { id: user.id },
+          populate: ['role'],
+        })
+      )?.role?.type;
+
+    const isAuthorized =
+      roleType === 'admin' ||
+      roleType === 'content_manager' ||
+      course.instructor?.id === user.id;
+
+    if (!isAuthorized) {
+      return ctx.forbidden('You can only delete your own courses.');
+    }
+
+    // Cascade delete related records so PostgreSQL foreign key constraints don't fail
+    try {
+      // 1. Delete enrollments for this course
+      await strapi.db.query('api::enrollment.enrollment').deleteMany({
+        where: { course: course.id },
+      });
+
+      // 2. Delete lessons and their progresses
+      const lessonIds = (course.lessons || []).map((l: any) => l.id);
+      if (lessonIds.length > 0) {
+        await strapi.db.query('api::progress.progress').deleteMany({
+          where: { lesson: { $in: lessonIds } },
+        });
+        await strapi.db.query('api::lesson.lesson').deleteMany({
+          where: { id: { $in: lessonIds } },
+        });
+      }
+
+      // 3. Delete quizzes and quiz-results
+      const quizIds = (course.quizzes || []).map((q: any) => q.id);
+      if (quizIds.length > 0) {
+        await strapi.db.query('api::quiz-result.quiz-result').deleteMany({
+          where: { quiz: { $in: quizIds } },
+        });
+        await strapi.db.query('api::quiz.quiz').deleteMany({
+          where: { id: { $in: quizIds } },
+        });
+      }
+
+      // 4. Delete the course itself
+      await strapi.db.query('api::course.course').delete({
+        where: { id: course.id },
+      });
+
+      return ctx.send({ data: { id: course.id, documentId: course.documentId } });
+    } catch (err: any) {
+      strapi.log.error('Failed to delete course:', err);
+      return ctx.internalServerError(err.message || 'Failed to delete course');
+    }
+  },
+
+  /**
    * Custom action: returns courses. For admins and content managers, returns all courses. For instructors, returns own courses.
    */
   async findMyCourses(ctx) {

@@ -24,6 +24,17 @@ export default async (policyContext: any, config: any, { strapi }: any) => {
     return true;
   }
 
+  // Helper to safely build query clauses in Strapi 5 / PostgreSQL without integer cast crashes
+  const buildWhereClause = (val: any) => {
+    if (!val) return {};
+    const strVal = String(val);
+    const isNumeric = /^\d+$/.test(strVal);
+    if (isNumeric) {
+      return { $or: [{ documentId: strVal }, { id: Number(strVal) }] };
+    }
+    return { documentId: strVal };
+  };
+
   // Instructors can only manage their own courses, lessons, and quizzes
   if (roleType === 'instructor') {
     const { documentId, id } = policyContext.params || {};
@@ -37,7 +48,7 @@ export default async (policyContext: any, config: any, { strapi }: any) => {
         const courseId = policyContext.request?.body?.data?.course;
         if (!courseId) return true; // Let validation handle missing course
         const course = await strapi.db.query('api::course.course').findOne({
-          where: { $or: [{ documentId: courseId }, { id: courseId }] },
+          where: buildWhereClause(courseId),
           populate: ['instructor'],
         });
         return course?.instructor?.id === user.id;
@@ -48,7 +59,7 @@ export default async (policyContext: any, config: any, { strapi }: any) => {
     // For update / delete on Course
     if (path.includes('/courses')) {
       const course = await strapi.db.query('api::course.course').findOne({
-        where: { $or: [{ documentId: targetId }, { id: targetId }] },
+        where: buildWhereClause(targetId),
         populate: ['instructor'],
       });
       return course?.instructor?.id === user.id;
@@ -57,7 +68,7 @@ export default async (policyContext: any, config: any, { strapi }: any) => {
     // For update / delete on Lesson
     if (path.includes('/lessons')) {
       const lesson = await strapi.db.query('api::lesson.lesson').findOne({
-        where: { $or: [{ documentId: targetId }, { id: targetId }] },
+        where: buildWhereClause(targetId),
         populate: ['course', 'course.instructor'],
       });
       return lesson?.course?.instructor?.id === user.id;
@@ -66,7 +77,7 @@ export default async (policyContext: any, config: any, { strapi }: any) => {
     // For update / delete on Quiz
     if (path.includes('/quizzes')) {
       const quiz = await strapi.db.query('api::quiz.quiz').findOne({
-        where: { $or: [{ documentId: targetId }, { id: targetId }] },
+        where: buildWhereClause(targetId),
         populate: ['course', 'course.instructor'],
       });
       return quiz?.course?.instructor?.id === user.id;

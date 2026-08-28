@@ -49,9 +49,9 @@ export function QuizManager({ course, onQuizChanged }: QuizManagerProps) {
     setQuestions(
       quiz.questions?.length
         ? quiz.questions.map((q) => ({
-            question: q.question,
+            question: q.text || q.question || '',
             options: [...q.options],
-            correctAnswer: q.correctAnswer ?? 0,
+            correctAnswer: q.correctIndex !== undefined ? q.correctIndex : (q.correctAnswer ?? 0),
           }))
         : [defaultQuestion()]
     );
