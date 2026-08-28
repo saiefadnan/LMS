@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { getBlogPosts } from '@/lib/api';
-import { type BlogPost } from '@/types';
+import { useState } from 'react';
+import { useBlogPosts } from '@/hooks/queries/useBlog';
 import { Navbar } from '@/components/ui/Navbar';
 import { PageHero } from '@/components/ui/PageHero';
 import { Footer } from '@/components/ui/Footer';
@@ -12,26 +11,10 @@ import { BlogCard } from '@/components/features/blog/BlogCard';
 import { BookOpen } from 'lucide-react';
 
 export default function BlogIndexPage() {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: posts = [], isLoading } = useBlogPosts();
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const pageSize = 6;
-
-  useEffect(() => {
-    async function loadPosts() {
-      try {
-        setLoading(true);
-        const res = await getBlogPosts();
-        setPosts(res.data || []);
-      } catch (err) {
-        console.error('Failed to load blog posts', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadPosts();
-  }, []);
 
   const filteredPosts = posts.filter((post) => {
     const term = searchQuery.toLowerCase();
@@ -65,7 +48,7 @@ export default function BlogIndexPage() {
       />
 
       <div className="max-w-6xl w-full mx-auto py-12 px-4 sm:px-6 lg:px-8 flex-grow">
-        {loading ? (
+        {isLoading ? (
           <div className="space-y-12 animate-pulse w-full">
             <div className="bg-white dark:bg-surface-900 rounded-2xl border border-surface-200 dark:border-surface-800 h-72 w-full" />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">

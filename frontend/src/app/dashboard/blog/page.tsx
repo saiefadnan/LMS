@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { getBlogPosts, updateBlogPost, deleteBlogPost } from '@/lib/api';
+import { useBlogPosts, useUpdateBlogPost, useDeleteBlogPost } from '@/hooks/queries/useBlog';
 import { type BlogPost } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Pagination } from '@/components/ui/Pagination';
@@ -16,43 +16,32 @@ import { modal } from '@/stores/modal';
 
 export default function DashboardBlogPage() {
   const router = useRouter();
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'published' | 'draft'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
   const user = useAuthStore((s) => s.user);
 
   const roleType = (typeof user?.role === 'object' ? user?.role?.type : user?.role) || '';
 
-  const fetchPosts = async () => {
-    try {
-      setLoading(true);
-      const res = await getBlogPosts();
-      setPosts(res.data || []);
-    } catch (err) {
-      console.error('Failed to load blog posts', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
     if (user && roleType !== 'admin' && roleType !== 'content_manager') {
       router.push('/dashboard');
-      return;
-    }
-    if (user) {
-      fetchPosts();
     }
   }, [user, roleType, router]);
+
+  const { data: posts = [], isLoading } = useBlogPosts();
+  const updateMutation = useUpdateBlogPost();
+  const deleteMutation = useDeleteBlogPost();
+
+  const [filter, setFilter] = useState<'all' | 'published' | 'draft'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const handleToggleStatus = async (post: BlogPost) => {
     const nextStatus = post.status === 'published' ? 'draft' : 'published';
     try {
-      await updateBlogPost(post.documentId, { status: nextStatus });
-      fetchPosts();
+      await updateMutation.mutateAsync({
+        documentId: post.documentId,
+        data: { status: nextStatus },
+      });
     } catch (err: any) {
       modal.alert({
         title: 'Status Update Failed',
@@ -72,8 +61,7 @@ export default function DashboardBlogPage() {
     if (!confirmed) return;
 
     try {
-      await deleteBlogPost(postDocId);
-      fetchPosts();
+      await deleteMutation.mutateAsync(postDocId);
     } catch (err: any) {
       modal.alert({
         title: 'Deletion Failed',
@@ -162,7 +150,7 @@ export default function DashboardBlogPage() {
       />
 
       {/* Posts Table */}
-      {loading ? (
+      {isLoading ? (
         <div className="p-12 text-center bg-white dark:bg-surface-900 rounded-xl border border-surface-200 dark:border-surface-800">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 dark:border-brand-400 mx-auto"></div>
         </div>

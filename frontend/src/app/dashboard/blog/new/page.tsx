@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createBlogPost } from '@/lib/api';
+import { useCreateBlogPost } from '@/hooks/queries/useBlog';
 import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -17,8 +17,9 @@ export default function NewBlogPostPage() {
   const [body, setBody] = useState('');
   const [coverImage, setCoverImage] = useState('');
   const [status, setStatus] = useState<'draft' | 'published'>('draft');
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const createMutation = useCreateBlogPost();
 
   const roleType = (typeof user?.role === 'object' ? user?.role?.type : user?.role) || '';
 
@@ -40,10 +41,9 @@ export default function NewBlogPostPage() {
     }
 
     try {
-      setLoading(true);
       setError('');
 
-      await createBlogPost({
+      await createMutation.mutateAsync({
         title: title.trim(),
         body: body.trim(),
         coverImage: coverImage.trim() || undefined,
@@ -54,7 +54,6 @@ export default function NewBlogPostPage() {
     } catch (err: any) {
       console.error('Failed to create blog post:', err);
       setError(err.message || 'Failed to save blog post.');
-      setLoading(false);
     }
   };
 
@@ -62,13 +61,18 @@ export default function NewBlogPostPage() {
     <div className="max-w-4xl mx-auto pb-16">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/dashboard/blog" className="text-surface-500 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-100 flex items-center gap-1.5 text-xs font-medium transition-colors">
+        <Link
+          href="/dashboard/blog"
+          className="text-surface-500 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-100 flex items-center gap-1.5 text-xs font-medium transition-colors"
+        >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Articles</span>
         </Link>
       </div>
       <h1 className="text-2xl font-bold text-surface-900 dark:text-surface-50 mb-1">Write New Article</h1>
-      <p className="text-surface-500 dark:text-surface-400 text-sm mb-6">Publish tutorials, guides, and platform updates.</p>
+      <p className="text-surface-500 dark:text-surface-400 text-sm mb-6">
+        Publish tutorials, guides, and platform updates.
+      </p>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
@@ -139,14 +143,14 @@ export default function NewBlogPostPage() {
         {/* Action Controls */}
         <div className="flex justify-end gap-3">
           <Link href="/dashboard/blog">
-            <Button type="button" variant="ghost" disabled={loading}>
+            <Button type="button" variant="ghost" disabled={createMutation.isPending}>
               Cancel
             </Button>
           </Link>
           <Button
             type="submit"
-            isLoading={loading}
-            className={status === 'published' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : ''}
+            isLoading={createMutation.isPending}
+            className={status === 'published' ? 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer' : 'cursor-pointer'}
           >
             {status === 'published' ? 'Publish Article' : 'Save as Draft'}
           </Button>

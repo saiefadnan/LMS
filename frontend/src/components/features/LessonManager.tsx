@@ -3,13 +3,12 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createLesson, updateLesson, deleteLesson } from '@/lib/api';
+import { useCreateLesson, useUpdateLesson, useDeleteLesson } from '@/hooks/queries/useLessons';
 import { lessonSchema, type LessonFormValues } from '@/lib/validations';
 import { type Lesson, type Course } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
-import { Plus, Edit2, Trash2, Video, FileText, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
 import { modal } from '@/stores/modal';
 
 interface LessonManagerProps {
@@ -22,12 +21,15 @@ export function LessonManager({ course, onLessonChanged }: LessonManagerProps) {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [error, setError] = useState('');
 
+  const createMutation = useCreateLesson();
+  const updateMutation = useUpdateLesson();
+  const deleteMutation = useDeleteLesson();
+
   const {
     register,
     handleSubmit,
     reset,
-    setValue,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<LessonFormValues>({
     resolver: zodResolver(lessonSchema),
   });
@@ -68,7 +70,7 @@ export function LessonManager({ course, onLessonChanged }: LessonManagerProps) {
     try {
       setError('');
       if (isAdding) {
-        await createLesson({
+        await createMutation.mutateAsync({
           title: data.title,
           content: data.content,
           videoUrl: data.videoUrl?.trim() || undefined,
@@ -78,17 +80,20 @@ export function LessonManager({ course, onLessonChanged }: LessonManagerProps) {
       } else if (editingId) {
         const lessonToEdit = lessons.find((l) => l.id === editingId);
         if (lessonToEdit) {
-          await updateLesson(lessonToEdit.documentId, {
-            title: data.title,
-            content: data.content,
-            videoUrl: data.videoUrl?.trim() || undefined,
-            order: data.order,
+          await updateMutation.mutateAsync({
+            documentId: lessonToEdit.documentId,
+            data: {
+              title: data.title,
+              content: data.content,
+              videoUrl: data.videoUrl?.trim() || undefined,
+              order: data.order,
+            },
           });
         }
       }
       setIsAdding(false);
       setEditingId(null);
-      onLessonChanged(); // Trigger parent to refetch course data
+      onLessonChanged();
     } catch (err: any) {
       setError(err.message || 'Failed to save lesson');
     }
@@ -97,14 +102,15 @@ export function LessonManager({ course, onLessonChanged }: LessonManagerProps) {
   const handleDelete = async (lessonDocId: string) => {
     const confirmed = await modal.confirm({
       title: 'Delete Lesson Module',
-      message: 'Are you sure you want to permanently delete this lesson and all associated student progress? This cannot be undone.',
+      message:
+        'Are you sure you want to permanently delete this lesson and all associated student progress? This cannot be undone.',
       variant: 'danger',
       confirmText: 'Delete Lesson',
     });
     if (!confirmed) return;
 
     try {
-      await deleteLesson(lessonDocId);
+      await deleteMutation.mutateAsync(lessonDocId);
       onLessonChanged();
     } catch (err: any) {
       modal.alert({
@@ -115,12 +121,16 @@ export function LessonManager({ course, onLessonChanged }: LessonManagerProps) {
     }
   };
 
+  const isSubmitting = createMutation.isPending || updateMutation.isPending;
+
   return (
     <div className="mt-8">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-surface-900 dark:text-surface-50">Curriculum ({lessons.length} Lessons)</h2>
+        <h2 className="text-xl font-bold text-surface-900 dark:text-surface-50">
+          Curriculum ({lessons.length} Lessons)
+        </h2>
         {!isAdding && !editingId && (
-          <Button onClick={handleStartAdd} variant="secondary" size="sm">
+          <Button onClick={handleStartAdd} variant="secondary" size="sm" className="cursor-pointer">
             + Add Lesson
           </Button>
         )}
@@ -135,7 +145,7 @@ export function LessonManager({ course, onLessonChanged }: LessonManagerProps) {
             </p>
           ) : (
             lessons.map((lesson) => (
-              <div 
+              <div
                 key={lesson.id}
                 className="flex items-center justify-between p-4 bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-lg hover:border-surface-300 dark:hover:border-surface-700 transition-colors shadow-2xs"
               >
@@ -151,10 +161,16 @@ export function LessonManager({ course, onLessonChanged }: LessonManagerProps) {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => handleStartEdit(lesson)}>
+                  <Button variant="ghost" size="sm" onClick={() => handleStartEdit(lesson)} className="cursor-pointer">
                     Edit
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleDelete(lesson.documentId)} className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDelete(lesson.documentId)}
+                    disabled={deleteMutation.isPending}
+                    className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer"
+                  >
                     Delete
                   </Button>
                 </div>
@@ -170,7 +186,7 @@ export function LessonManager({ course, onLessonChanged }: LessonManagerProps) {
           <h3 className="text-lg font-bold text-surface-900 dark:text-surface-50 mb-4">
             {isAdding ? 'Add New Lesson' : 'Edit Lesson'}
           </h3>
-          
+
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {error && (
               <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 rounded-lg border border-red-100 dark:border-red-900">
@@ -180,11 +196,7 @@ export function LessonManager({ course, onLessonChanged }: LessonManagerProps) {
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="md:col-span-3">
-                <Input
-                  label="Lesson Title"
-                  {...register('title')}
-                  error={errors.title?.message}
-                />
+                <Input label="Lesson Title" {...register('title')} error={errors.title?.message} />
               </div>
               <div>
                 <Input
@@ -210,10 +222,10 @@ export function LessonManager({ course, onLessonChanged }: LessonManagerProps) {
             />
 
             <div className="flex justify-end gap-3 pt-2">
-              <Button type="button" variant="ghost" onClick={handleCancel}>
+              <Button type="button" variant="ghost" onClick={handleCancel} disabled={isSubmitting} className="cursor-pointer">
                 Cancel
               </Button>
-              <Button type="submit" isLoading={isSubmitting}>
+              <Button type="submit" isLoading={isSubmitting} className="cursor-pointer">
                 Save Lesson
               </Button>
             </div>

@@ -1,10 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getCourse, enrollInCourse, getMyEnrollments } from '@/lib/api';
-import { type Course } from '@/types';
+import { useCourse, useMyEnrollments, useEnrollCourse } from '@/hooks/queries/useCourses';
 import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui/Button';
 import { Navbar } from '@/components/ui/Navbar';
@@ -19,11 +17,9 @@ export default function CourseDetailsPage() {
   const documentId = params.documentId as string;
   const user = useAuthStore((s) => s.user);
 
-  const [course, setCourse] = useState<Course | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [enrolling, setEnrolling] = useState(false);
-  const [isEnrolled, setIsEnrolled] = useState(false);
-  const [error, setError] = useState('');
+  const { data: course, isLoading, isError, error } = useCourse(documentId);
+  const { data: enrollments = [] } = useMyEnrollments(Boolean(user));
+  const enrollMutation = useEnrollCourse();
 
   const roleType = user
     ? (typeof user.role === 'object' ? user.role?.type : user.role) || 'student'
@@ -34,36 +30,13 @@ export default function CourseDetailsPage() {
   );
   const isGlobalManager = roleType === 'admin' || roleType === 'content_manager';
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [courseRes, enrollmentsRes] = await Promise.all([
-          getCourse(documentId),
-          user ? getMyEnrollments() : Promise.resolve({ data: [] }),
-        ]);
-
-        const loadedCourse = courseRes.data;
-        setCourse(loadedCourse);
-
-        // Check if user is already enrolled
-        if (user && enrollmentsRes.data) {
-          const enrolled = enrollmentsRes.data.some(
-            (e) => e.course?.id === loadedCourse.id || e.course?.documentId === loadedCourse.documentId
-          );
-          setIsEnrolled(enrolled);
-        }
-      } catch (err) {
-        console.error('Failed to load course details:', err);
-        setError('Could not load course details.');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    if (documentId) {
-      loadData();
-    }
-  }, [documentId, user]);
+  const isEnrolled = Boolean(
+    user &&
+      course &&
+      enrollments.some(
+        (e) => e.course?.id === course.id || e.course?.documentId === course.documentId
+      )
+  );
 
   const handleEnroll = async () => {
     if (!user) {
@@ -74,20 +47,16 @@ export default function CourseDetailsPage() {
     if (!course) return;
 
     try {
-      setEnrolling(true);
-      setError('');
-      await enrollInCourse(course.documentId);
-      setIsEnrolled(true);
+      await enrollMutation.mutateAsync(course.documentId);
       setTimeout(() => {
         router.push(`/learn/${course.documentId}`);
-      }, 500);
-    } catch (err: any) {
-      setError(err.message || 'Failed to enroll in course');
-      setEnrolling(false);
+      }, 300);
+    } catch (err) {
+      console.error('Failed to enroll:', err);
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface-50 dark:bg-surface-950">
         <div className="animate-spin rounded-full h-10 w-10 border-2 border-brand-600 border-t-transparent"></div>
@@ -95,12 +64,12 @@ export default function CourseDetailsPage() {
     );
   }
 
-  if (error || !course) {
+  if (isError || !course) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface-50 dark:bg-surface-950">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-surface-900 dark:text-surface-100 mb-4">
-            {error || 'Course not found'}
+            {error instanceof Error ? error.message : 'Course not found'}
           </h1>
           <Link href="/courses">
             <Button variant="secondary">Back to Catalog</Button>
@@ -123,7 +92,7 @@ export default function CourseDetailsPage() {
         isInstructorOfCourse={isInstructorOfCourse}
         isGlobalManager={isGlobalManager}
         isEnrolled={isEnrolled}
-        enrolling={enrolling}
+        enrolling={enrollMutation.isPending}
         onEnroll={handleEnroll}
       />
 

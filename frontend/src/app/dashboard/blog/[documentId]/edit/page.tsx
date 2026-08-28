@@ -3,9 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getBlogPost, updateBlogPost } from '@/lib/api';
+import { useBlogPost, useUpdateBlogPost } from '@/hooks/queries/useBlog';
 import { useAuthStore } from '@/stores/auth';
-import { type BlogPost } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
@@ -17,12 +16,13 @@ export default function EditBlogPostPage() {
   const user = useAuthStore((s) => s.user);
   const documentId = params.documentId as string;
 
+  const { data: post, isLoading: initialLoading } = useBlogPost(documentId);
+  const updateMutation = useUpdateBlogPost();
+
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [coverImage, setCoverImage] = useState('');
   const [status, setStatus] = useState<'draft' | 'published'>('draft');
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const roleType = (typeof user?.role === 'object' ? user?.role?.type : user?.role) || '';
@@ -34,33 +34,17 @@ export default function EditBlogPostPage() {
   }, [user, roleType, router]);
 
   useEffect(() => {
-    async function loadPost() {
-      try {
-        setInitialLoading(true);
-        const res = await getBlogPost(documentId);
-        const post = res.data;
-        if (post) {
-          setTitle(post.title || '');
-          setBody(post.body || post.content || '');
-          setCoverImage(
-            typeof post.coverImage === 'string'
-              ? post.coverImage
-              : post.coverImage?.url || ''
-          );
-          setStatus(post.status || 'draft');
-        }
-      } catch (err: any) {
-        console.error('Failed to load blog post', err);
-        setError('Failed to load blog post for editing.');
-      } finally {
-        setInitialLoading(false);
-      }
+    if (post) {
+      setTitle(post.title || '');
+      setBody(post.body || post.content || '');
+      setCoverImage(
+        typeof post.coverImage === 'string'
+          ? post.coverImage
+          : post.coverImage?.url || ''
+      );
+      setStatus(post.status || 'draft');
     }
-
-    if (documentId) {
-      loadPost();
-    }
-  }, [documentId]);
+  }, [post]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,21 +58,22 @@ export default function EditBlogPostPage() {
     }
 
     try {
-      setLoading(true);
       setError('');
 
-      await updateBlogPost(documentId, {
-        title: title.trim(),
-        body: body.trim(),
-        coverImage: coverImage.trim() || undefined,
-        status,
+      await updateMutation.mutateAsync({
+        documentId,
+        data: {
+          title: title.trim(),
+          body: body.trim(),
+          coverImage: coverImage.trim() || undefined,
+          status,
+        },
       });
 
       router.push('/dashboard/blog');
     } catch (err: any) {
       console.error('Failed to update blog post:', err);
       setError(err.message || 'Failed to save blog post.');
-      setLoading(false);
     }
   };
 
@@ -105,7 +90,10 @@ export default function EditBlogPostPage() {
       {/* Header */}
       <div className="flex items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard/blog" className="text-surface-500 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-100 flex items-center gap-1.5 text-xs font-medium transition-colors">
+          <Link
+            href="/dashboard/blog"
+            className="text-surface-500 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-100 flex items-center gap-1.5 text-xs font-medium transition-colors"
+          >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Articles</span>
           </Link>
@@ -122,7 +110,9 @@ export default function EditBlogPostPage() {
         )}
       </div>
       <h1 className="text-2xl font-bold text-surface-900 dark:text-surface-50 mb-1">Edit Article</h1>
-      <p className="text-surface-500 dark:text-surface-400 text-sm mb-6">Update your publication content and settings.</p>
+      <p className="text-surface-500 dark:text-surface-400 text-sm mb-6">
+        Update your publication content and settings.
+      </p>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
@@ -193,14 +183,14 @@ export default function EditBlogPostPage() {
         {/* Action Controls */}
         <div className="flex justify-end gap-3">
           <Link href="/dashboard/blog">
-            <Button type="button" variant="ghost" disabled={loading}>
+            <Button type="button" variant="ghost" disabled={updateMutation.isPending}>
               Cancel
             </Button>
           </Link>
           <Button
             type="submit"
-            isLoading={loading}
-            className={status === 'published' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : ''}
+            isLoading={updateMutation.isPending}
+            className={status === 'published' ? 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer' : 'cursor-pointer'}
           >
             Save Changes
           </Button>

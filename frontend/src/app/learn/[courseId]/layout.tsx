@@ -1,54 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { getCourse } from '@/lib/api';
-import { Course } from '@/types';
+import { useCourse } from '@/hooks/queries/useCourses';
+import { useCourseProgress } from '@/hooks/queries/useProgress';
 import LearningSidebar from '@/components/features/LearningSidebar';
-import { useProgressStore } from '@/stores/progress';
 
 export default function LearnLayout({ children }: { children: React.ReactNode }) {
   const params = useParams();
   const router = useRouter();
   const courseId = params.courseId as string;
-  
-  const [course, setCourse] = useState<Course | null>(null);
-  const [loading, setLoading] = useState(true);
-  
-  const { progress, fetchProgress } = useProgressStore();
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [courseRes] = await Promise.all([
-          getCourse(courseId),
-          fetchProgress(courseId)
-        ]);
-        
-        const fetchedCourse = courseRes.data;
-        if (!fetchedCourse) {
-          router.push('/dashboard/my-courses');
-          return;
-        }
+  const { data: course, isLoading: courseLoading } = useCourse(courseId);
+  const { data: progress = [], isLoading: progressLoading } = useCourseProgress(courseId);
 
-        // Sort lessons immediately
-        if (fetchedCourse.lessons) {
-          fetchedCourse.lessons.sort((a, b) => (a.order || 0) - (b.order || 0));
-        }
-        
-        setCourse(fetchedCourse);
-      } catch (err) {
-        console.error('Failed to load learning data', err);
-        router.push('/dashboard/my-courses');
-      } finally {
-        setLoading(false);
-      }
-    }
-    
-    if (courseId) {
-      loadData();
-    }
-  }, [courseId, router, fetchProgress]);
+  const loading = courseLoading || progressLoading;
 
   if (loading) {
     return (
@@ -58,17 +23,25 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  if (!course) return null;
+  if (!course) {
+    router.push('/dashboard/my-courses');
+    return null;
+  }
+
+  // Sort lessons if present
+  if (course.lessons) {
+    course.lessons.sort((a, b) => (a.order || 0) - (b.order || 0));
+  }
 
   const completedLessonIds = progress
-    .filter(p => p.completed && p.lesson)
-    .map(p => p.lesson!.id);
+    .filter((p) => p.completed && p.lesson)
+    .map((p) => p.lesson!.id);
 
   return (
     <div className="h-screen w-full flex overflow-hidden bg-surface-50 dark:bg-surface-950 text-surface-900 dark:text-surface-100 transition-colors duration-150">
-      <LearningSidebar 
-        course={course} 
-        completedLessonIds={completedLessonIds} 
+      <LearningSidebar
+        course={course}
+        completedLessonIds={completedLessonIds}
       />
       <main className="flex-1 overflow-y-auto">
         {children}

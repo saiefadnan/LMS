@@ -1,12 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { createQuiz, updateQuiz, deleteQuiz } from '@/lib/api';
+import { useCreateQuiz, useUpdateQuiz, useDeleteQuiz } from '@/hooks/queries/useQuizzes';
 import { type Quiz, type QuizQuestion, type Course } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { HelpCircle, AlertCircle, Plus, Trash2, Edit3, CheckCircle2, X } from 'lucide-react';
-
+import { HelpCircle, AlertCircle, Plus, Trash2 } from 'lucide-react';
 import { modal } from '@/stores/modal';
 
 interface QuizManagerProps {
@@ -29,8 +28,11 @@ const defaultQuestion = (): QuestionFormState => ({
 export function QuizManager({ course, onQuizChanged }: QuizManagerProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null);
-  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  const createMutation = useCreateQuiz();
+  const updateMutation = useUpdateQuiz();
+  const deleteMutation = useDeleteQuiz();
 
   // Form State
   const [title, setTitle] = useState('');
@@ -120,8 +122,6 @@ export function QuizManager({ course, onQuizChanged }: QuizManagerProps) {
     }
 
     try {
-      setSubmitting(true);
-
       const formattedQuestions: QuizQuestion[] = questions.map((q) => ({
         question: q.question.trim(),
         options: q.options.map((opt) => opt.trim()),
@@ -129,15 +129,18 @@ export function QuizManager({ course, onQuizChanged }: QuizManagerProps) {
       }));
 
       if (isAdding) {
-        await createQuiz({
+        await createMutation.mutateAsync({
           title: title.trim(),
           questions: formattedQuestions,
           course: course.id,
         });
       } else if (editingQuiz) {
-        await updateQuiz(editingQuiz.documentId, {
-          title: title.trim(),
-          questions: formattedQuestions,
+        await updateMutation.mutateAsync({
+          documentId: editingQuiz.documentId,
+          data: {
+            title: title.trim(),
+            questions: formattedQuestions,
+          },
         });
       }
 
@@ -147,22 +150,21 @@ export function QuizManager({ course, onQuizChanged }: QuizManagerProps) {
     } catch (err: any) {
       console.error('Failed to save quiz:', err);
       setError(err.message || 'Failed to save quiz. Please try again.');
-    } finally {
-      setSubmitting(false);
     }
   };
 
   const handleDelete = async (quizDocId: string) => {
     const confirmed = await modal.confirm({
       title: 'Delete Assessment Quiz',
-      message: 'Are you sure you want to permanently remove this quiz and all student result records? This action cannot be undone.',
+      message:
+        'Are you sure you want to permanently remove this quiz and all student result records? This action cannot be undone.',
       variant: 'danger',
       confirmText: 'Delete Quiz',
     });
     if (!confirmed) return;
 
     try {
-      await deleteQuiz(quizDocId);
+      await deleteMutation.mutateAsync(quizDocId);
       onQuizChanged();
     } catch (err: any) {
       modal.alert({
@@ -172,6 +174,8 @@ export function QuizManager({ course, onQuizChanged }: QuizManagerProps) {
       });
     }
   };
+
+  const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
   return (
     <div className="mt-8">
@@ -185,7 +189,7 @@ export function QuizManager({ course, onQuizChanged }: QuizManagerProps) {
           </p>
         </div>
         {!isAdding && !editingQuiz && (
-          <Button onClick={handleStartAdd} variant="outline" size="sm" className="gap-1.5 text-xs">
+          <Button onClick={handleStartAdd} variant="outline" size="sm" className="gap-1.5 text-xs cursor-pointer">
             <Plus className="w-3.5 h-3.5" />
             <span>Add Quiz</span>
           </Button>
@@ -204,7 +208,7 @@ export function QuizManager({ course, onQuizChanged }: QuizManagerProps) {
               <p className="text-xs text-surface-400 dark:text-surface-500 mt-0.5">
                 Add an MCQ quiz to evaluate learners at the end of this course.
               </p>
-              <Button onClick={handleStartAdd} variant="outline" size="sm" className="mt-3 gap-1 text-xs">
+              <Button onClick={handleStartAdd} variant="outline" size="sm" className="mt-3 gap-1 text-xs cursor-pointer">
                 <Plus className="w-3.5 h-3.5" />
                 <span>Create Assessment</span>
               </Button>
@@ -231,14 +235,15 @@ export function QuizManager({ course, onQuizChanged }: QuizManagerProps) {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="sm" onClick={() => handleStartEdit(quiz)} className="text-xs">
+                    <Button variant="ghost" size="sm" onClick={() => handleStartEdit(quiz)} className="text-xs cursor-pointer">
                       Edit
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDelete(quiz.documentId)}
-                      className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/40 text-xs"
+                      disabled={deleteMutation.isPending}
+                      className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/40 text-xs cursor-pointer"
                     >
                       Delete
                     </Button>
@@ -373,7 +378,7 @@ export function QuizManager({ course, onQuizChanged }: QuizManagerProps) {
                 variant="outline"
                 size="sm"
                 onClick={handleAddQuestion}
-                className="w-full border-dashed border-surface-300 dark:border-surface-700 py-2.5 text-brand-700 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-950/40 gap-1.5 text-xs font-medium"
+                className="w-full border-dashed border-surface-300 dark:border-surface-700 py-2.5 text-brand-700 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-950/40 gap-1.5 text-xs font-medium cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>Add Another Question</span>
@@ -381,10 +386,10 @@ export function QuizManager({ course, onQuizChanged }: QuizManagerProps) {
             </div>
 
             <div className="flex justify-end gap-3 pt-4 border-t border-surface-200 dark:border-surface-800">
-              <Button type="button" variant="ghost" onClick={handleCancel} disabled={submitting}>
+              <Button type="button" variant="ghost" onClick={handleCancel} disabled={isSubmitting} className="cursor-pointer">
                 Cancel
               </Button>
-              <Button type="submit" isLoading={submitting}>
+              <Button type="submit" isLoading={isSubmitting} className="cursor-pointer">
                 {isAdding ? 'Create Quiz' : 'Save Quiz Changes'}
               </Button>
             </div>

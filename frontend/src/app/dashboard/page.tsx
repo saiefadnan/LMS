@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useAuthStore } from '@/stores/auth';
 import Link from 'next/link';
-import { getMyEnrollments, getMyQuizResults, getMyCourses, getPlatformStats, getAllUsers, getCourses, getBlogPosts } from '@/lib/api';
-import { type QuizResult, type Enrollment, type Course } from '@/types';
+import { usePlatformStats, useUsers } from '@/hooks/queries/useAdmin';
+import { useCourses, useMyCourses, useMyEnrollments } from '@/hooks/queries/useCourses';
+import { useMyQuizResults } from '@/hooks/queries/useQuizzes';
+import { useBlogPosts } from '@/hooks/queries/useBlog';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { DashboardAnalytics } from '@/components/features/DashboardAnalytics';
@@ -15,7 +17,6 @@ import {
   RotateCcw, 
   ArrowRight, 
   BookOpen, 
-  Clock, 
   Search, 
   ChevronLeft, 
   ChevronRight,
@@ -35,109 +36,74 @@ import {
  */
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
-  const [stats, setStats] = useState<{ [key: string]: number | string }>({});
-  const [loadingStats, setLoadingStats] = useState(true);
-  const [studentQuizResults, setStudentQuizResults] = useState<QuizResult[]>([]);
-  const [studentEnrollments, setStudentEnrollments] = useState<Enrollment[]>([]);
-  const [allCourses, setAllCourses] = useState<Course[]>([]);
-  const [allUsers, setAllUsers] = useState<any[]>([]);
-  const [allPosts, setAllPosts] = useState<any[]>([]);
-  
-  // Quiz pagination & search
+  const roleType = (typeof user?.role === 'object' ? user?.role?.type : user?.role) || 'student';
+
   const [quizPage, setQuizPage] = useState(1);
   const [quizPageSize, setQuizPageSize] = useState(5);
   const [quizSearch, setQuizSearch] = useState('');
   const [quizFilter, setQuizFilter] = useState<'all' | 'passed' | 'review'>('all');
 
-  const roleType = (typeof user?.role === 'object' ? user?.role?.type : user?.role) || 'student';
-
-  useEffect(() => {
-    async function loadStats() {
-      if (!user) return;
-      try {
-        if (roleType === 'admin') {
-          const [platformRes, usersRes, coursesRes, blogRes] = await Promise.all([
-            getPlatformStats().catch(() => ({})),
-            getAllUsers().catch(() => []),
-            getCourses().catch(() => ({ data: [] })),
-            getBlogPosts().catch(() => ({ data: [] })),
-          ]);
-          const platform: any = platformRes;
-
-          setAllUsers(usersRes || []);
-          setAllCourses(coursesRes.data || []);
-          setAllPosts(blogRes.data || []);
-
-          setStats({
-            totalUsers: platform.totalUsers ?? (usersRes || []).length,
-            totalCourses: platform.totalCourses ?? (coursesRes.data || []).length,
-            totalEnrollments: platform.totalEnrollments ?? 0,
-            blogPosts: platform.totalBlogPosts ?? (blogRes.data || []).length,
-            totalStudents: platform.totalStudents ?? (usersRes || []).filter((u: any) => (typeof u.role === 'object' ? u.role?.type : u.role) === 'student').length,
-            totalInstructors: platform.totalInstructors ?? (usersRes || []).filter((u: any) => (typeof u.role === 'object' ? u.role?.type : u.role) === 'instructor').length,
-            totalManagers: platform.totalManagers ?? (usersRes || []).filter((u: any) => (typeof u.role === 'object' ? u.role?.type : u.role) === 'content_manager').length,
-          });
-        } else if (roleType === 'content_manager') {
-          const [platformRes, coursesRes, blogRes] = await Promise.all([
-            getPlatformStats().catch(() => ({})),
-            getCourses().catch(() => ({ data: [] })),
-            getBlogPosts().catch(() => ({ data: [] })),
-          ]);
-          const platform: any = platformRes;
-
-          setAllCourses(coursesRes.data || []);
-          setAllPosts(blogRes.data || []);
-
-          setStats({
-            totalCourses: platform.totalCourses ?? (coursesRes.data || []).length,
-            totalEnrollments: platform.totalEnrollments ?? 0,
-            blogPosts: platform.totalBlogPosts ?? (blogRes.data || []).length,
-            totalUsers: platform.totalUsers ?? 0,
-          });
-        } else if (roleType === 'student') {
-          const [enrollmentsRes, resultsRes] = await Promise.all([
-            getMyEnrollments().catch(() => ({ data: [] })),
-            getMyQuizResults().catch(() => ({ data: [] })),
-          ]);
-
-          const enrollmentsList = enrollmentsRes.data || [];
-          const resultsList = resultsRes.data || [];
-
-          setStudentEnrollments(enrollmentsList);
-          setStudentQuizResults(resultsList);
-
-          const enrolledCount = enrollmentsList.length;
-          const passedCount = resultsList.filter((r) => {
-            const percentage = r.totalQuestions > 0 ? Math.round((r.score / r.totalQuestions) * 100) : 0;
-            return r.passed ?? (percentage >= 70);
-          }).length;
-
-          setStats({
-            enrolled: enrolledCount,
-            quizzesPassed: passedCount,
-          });
-        } else if (roleType === 'instructor') {
-          const coursesRes = await getMyCourses().catch(() => ({ data: [] }));
-          const courses = coursesRes.data || [];
-          setAllCourses(courses);
-          const totalStudents = courses.reduce((acc, c) => acc + (c.enrollments?.length || 0), 0);
-
-          setStats({
-            myCourses: courses.length,
-            totalStudents: totalStudents,
-          });
-        }
-      } catch (err) {
-        console.error('Failed to load dashboard stats', err);
-      } finally {
-        setLoadingStats(false);
-      }
-    }
-
-    loadStats();
-  }, [user, roleType]);
+  // TanStack Query Hooks based on role
+  const { data: platformStats, isLoading: platformLoading } = usePlatformStats(
+    roleType === 'admin' || roleType === 'content_manager'
+  );
+  const { data: allUsers = [], isLoading: usersLoading } = useUsers(roleType === 'admin');
+  const { data: allCourses = [], isLoading: coursesLoading } = useCourses();
+  const { data: myCourses = [], isLoading: myCoursesLoading } = useMyCourses(roleType === 'instructor');
+  const { data: studentEnrollments = [], isLoading: enrollmentsLoading } = useMyEnrollments(roleType === 'student');
+  const { data: studentQuizResults = [], isLoading: quizResultsLoading } = useMyQuizResults(roleType === 'student');
+  const { data: allPosts = [], isLoading: postsLoading } = useBlogPosts();
 
   if (!user) return null;
+
+  const loadingStats =
+    roleType === 'admin'
+      ? platformLoading || usersLoading || coursesLoading || postsLoading
+      : roleType === 'content_manager'
+      ? platformLoading || coursesLoading || postsLoading
+      : roleType === 'instructor'
+      ? myCoursesLoading
+      : enrollmentsLoading || quizResultsLoading;
+
+  // Build metrics for role
+  let stats: { [key: string]: number | string } = {};
+
+  if (roleType === 'admin') {
+    const platform: any = platformStats || {};
+    stats = {
+      totalUsers: platform.totalUsers ?? allUsers.length,
+      totalCourses: platform.totalCourses ?? allCourses.length,
+      totalEnrollments: platform.totalEnrollments ?? 0,
+      blogPosts: platform.totalBlogPosts ?? allPosts.length,
+      totalStudents: platform.totalStudents ?? allUsers.filter((u: any) => (typeof u.role === 'object' ? u.role?.type : u.role) === 'student').length,
+      totalInstructors: platform.totalInstructors ?? allUsers.filter((u: any) => (typeof u.role === 'object' ? u.role?.type : u.role) === 'instructor').length,
+      totalManagers: platform.totalManagers ?? allUsers.filter((u: any) => (typeof u.role === 'object' ? u.role?.type : u.role) === 'content_manager').length,
+    };
+  } else if (roleType === 'content_manager') {
+    const platform: any = platformStats || {};
+    stats = {
+      totalCourses: platform.totalCourses ?? allCourses.length,
+      totalEnrollments: platform.totalEnrollments ?? 0,
+      blogPosts: platform.totalBlogPosts ?? allPosts.length,
+      totalUsers: platform.totalUsers ?? 0,
+    };
+  } else if (roleType === 'instructor') {
+    const totalStudents = myCourses.reduce((acc, c) => acc + (c.enrollments?.length || 0), 0);
+    stats = {
+      myCourses: myCourses.length,
+      totalStudents,
+    };
+  } else {
+    const enrolledCount = studentEnrollments.length;
+    const passedCount = studentQuizResults.filter((r) => {
+      const percentage = r.totalQuestions > 0 ? Math.round((r.score / r.totalQuestions) * 100) : 0;
+      return r.passed ?? (percentage >= 70);
+    }).length;
+    stats = {
+      enrolled: enrolledCount,
+      quizzesPassed: passedCount,
+    };
+  }
 
   // Filtered & Paginated Quiz Results
   const filteredQuizResults = studentQuizResults.filter((res) => {
@@ -251,7 +217,7 @@ export default function DashboardPage() {
         stats={stats}
         quizResults={studentQuizResults}
         enrollments={studentEnrollments}
-        courses={allCourses}
+        courses={roleType === 'instructor' ? myCourses : allCourses}
         users={allUsers}
         posts={allPosts}
       />
@@ -348,170 +314,131 @@ export default function DashboardPage() {
 
           {/* Loading Skeleton */}
           {loadingStats ? (
-            <div className="bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-xl overflow-hidden shadow-xs divide-y divide-surface-100 dark:divide-surface-800">
-              {[1, 2, 3].map((n) => (
-                <div key={n} className="p-4 flex items-center justify-between gap-4 animate-pulse">
-                  <div className="flex items-center gap-3.5 flex-1">
-                    <div className="w-9 h-9 bg-surface-200 dark:bg-surface-800 rounded-lg shrink-0"></div>
-                    <div className="space-y-1.5 flex-1 max-w-md">
-                      <div className="h-4 bg-surface-200 dark:bg-surface-800 rounded w-48"></div>
-                      <div className="h-3 bg-surface-100 dark:bg-surface-800/60 rounded w-32"></div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="h-6 bg-surface-200 dark:bg-surface-800 rounded w-20"></div>
-                    <div className="h-8 bg-surface-200 dark:bg-surface-800 rounded-lg w-16"></div>
-                  </div>
-                </div>
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="animate-pulse bg-white dark:bg-surface-900 rounded-xl p-5 border border-surface-200 dark:border-surface-800 flex justify-between items-center h-20" />
               ))}
             </div>
-          ) : studentQuizResults.length === 0 ? (
-            <div className="bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-xl p-10 text-center space-y-3 shadow-xs">
-              <div className="w-12 h-12 rounded-full bg-surface-100 dark:bg-surface-800 text-surface-400 flex items-center justify-center mx-auto">
-                <FileQuestion className="w-6 h-6" />
-              </div>
-              <p className="text-surface-900 dark:text-surface-100 font-semibold text-sm">No quiz attempts recorded yet</p>
-              <p className="text-surface-500 dark:text-surface-400 text-xs max-w-sm mx-auto">
-                Enroll in courses and take practice quizzes to test your understanding!
+          ) : filteredQuizResults.length === 0 ? (
+            <div className="text-center py-12 bg-white dark:bg-surface-900 rounded-xl border border-surface-200 dark:border-surface-800 p-6">
+              <FileQuestion className="w-8 h-8 text-surface-400 dark:text-surface-600 mx-auto mb-2" />
+              <p className="text-surface-900 dark:text-surface-100 font-bold text-sm">
+                {quizSearch ? 'No matching assessments found' : 'No quizzes completed yet'}
               </p>
-              <Link href="/courses" className="inline-block pt-1">
-                <Button variant="secondary" size="sm">
-                  Browse Courses
-                </Button>
-              </Link>
-            </div>
-          ) : totalQuizCount === 0 ? (
-            <div className="bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-xl p-8 text-center space-y-2 shadow-xs">
-              <p className="text-surface-700 dark:text-surface-300 font-medium text-sm">No quiz attempts matched your search or filter.</p>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => { setQuizSearch(''); setQuizFilter('all'); }}
-                className="text-xs text-brand-600 dark:text-brand-400 hover:text-brand-700 cursor-pointer"
-              >
-                Reset Filters
-              </Button>
+              <p className="text-surface-500 dark:text-surface-400 text-xs mt-1 max-w-sm mx-auto">
+                {quizSearch
+                  ? 'Try a different search keyword.'
+                  : 'Enroll in a course, work through the video modules, and take assessments to test your knowledge.'}
+              </p>
+              {!quizSearch && (
+                <Link href="/courses">
+                  <Button variant="primary" size="sm" className="mt-4 text-xs font-semibold cursor-pointer">
+                    Browse Course Catalog
+                  </Button>
+                </Link>
+              )}
             </div>
           ) : (
-            <>
-              <div className="bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-xl overflow-hidden shadow-xs">
-                <div className="divide-y divide-surface-100 dark:divide-surface-800">
-                  {paginatedQuizResults.map((res) => {
-                    const quizDoc = res.quiz?.documentId || (res.quiz as any)?.id;
-                    const courseDoc = res.quiz?.course?.documentId || (res.quiz?.course as any)?.id;
-                    const total = res.totalQuestions || 0;
-                    const score = res.score || 0;
-                    const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
-                    const isPassed = res.passed ?? (percentage >= 70);
+            <div className="space-y-3">
+              {paginatedQuizResults.map((result) => {
+                const total = result.totalQuestions || 0;
+                const score = result.score || 0;
+                const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
+                const isPassed = result.passed ?? (percentage >= 70);
 
-                    return (
-                      <div
-                        key={res.documentId || res.id}
-                        className="p-4 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-surface-50/70 dark:hover:bg-surface-800/60 transition-colors"
-                      >
-                        <div className="flex items-start gap-3.5 min-w-0">
-                          <div
-                            className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
-                              isPassed
-                                ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
-                                : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
-                            }`}
-                          >
-                            {isPassed ? <Award className="w-4.5 h-4.5" /> : <RotateCcw className="w-4.5 h-4.5" />}
-                          </div>
-                          <div className="min-w-0">
-                            <h3 className="font-semibold text-surface-900 dark:text-surface-100 text-sm truncate">
-                              {res.quiz?.title || 'Course Assessment'}
-                            </h3>
-                            <p className="text-xs text-surface-500 dark:text-surface-400 mt-0.5 flex items-center gap-2">
-                              <span>{res.quiz?.course?.title || 'Enrolled Course'}</span>
-                              {res.createdAt && (
-                                <>
-                                  <span className="text-surface-300 dark:text-surface-600">•</span>
-                                  <span>{new Date(res.createdAt).toLocaleDateString()}</span>
-                                </>
-                              )}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-4 self-end sm:self-center shrink-0">
-                          <div className="text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <span className="text-sm font-bold text-surface-900 dark:text-surface-100">
-                                {score}/{total}
-                              </span>
-                              <Badge variant={isPassed ? 'success' : 'warning'} size="sm">
-                                {percentage}% {isPassed ? 'Passed' : 'Review'}
-                              </Badge>
-                            </div>
-                          </div>
-
-                          {courseDoc && quizDoc && (
-                            <Link href={`/learn/${courseDoc}/quiz/${quizDoc}`}>
-                              <Button variant="outline" size="sm" className="text-xs gap-1">
-                                Review
-                                <ArrowRight className="w-3 h-3" />
-                              </Button>
-                            </Link>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Pagination Controls */}
-              {quizPageCount > 1 && (
-                <div className="flex items-center justify-center gap-2 pt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setQuizPage((p) => Math.max(1, p - 1))}
-                    disabled={quizPage <= 1}
-                    className="gap-1 px-3 text-xs"
+                return (
+                  <div
+                    key={result.id || result.documentId}
+                    className="bg-white dark:bg-surface-900 rounded-xl border border-surface-200 dark:border-surface-800 p-4 sm:p-5 shadow-xs hover:border-surface-300 dark:hover:border-surface-700 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                   >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                    Previous
-                  </Button>
+                    <div className="flex items-start sm:items-center gap-3.5">
+                      <div
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+                          isPassed
+                            ? 'bg-emerald-50 dark:bg-emerald-950/70 border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400'
+                            : 'bg-amber-50 dark:bg-amber-950/70 border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400'
+                        }`}
+                      >
+                        {isPassed ? <CheckCircle2 className="w-5 h-5" /> : <RotateCcw className="w-5 h-5" />}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-sm font-bold text-surface-900 dark:text-surface-100">
+                            {result.quiz?.title || 'Course Assessment'}
+                          </h3>
+                          <Badge
+                            variant={isPassed ? 'success' : 'warning'}
+                            size="sm"
+                          >
+                            {isPassed ? 'Passed' : 'Needs Review'}
+                          </Badge>
+                        </div>
+                        <p className="text-surface-500 dark:text-surface-400 text-xs mt-0.5">
+                          Course: <span className="font-medium text-surface-700 dark:text-surface-300">{result.quiz?.course?.title || 'General'}</span>
+                          <span className="mx-1.5">•</span>
+                          {new Date(result.createdAt).toLocaleDateString(undefined, {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </p>
+                      </div>
+                    </div>
 
-                  <span className="text-xs font-semibold text-surface-700 dark:text-surface-300 bg-white dark:bg-surface-900 px-3 py-1.5 rounded-lg border border-surface-200 dark:border-surface-800 shadow-xs">
+                    <div className="flex items-center justify-between sm:justify-end gap-5 pt-3 sm:pt-0 border-t sm:border-t-0 border-surface-100 dark:border-surface-800">
+                      <div className="text-left sm:text-right">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`text-base font-extrabold ${isPassed ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                            {score} / {total}
+                          </span>
+                          <span className="text-xs font-bold text-surface-400">({percentage}%)</span>
+                        </div>
+                        <p className="text-[11px] text-surface-400 font-medium">Final Grade</p>
+                      </div>
+
+                      {result.quiz?.course?.documentId && (
+                        <Link href={`/learn/${result.quiz.course.documentId}/quiz/${result.quiz.documentId || result.quiz.id}`}>
+                          <Button variant="secondary" size="sm" className="gap-1.5 text-xs cursor-pointer">
+                            <RotateCcw className="w-3.5 h-3.5" />
+                            <span>Retake</span>
+                          </Button>
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Quiz Pagination Controls */}
+              {quizPageCount > 1 && (
+                <div className="flex items-center justify-between pt-2">
+                  <span className="text-xs text-surface-500 dark:text-surface-400">
                     Page {quizPage} of {quizPageCount}
                   </span>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setQuizPage((p) => Math.min(quizPageCount, p + 1))}
-                    disabled={quizPage >= quizPageCount}
-                    className="gap-1 px-3 text-xs"
-                  >
-                    Next
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={quizPage === 1}
+                      onClick={() => setQuizPage((prev) => Math.max(1, prev - 1))}
+                      className="cursor-pointer text-xs"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5 mr-1" /> Previous
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={quizPage >= quizPageCount}
+                      onClick={() => setQuizPage((prev) => Math.min(quizPageCount, prev + 1))}
+                      className="cursor-pointer text-xs"
+                    >
+                      Next <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                    </Button>
+                  </div>
                 </div>
               )}
-            </>
+            </div>
           )}
-        </div>
-      )}
-
-      {/* Enrolled Courses Preview (Student only) */}
-      {roleType === 'student' && studentEnrollments.length === 0 && !loadingStats && (
-        <div className="bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-xl p-8 text-center space-y-3 shadow-xs">
-          <div className="w-12 h-12 rounded-full bg-surface-100 dark:bg-surface-800 text-surface-400 flex items-center justify-center mx-auto">
-            <Compass className="w-6 h-6" />
-          </div>
-          <p className="text-surface-900 dark:text-surface-100 font-semibold text-sm">No courses currently in progress</p>
-          <p className="text-surface-500 dark:text-surface-400 text-xs max-w-sm mx-auto">
-            Explore our catalog of industry-ready engineering and technology courses.
-          </p>
-          <Link href="/courses" className="inline-block pt-1">
-            <Button variant="primary" size="sm">
-              Explore Course Catalog
-            </Button>
-          </Link>
         </div>
       )}
     </div>
