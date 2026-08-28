@@ -3,20 +3,7 @@ import { factories } from '@strapi/strapi';
 export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => ({
   async create(ctx) {
     const user = ctx.state.user;
-    if (!user) return ctx.unauthorized();
-
-    const data = ctx.request.body?.data || {};
-    const courseId = data.course;
-    
-    if (!courseId) return ctx.badRequest('course ID is required');
-
-    const isNumeric = /^\d+$/.test(String(courseId));
-    const course = await strapi.db.query('api::course.course').findOne({
-      where: isNumeric ? { id: Number(courseId) } : { documentId: String(courseId) },
-      populate: ['instructor'],
-    });
-
-    if (!course) return ctx.notFound('Course not found');
+    if (!user) return ctx.unauthorized('You must be logged in to create a quiz.');
 
     const roleType =
       user.role?.type ||
@@ -25,27 +12,23 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
           where: { id: user.id },
           populate: ['role'],
         })
-      )?.role?.type;
+      )?.role?.type ||
+      'student';
 
-    // Admin and Content Manager can create a quiz for any course
-    if (roleType !== 'admin' && roleType !== 'content_manager') {
-      // Instructor must own the course
-      if (course.instructor?.id !== user.id) {
-        return ctx.forbidden('You can only create quizzes for your own courses');
+    const data = ctx.request.body?.data || {};
+
+    try {
+      const quiz = await strapi
+        .service('api::quiz.quiz')
+        .createCourseQuiz(user, roleType, data);
+
+      return { data: quiz };
+    } catch (err: any) {
+      if (err.message === 'FORBIDDEN_COURSE_OWNER') {
+        return ctx.forbidden('You can only create quizzes for your own courses.');
       }
+      return ctx.badRequest(err.message || 'Failed to create quiz.');
     }
-
-    delete ctx.request.body.data.course; // Remove relation before creation
-    const response = await super.create(ctx);
-
-    if (response?.data?.documentId) {
-      await strapi.documents('api::quiz.quiz').update({
-        documentId: response.data.documentId,
-        data: { course: course.id },
-      });
-    }
-
-    return response;
   },
 
   async update(ctx) {
@@ -59,28 +42,27 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
           where: { id: user.id },
           populate: ['role'],
         })
-      )?.role?.type;
+      )?.role?.type ||
+      'student';
 
-    if (roleType !== 'admin' && roleType !== 'content_manager') {
-      const { id } = ctx.params;
-      const isNumeric = /^\d+$/.test(String(id));
-      const quiz = await strapi.db.query('api::quiz.quiz').findOne({
-        where: isNumeric ? { id: Number(id) } : { documentId: String(id) },
-        populate: { course: { populate: ['instructor'] } },
-      });
+    const { id } = ctx.params;
+    const data = ctx.request.body?.data || {};
 
-      if (!quiz) return ctx.notFound('Quiz not found');
-      if (quiz.course?.instructor?.id !== user.id) {
-        return ctx.forbidden('You can only edit quizzes for your own courses');
+    try {
+      const quiz = await strapi
+        .service('api::quiz.quiz')
+        .updateCourseQuiz(user, roleType, id, data);
+
+      return { data: quiz };
+    } catch (err: any) {
+      if (err.message === 'NOT_FOUND') {
+        return ctx.notFound('Quiz not found.');
       }
+      if (err.message === 'FORBIDDEN_COURSE_OWNER') {
+        return ctx.forbidden('You can only edit quizzes for your own courses.');
+      }
+      return ctx.badRequest(err.message || 'Failed to update quiz.');
     }
-
-    // Don't allow changing the course after creation
-    if (ctx.request.body?.data?.course) {
-      delete ctx.request.body.data.course;
-    }
-
-    return super.update(ctx);
   },
 
   async delete(ctx) {
@@ -94,22 +76,25 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
           where: { id: user.id },
           populate: ['role'],
         })
-      )?.role?.type;
+      )?.role?.type ||
+      'student';
 
-    if (roleType !== 'admin' && roleType !== 'content_manager') {
-      const { id } = ctx.params;
-      const isNumeric = /^\d+$/.test(String(id));
-      const quiz = await strapi.db.query('api::quiz.quiz').findOne({
-        where: isNumeric ? { id: Number(id) } : { documentId: String(id) },
-        populate: { course: { populate: ['instructor'] } },
-      });
+    const { id } = ctx.params;
 
-      if (!quiz) return ctx.notFound('Quiz not found');
-      if (quiz.course?.instructor?.id !== user.id) {
-        return ctx.forbidden('You can only delete quizzes for your own courses');
+    try {
+      const result = await strapi
+        .service('api::quiz.quiz')
+        .deleteCourseQuiz(user, roleType, id);
+
+      return { data: result };
+    } catch (err: any) {
+      if (err.message === 'NOT_FOUND') {
+        return ctx.notFound('Quiz not found.');
       }
+      if (err.message === 'FORBIDDEN_COURSE_OWNER') {
+        return ctx.forbidden('You can only delete quizzes for your own courses.');
+      }
+      return ctx.badRequest(err.message || 'Failed to delete quiz.');
     }
-
-    return super.delete(ctx);
-  }
+  },
 }));
