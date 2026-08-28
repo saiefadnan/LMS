@@ -1,8 +1,7 @@
 /**
  * Base API client — the single point of contact with Strapi.
  * 
- * Every other API module (auth, courses, etc.) imports fetchAPI from here.
- * This keeps the token-attachment and error-handling logic in ONE place.
+ * Exposes fetchAPI and apiClient utility with HTTP verb shortcuts.
  */
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:1337';
@@ -46,3 +45,28 @@ export async function fetchAPI<T = any>(
 
   return response.json();
 }
+
+/**
+ * Typed HTTP Client with verb helper methods
+ */
+export const apiClient = {
+  get: <T = any>(endpoint: string, options?: RequestInit): Promise<T> =>
+    fetchAPI<T>(endpoint, { method: 'GET', ...options }),
+
+  post: <T = any>(endpoint: string, body?: any, options?: RequestInit): Promise<T> =>
+    fetchAPI<T>(endpoint, {
+      method: 'POST',
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+      ...options,
+    }),
+
+  put: <T = any>(endpoint: string, body?: any, options?: RequestInit): Promise<T> =>
+    fetchAPI<T>(endpoint, {
+      method: 'PUT',
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+      ...options,
+    }),
+
+  delete: <T = any>(endpoint: string, options?: RequestInit): Promise<T> =>
+    fetchAPI<T>(endpoint, { method: 'DELETE', ...options }),
+};

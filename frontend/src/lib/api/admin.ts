@@ -1,31 +1,27 @@
 /**
  * Admin API
  */
-import { fetchAPI } from './client';
+import { apiClient } from './client';
+import { API_ENDPOINTS } from '@/config/endpoints';
 import type { User, UserRole, Course, BlogPost, StrapiResponse } from '@/types';
 
 export async function getAllUsers(): Promise<User[]> {
-  return fetchAPI<User[]>('/api/users?populate=role');
+  return apiClient.get<User[]>(`${API_ENDPOINTS.ADMIN.USERS}?populate=role`);
 }
 
 export async function getRoles(): Promise<{ roles: UserRole[] }> {
-  return fetchAPI<{ roles: UserRole[] }>('/api/users-permissions/roles');
+  return apiClient.get<{ roles: UserRole[] }>(API_ENDPOINTS.ADMIN.ROLES);
 }
 
 export async function updateUserRole(
   userId: number,
   roleId: number
 ): Promise<User> {
-  return fetchAPI<User>(`/api/users/${userId}`, {
-    method: 'PUT',
-    body: JSON.stringify({ role: roleId }),
-  });
+  return apiClient.put<User>(API_ENDPOINTS.ADMIN.USER_DETAIL(userId), { role: roleId });
 }
 
 export async function deleteUser(userId: number): Promise<void> {
-  return fetchAPI(`/api/users/${userId}`, {
-    method: 'DELETE',
-  });
+  return apiClient.delete<void>(API_ENDPOINTS.ADMIN.USER_DETAIL(userId));
 }
 
 export async function getPlatformStats(): Promise<{
@@ -39,9 +35,9 @@ export async function getPlatformStats(): Promise<{
 }> {
   const [users, coursesRes, blogsRes, enrollmentsRes] = await Promise.all([
     getAllUsers().catch(() => [] as User[]),
-    fetchAPI<StrapiResponse<Course[]>>('/api/courses').catch(() => ({ data: [] })),
-    fetchAPI<StrapiResponse<BlogPost[]>>('/api/blog-posts').catch(() => ({ data: [] })),
-    fetchAPI<StrapiResponse<any[]>>('/api/enrollments').catch(() => ({ data: [] })),
+    apiClient.get<StrapiResponse<Course[]>>(API_ENDPOINTS.COURSES.ROOT).catch(() => ({ data: [] })),
+    apiClient.get<StrapiResponse<BlogPost[]>>(API_ENDPOINTS.BLOG.ROOT).catch(() => ({ data: [] })),
+    apiClient.get<StrapiResponse<any[]>>(API_ENDPOINTS.ENROLLMENTS.ROOT).catch(() => ({ data: [] })),
   ]);
 
   const students = users.filter((u) => u.role?.type === 'student').length;

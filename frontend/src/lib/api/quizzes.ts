@@ -1,39 +1,36 @@
 /**
  * Quizzes API
  */
-import { fetchAPI } from './client';
+import { apiClient } from './client';
+import { API_ENDPOINTS } from '@/config/endpoints';
 import type { Quiz, QuizInput, QuizResult, StrapiResponse } from '@/types';
 
 export async function getQuizzes(courseDocumentId?: string): Promise<StrapiResponse<Quiz[]>> {
   const query = courseDocumentId
     ? `?filters[course][documentId][$eq]=${courseDocumentId}&populate=*`
     : '?populate=*';
-  return fetchAPI(`/api/quizzes${query}`);
+  return apiClient.get<StrapiResponse<Quiz[]>>(`${API_ENDPOINTS.QUIZZES.ROOT}${query}`);
 }
 
 export async function getQuiz(documentId: string): Promise<StrapiResponse<Quiz>> {
-  return fetchAPI(`/api/quizzes/${documentId}?populate=*`);
+  return apiClient.get<StrapiResponse<Quiz>>(
+    `${API_ENDPOINTS.QUIZZES.DETAIL(documentId)}?populate=*`
+  );
 }
 
 export async function createQuiz(data: QuizInput | Partial<Quiz>): Promise<StrapiResponse<Quiz>> {
-  return fetchAPI('/api/quizzes', {
-    method: 'POST',
-    body: JSON.stringify({ data }),
-  });
+  return apiClient.post<StrapiResponse<Quiz>>(API_ENDPOINTS.QUIZZES.ROOT, { data });
 }
 
 export async function updateQuiz(
   documentId: string,
   data: QuizInput | Partial<Quiz>
 ): Promise<StrapiResponse<Quiz>> {
-  return fetchAPI(`/api/quizzes/${documentId}`, {
-    method: 'PUT',
-    body: JSON.stringify({ data }),
-  });
+  return apiClient.put<StrapiResponse<Quiz>>(API_ENDPOINTS.QUIZZES.DETAIL(documentId), { data });
 }
 
 export async function deleteQuiz(documentId: string): Promise<void> {
-  return fetchAPI(`/api/quizzes/${documentId}`, { method: 'DELETE' });
+  return apiClient.delete<void>(API_ENDPOINTS.QUIZZES.DETAIL(documentId));
 }
 
 export async function submitQuizResult(
@@ -45,16 +42,15 @@ export async function submitQuizResult(
     passed: boolean;
   }
 ): Promise<StrapiResponse<QuizResult>> {
-  return fetchAPI('/api/quiz-results', {
-    method: 'POST',
-    body: JSON.stringify({ data }),
-  });
+  return apiClient.post<StrapiResponse<QuizResult>>(API_ENDPOINTS.QUIZ_RESULTS.ROOT, { data });
 }
 
 export async function getMyQuizResults(): Promise<StrapiResponse<QuizResult[]>> {
-  return fetchAPI('/api/quiz-results?populate=*');
+  return apiClient.get<StrapiResponse<QuizResult[]>>(`${API_ENDPOINTS.QUIZ_RESULTS.ROOT}?populate=*`);
 }
 
 export async function getQuizResult(documentId: string): Promise<StrapiResponse<QuizResult>> {
-  return fetchAPI(`/api/quiz-results/${documentId}?populate=*`);
+  return apiClient.get<StrapiResponse<QuizResult>>(
+    `${API_ENDPOINTS.QUIZ_RESULTS.DETAIL(documentId)}?populate=*`
+  );
 }
