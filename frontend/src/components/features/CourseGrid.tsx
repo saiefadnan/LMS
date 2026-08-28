@@ -73,7 +73,7 @@ export function CourseGrid({
             </CardDescription>
           </CardHeader>
           
-          <CardContent className="px-5 pb-4 pt-0">
+          <CardContent className="px-5 pb-4 pt-1">
             <div className="flex items-center gap-2 text-xs text-surface-600 dark:text-surface-400">
               <div className="w-5 h-5 rounded-full bg-surface-100 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300 flex items-center justify-center text-[10px] font-bold shrink-0">
                 {course.instructor?.username?.charAt(0).toUpperCase() || 'I'}
@@ -82,7 +82,7 @@ export function CourseGrid({
             </div>
           </CardContent>
           
-          <CardFooter className="px-5 py-3.5 mt-auto border-t border-surface-100 dark:border-surface-800 bg-surface-50/40 dark:bg-surface-950/40">
+          <CardFooter className="px-5 py-4 mt-auto border-t border-surface-100 dark:border-surface-800 bg-surface-50/40 dark:bg-surface-950/40">
             {renderAction ? (
               renderAction(course)
             ) : (

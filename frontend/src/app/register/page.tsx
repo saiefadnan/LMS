@@ -9,10 +9,12 @@ import { registerUser } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth';
 import { registerSchema, type RegisterFormValues } from '@/lib/validations';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import { Logo } from '@/components/ui/Logo';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import { GraduationCap, UserCheck, AlertCircle } from 'lucide-react';
+import { AuthInputField } from '@/components/features/auth/AuthInputField';
+import { AuthRoleSelector } from '@/components/features/auth/AuthRoleSelector';
+import { AuthPromoSide } from '@/components/features/auth/AuthPromoSide';
+import { AlertCircle } from 'lucide-react';
 
 export default function RegisterPage() {
   const [error, setError] = useState('');
@@ -37,7 +39,7 @@ export default function RegisterPage() {
     },
   });
 
-  const selectedRole = watch('role');
+  const selectedRole = watch('role') as 'student' | 'instructor';
 
   useEffect(() => {
     if (!loading && user) {
@@ -66,9 +68,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-surface-100 dark:bg-surface-950 p-4 sm:p-6 lg:p-8 transition-colors duration-150 overflow-x-hidden">
-      {/* Main Rounded Card Container matching Lumina template */}
       <div className="w-full max-w-5xl bg-white dark:bg-surface-900 rounded-3xl shadow-xl border border-surface-200/80 dark:border-surface-800 flex flex-col lg:flex-row overflow-hidden min-h-[620px] animate-auth-form">
-        
         {/* Left Side: Form Section */}
         <div className="w-full lg:w-1/2 p-8 sm:p-12 flex flex-col justify-between relative animate-slide-left">
           {/* Top Header & Theme Switcher */}
@@ -96,65 +96,37 @@ export default function RegisterPage() {
               )}
 
               {/* Role Selection */}
-              <div className="animate-item-slide-left [animation-delay:150ms]">
-                <div className="grid grid-cols-2 gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => setValue('role', 'student')}
-                    className={`p-2.5 rounded-xl border-2 text-left transition-all duration-200 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.98] ${
-                      selectedRole === 'student'
-                        ? 'border-brand-600 dark:border-brand-500 bg-brand-50/80 dark:bg-brand-950/60 ring-1 ring-brand-600 dark:ring-brand-500'
-                        : 'border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800 hover:border-surface-300'
-                    }`}
-                  >
-                    <GraduationCap className={`w-4 h-4 mb-1 ${selectedRole === 'student' ? 'text-brand-600 dark:text-brand-400' : 'text-surface-400'}`} />
-                    <span className={`block font-bold text-xs ${selectedRole === 'student' ? 'text-brand-900 dark:text-brand-200' : 'text-surface-900 dark:text-surface-100'}`}>Learn</span>
-                    <span className="text-[10px] text-surface-500 dark:text-surface-400 block">Take courses & quizzes</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setValue('role', 'instructor')}
-                    className={`p-2.5 rounded-xl border-2 text-left transition-all duration-200 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.98] ${
-                      selectedRole === 'instructor'
-                        ? 'border-brand-600 dark:border-brand-500 bg-brand-50/80 dark:bg-brand-950/60 ring-1 ring-brand-600 dark:ring-brand-500'
-                        : 'border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800 hover:border-surface-300'
-                    }`}
-                  >
-                    <UserCheck className={`w-4 h-4 mb-1 ${selectedRole === 'instructor' ? 'text-brand-600 dark:text-brand-400' : 'text-surface-400'}`} />
-                    <span className={`block font-bold text-xs ${selectedRole === 'instructor' ? 'text-brand-900 dark:text-brand-200' : 'text-surface-900 dark:text-surface-100'}`}>Teach</span>
-                    <span className="text-[10px] text-surface-500 dark:text-surface-400 block">Publish courses & lessons</span>
-                  </button>
-                </div>
-              </div>
+              <AuthRoleSelector
+                selectedRole={selectedRole}
+                onSelectRole={(role) => setValue('role', role)}
+                animationDelay="150ms"
+              />
 
-              <div className="animate-item-slide-left [animation-delay:200ms]">
-                <Input
-                  placeholder="Username"
-                  className="h-10 rounded-xl bg-surface-50 dark:bg-surface-800 border-transparent focus:bg-white dark:focus:bg-surface-900 text-xs px-3.5"
-                  {...register('username')}
-                  error={errors.username?.message}
-                />
-              </div>
+              <AuthInputField
+                placeholder="Username"
+                autoComplete="username"
+                register={register('username')}
+                error={errors.username?.message}
+                animationDelay="200ms"
+              />
 
-              <div className="animate-item-slide-left [animation-delay:250ms]">
-                <Input
-                  type="email"
-                  placeholder="Email Address"
-                  className="h-10 rounded-xl bg-surface-50 dark:bg-surface-800 border-transparent focus:bg-white dark:focus:bg-surface-900 text-xs px-3.5"
-                  {...register('email')}
-                  error={errors.email?.message}
-                />
-              </div>
+              <AuthInputField
+                type="email"
+                placeholder="Email Address"
+                autoComplete="email"
+                register={register('email')}
+                error={errors.email?.message}
+                animationDelay="250ms"
+              />
 
-              <div className="animate-item-slide-left [animation-delay:300ms]">
-                <Input
-                  type="password"
-                  placeholder="Password"
-                  className="h-10 rounded-xl bg-surface-50 dark:bg-surface-800 border-transparent focus:bg-white dark:focus:bg-surface-900 text-xs px-3.5"
-                  {...register('password')}
-                  error={errors.password?.message}
-                />
-              </div>
+              <AuthInputField
+                type="password"
+                placeholder="Password"
+                autoComplete="new-password"
+                register={register('password')}
+                error={errors.password?.message}
+                animationDelay="300ms"
+              />
 
               <div className="animate-item-slide-left [animation-delay:350ms] pt-1">
                 <Button
@@ -180,21 +152,15 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        {/* Right Side: Realistic Graduation Photograph Panel */}
-        <div className="hidden lg:block lg:w-1/2 relative bg-surface-900 dark:bg-surface-800 animate-slide-right overflow-hidden group">
-          <img
-            src="/register_graduation_realistic.jpg"
-            alt="Proud Graduate on University Campus"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-surface-950/85 via-transparent to-transparent flex flex-col justify-end p-8 text-white">
-            <span className="px-3 py-1 bg-amber-500/90 text-white text-xs font-semibold rounded-full w-fit mb-2 backdrop-blur-xs">
-              Verified Achievement
-            </span>
-            <h3 className="text-xl font-bold">Earn industry-recognized certificates</h3>
-            <p className="text-xs text-surface-200 mt-1">Join thousands of successful graduates worldwide today.</p>
-          </div>
-        </div>
+        {/* Right Side: Photo Panel */}
+        <AuthPromoSide
+          imageSrc="/register_graduation_realistic.jpg"
+          imageAlt="Proud Graduate on University Campus"
+          badgeText="Verified Achievement"
+          badgeBgColor="bg-amber-500/90"
+          title="Earn industry-recognized certificates"
+          description="Join thousands of successful graduates worldwide today."
+        />
       </div>
     </div>
   );

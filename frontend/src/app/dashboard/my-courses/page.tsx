@@ -6,8 +6,9 @@ import { getMyEnrollments, getMyProgress } from '@/lib/api';
 import { type Enrollment } from '@/types';
 import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui/Button';
+import { Pagination } from '@/components/ui/Pagination';
 import { CourseGrid } from '@/components/features/CourseGrid';
-import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 export default function MyCoursesPage() {
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
@@ -157,38 +158,14 @@ export default function MyCoursesPage() {
             }}
           />
 
-          {/* Pagination Controls */}
-          {pageCount > 1 && (
-            <div className="flex items-center justify-center gap-3 pt-6">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page <= 1}
-                className="gap-1 px-3 py-1.5 text-xs cursor-pointer"
-              >
-                <ChevronLeft className="w-3.5 h-3.5" />
-                Previous
-              </Button>
-
-              <span className="text-xs font-semibold text-surface-700 dark:text-surface-300 bg-white dark:bg-surface-900 px-3 py-1.5 rounded-lg border border-surface-200 dark:border-surface-800 shadow-xs">
-                Page {page} of {pageCount}
-              </span>
-
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
-                disabled={page >= pageCount}
-                className="gap-1 px-3 py-1.5 text-xs cursor-pointer"
-              >
-                Next
-                <ChevronRight className="w-3.5 h-3.5" />
-              </Button>
-            </div>
-          )}
+          <Pagination
+            currentPage={page}
+            totalPages={pageCount}
+            onPageChange={setPage}
+          />
         </>
       )}
     </div>
   );
 }
+

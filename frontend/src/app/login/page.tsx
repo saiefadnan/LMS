@@ -9,10 +9,11 @@ import { loginUser } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth';
 import { loginSchema, type LoginFormValues } from '@/lib/validations';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import { Logo } from '@/components/ui/Logo';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import { Target, BookOpen, Award, AlertCircle } from 'lucide-react';
+import { AuthInputField } from '@/components/features/auth/AuthInputField';
+import { AuthPromoSide } from '@/components/features/auth/AuthPromoSide';
+import { AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const [error, setError] = useState('');
@@ -57,9 +58,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-surface-100 dark:bg-surface-950 p-4 sm:p-6 lg:p-8 transition-colors duration-150 overflow-x-hidden">
-      {/* Main Rounded Card Container matching Lumina template */}
       <div className="w-full max-w-5xl bg-white dark:bg-surface-900 rounded-3xl shadow-xl border border-surface-200/80 dark:border-surface-800 flex flex-col lg:flex-row overflow-hidden min-h-[600px] animate-auth-form">
-        
         {/* Left Side: Form Section */}
         <div className="w-full lg:w-1/2 p-8 sm:p-12 flex flex-col justify-between relative animate-slide-left">
           {/* Top Header & Theme Switcher */}
@@ -86,24 +85,22 @@ export default function LoginPage() {
                 </div>
               )}
 
-              <div className="animate-item-slide-left [animation-delay:150ms]">
-                <Input
-                  placeholder="Email or Username"
-                  className="h-11 rounded-xl bg-surface-50 dark:bg-surface-800 border-transparent focus:bg-white dark:focus:bg-surface-900 text-sm px-4"
-                  {...register('identifier')}
-                  error={errors.identifier?.message}
-                />
-              </div>
+              <AuthInputField
+                placeholder="Email or Username"
+                autoComplete="username"
+                register={register('identifier')}
+                error={errors.identifier?.message}
+                animationDelay="150ms"
+              />
 
-              <div className="animate-item-slide-left [animation-delay:200ms]">
-                <Input
-                  type="password"
-                  placeholder="Password"
-                  className="h-11 rounded-xl bg-surface-50 dark:bg-surface-800 border-transparent focus:bg-white dark:focus:bg-surface-900 text-sm px-4"
-                  {...register('password')}
-                  error={errors.password?.message}
-                />
-              </div>
+              <AuthInputField
+                type="password"
+                placeholder="Password"
+                autoComplete="current-password"
+                register={register('password')}
+                error={errors.password?.message}
+                animationDelay="200ms"
+              />
 
               {/* Remember me & Forgot password row */}
               <div className="flex items-center justify-between text-xs animate-item-slide-left [animation-delay:220ms] pt-1">
@@ -143,21 +140,15 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Right Side: Realistic Student Study Photograph Panel */}
-        <div className="hidden lg:block lg:w-1/2 relative bg-surface-900 dark:bg-surface-800 animate-slide-right overflow-hidden group">
-          <img
-            src="/login_student_realistic.jpg"
-            alt="Student Studying in Modern University Library"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-surface-950/80 via-transparent to-transparent flex flex-col justify-end p-8 text-white">
-            <span className="px-3 py-1 bg-brand-500/90 text-white text-xs font-semibold rounded-full w-fit mb-2 backdrop-blur-xs">
-              Focus & Excellence
-            </span>
-            <h3 className="text-xl font-bold">Pick up right where you left off</h3>
-            <p className="text-xs text-surface-200 mt-1">Access curated engineering curriculum & real-time progress.</p>
-          </div>
-        </div>
+        {/* Right Side: Photo Panel */}
+        <AuthPromoSide
+          imageSrc="/login_student_realistic.jpg"
+          imageAlt="Student Studying in Modern University Library"
+          badgeText="Focus & Excellence"
+          badgeBgColor="bg-brand-500/90"
+          title="Pick up right where you left off"
+          description="Access curated engineering curriculum & real-time progress."
+        />
       </div>
     </div>
   );

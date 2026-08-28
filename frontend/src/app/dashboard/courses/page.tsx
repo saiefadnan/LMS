@@ -6,8 +6,10 @@ import { getCourses, getMyCourses, deleteCourse } from '@/lib/api';
 import { type Course } from '@/types';
 import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui/Button';
+import { Pagination } from '@/components/ui/Pagination';
 import { CourseGrid } from '@/components/features/CourseGrid';
-import { Search, ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
+import { Search, Plus, Trash2 } from 'lucide-react';
+import { modal } from '@/stores/modal';
 
 export default function InstructorCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -17,17 +19,14 @@ export default function InstructorCoursesPage() {
   const pageSize = 6;
   const user = useAuthStore((s) => s.user);
 
-  const roleType = user
-    ? (typeof user.role === 'object' ? user.role?.type : user.role) || 'student'
-    : 'student';
+  const roleType = (typeof user?.role === 'object' ? user?.role?.type : user?.role) || 'student';
 
   useEffect(() => {
     async function fetchMyCourses() {
       if (!user) return;
       try {
-        // Admins and Content Managers see all courses, Instructors see only their own
-        const isGlobal = roleType === 'admin' || roleType === 'content_manager';
-        const res = isGlobal
+        setLoading(true);
+        const res = (roleType === 'admin' || roleType === 'content_manager')
           ? await getCourses()
           : await getMyCourses();
         setCourses(res.data || []);
@@ -41,15 +40,23 @@ export default function InstructorCoursesPage() {
   }, [user, roleType]);
 
   const handleDeleteCourse = async (targetCourse: Course) => {
-    if (!window.confirm(`Are you sure you want to delete course "${targetCourse.title}"? This action cannot be undone.`)) {
-      return;
-    }
+    const confirmed = await modal.confirm({
+      title: 'Delete Course',
+      message: `Are you sure you want to permanently delete course "${targetCourse.title}"? All associated lessons, quizzes, and student records will be removed.`,
+      variant: 'danger',
+      confirmText: 'Delete Course',
+    });
+    if (!confirmed) return;
 
     try {
       await deleteCourse(targetCourse.documentId);
       setCourses((prev) => prev.filter((c) => c.documentId !== targetCourse.documentId));
     } catch (err: any) {
-      alert(err.message || 'Failed to delete course');
+      modal.alert({
+        title: 'Deletion Failed',
+        message: err.message || 'Failed to delete course. Please try again.',
+        variant: 'danger',
+      });
     }
   };
 
@@ -123,9 +130,9 @@ export default function InstructorCoursesPage() {
                 : "You haven't created any courses yet."
             }
             renderAction={(course) => (
-              <div className="flex items-center gap-2 w-full">
+              <div className="flex items-center gap-2.5 w-full py-1">
                 <Link href={`/dashboard/courses/${course.documentId}/edit`} className="flex-1">
-                  <Button variant="secondary" className="w-full text-xs cursor-pointer">
+                  <Button variant="secondary" className="w-full text-xs font-semibold cursor-pointer">
                     Edit Course
                   </Button>
                 </Link>
@@ -142,38 +149,14 @@ export default function InstructorCoursesPage() {
             )}
           />
 
-          {/* Pagination Controls */}
-          {pageCount > 1 && (
-            <div className="flex items-center justify-center gap-3 pt-6">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page <= 1}
-                className="gap-1 px-3 py-1.5 text-xs cursor-pointer"
-              >
-                <ChevronLeft className="w-3.5 h-3.5" />
-                Previous
-              </Button>
-
-              <span className="text-xs font-semibold text-surface-700 dark:text-surface-300 bg-white dark:bg-surface-900 px-3 py-1.5 rounded-lg border border-surface-200 dark:border-surface-800 shadow-xs">
-                Page {page} of {pageCount}
-              </span>
-
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
-                disabled={page >= pageCount}
-                className="gap-1 px-3 py-1.5 text-xs cursor-pointer"
-              >
-                Next
-                <ChevronRight className="w-3.5 h-3.5" />
-              </Button>
-            </div>
-          )}
+          <Pagination
+            currentPage={page}
+            totalPages={pageCount}
+            onPageChange={setPage}
+          />
         </>
       )}
     </div>
   );
 }
+
